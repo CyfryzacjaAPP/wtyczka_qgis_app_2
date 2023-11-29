@@ -1,0 +1,52 @@
+# This file contains metadata for your plugin.
+
+# This file should be included when you package your plugin.# Mandatory items:
+
+[general]
+name=Wtyczka APP 2
+qgisMinimumVersion=3.22
+description=Wtyczka wspomaga tworzenie danych przestrzennych dla planów ogólnych gminy w pełnym zakresie oraz pozostałych aktów planowania przestrzennego (APP) w zakresie podstawowym, w tym zbiorów APP oraz metadanych zgodnie z polskimi przepisami. Dedykowaną wersją oprogramowania QGIS do korzystania z Wtyczki APP są wersje powyżej 3.22. Do czasu wejścia w życie rozporządzenia w sprawie sposobu przygotowania projektu planu ogólnego gminy, wtyczka stanowi prototyp w zakresie tworzenia ustaleń planu ogólnego gminy.
+version=2.0.0
+author=Marcin Lebiecki z wykorzystaniem wersji pierwszej stworzonej przez EnviroSolutions Sp. z o.o. 
+email=cyfryzacja.app@mrit.gov.pl 
+
+about=PL: Wtyczka wspomaga tworzenie danych przestrzennych dla planów ogólnych gminy w pełnym zakresie, zgodnie z polskimi przepisami obowiązującymi od 24 września 2024 r. oraz pozostałych aktów planowania przestrzennego (APP), w tym zbiorów APP oraz metadanych zgodnie z polskimi przepisami obowiązującymi od 31 października 2020 r.
+  Dedykowaną wersją oprogramowania QGIS do korzystania z Wtyczki APP są wersje powyżej 3.22.
+  ENG: The plugin supports creation of spatial data for general municipal plans in full scope and other spatial planning acts (APP), APP datasets and APP metadata in accordance with the Polish regulations.
+  Dedicated version of QGIS software to use APP Plugin are versions above 3.22.
+
+tracker=https://github.com/CyfryzacjaAPP/wtyczka_qgis_app_2/issues
+repository=https://github.com/CyfryzacjaAPP/wtyczka_qgis_app_2
+# End of mandatory metadata
+
+# Recommended items:
+
+hasProcessingProvider=no
+# Uncomment the following line and add your changelog:
+# changelog=
+  Wersja 2.0.0
+  * utworzenie narzędzia "Wtyczka APP" dla POG
+
+# Tags are comma separated with spaces allowed
+tags=python, land use planning, gml, poland, urban planning, polska, planowanie przestrzenne, zagospodarowanie przestrzenne
+
+homepage=https://github.com/CyfryzacjaAPP/wtyczka_qgis_app_2
+category=Plugins
+icon=img/logo.png
+# experimental flag
+experimental=True
+
+# deprecated flag (applies to the whole plugin, not just a single version)
+deprecated=False
+
+# Since QGIS 3.8, a comma separated list of plugins to be installed
+# (or upgraded) can be specified.
+# Check the documentation for more information.
+# plugin_dependencies=
+
+Category of the plugin: Raster, Vector, Database or Web
+# category=
+
+# If the plugin can run on QGIS Server.
+server=False
+

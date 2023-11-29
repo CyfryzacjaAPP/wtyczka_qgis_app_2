@@ -1,0 +1,688 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Sun May 28 20:01:31 2023
+
+@author: Marcin Lebiecki
+"""
+
+# -*- coding: utf-8 -*-
+from qgis.PyQt.QtWidgets import *
+from qgis.PyQt.QtGui import *
+from pathlib import Path
+import configparser
+import re
+import string
+from datetime import date, datetime
+from qgis.core import QgsProject, NULL, QgsSettings
+from PyQt5.QtCore import QDateTime, QDate, QTime, QRegExp
+
+
+def my_form_open(dialog, layer, feature):
+    global atrybuty, geometria, obj, dlg, warstwa, listaBledowAtrybutow, placeHolders, teryt_gminy
+    global zapisz, przestrzenNazw, koniecWersjiObiektu, lokalnyId, wersjaId, poczatekWersjiObiektu, nazwa, oznaczenie, symbol
+    global charakterUstalenia, status, obowiazujeOd, obowiazujeDo, obowiazujeOd_label, obowiazujeDo_label
+    global wylaczenieZabudowyZagrodowej, odlegloscDoSzkolyPodstawowej, odlegloscDoObszarowZieleniPublicznej
+    global powierzchniaLacznaObszarowZieleniPublicznej, odlegloscDoObszaruZieleniPublicznej, powierzchniaObszaruZieleniPublicznej
+    global odlegloscDoPrzedszkola, odlegloscDoZlobka, odlegloscDoAmbulatoriumPOZ, odlegloscDoBiblioteki, odlegloscDoDomuKultury
+    global odlegloscDoDomuPomocySpolecznej, odlegloscDoUrzadzonegoTerenuSportu, odlegloscDoPrzystanku, odlegloscDoPlacowkiPocztowej
+    global odlegloscDoApteki, odlegloscDoPosterunkuPolicji, odlegloscDoPosterunkuJednostkiOchronyPrzeciwpozarowej
+    global rodzajZbioru, numerZbioru, jpt, idLokalnyAPP
+    global czyObiektZmieniony, czyWersjaZmieniona
+    
+    atrybuty = feature.attributes()
+    geometria = feature.geometry()
+    obj = feature
+    dlg = dialog
+    if dlg.parent() == None:
+        return
+    try:
+        dlg.parent().setWindowTitle("Atrybuty OSD, nazwa warstwy: " + layer.name())
+        dlg.parent().setMaximumWidth(650)
+        dlg.parent().setMaximumHeight(590)
+    except:
+        pass
+    
+    warstwa = layer
+    warstwa.geometryOptions().setGeometryPrecision(0.01)
+    warstwa.startEditing()
+    qgis.utils.iface.setActiveLayer(warstwa)
+    
+    mainPath = Path(QgsApplication.qgisSettingsDirPath())/Path("python/plugins/wtyczka_qgis_app/")
+    teryt_gminy = ''
+    dataCzasTeraz = datetime.now()
+    
+    s = QgsSettings()
+    rodzajZbioru = s.value("qgis_app/settings/rodzajZbioru", "")
+    numerZbioru = s.value("qgis_app/settings/numerZbioru", "")
+    jpt = s.value("qgis_app/settings/jpt", "")
+    idLokalnyAPP = s.value("qgis_app/settings/idLokalnyAPP","")
+    
+    placeHolders = {'przestrzenNazw':'np. PL.ZIPPZP.2393/246601-POG',
+                    'lokalnyId':'np. 1OSD',
+                    'oznaczenie':'np. 1OSD',
+                    'symbol':'np. OSD',
+                    'minimalnaOdleglosc':'wartość w metrach np. 1500',
+                    'minOdlegloscOdObszaruZieleniPublicznej':'wartość w metrach np. 3000',
+                    'powierzchnia obszaru':'wartość w hektarach min. 10',
+                    'powierzchnia obszarow':'wartość w hektarach min. 1.5'
+                    }
+    
+    pomoc = ['Przestrzeń nazw identyfikująca w sposób jednoznaczny źródło danych obiektu, o której mowa w § 5 ust. 1 pkt 1 rozporządzenia. KOMENTARZ 01. Wartość atrybutu przestrzeń nazw powinna jednoznacznie identyfikować zbiór danych przestrzennych, do którego należy instancja typu obiektu',
+             'Lokalny identyfikator obiektu, o którym mowa w § 5 ust. 1 pkt 2 rozporządzenia,  przypisany przez dostawcę danych. KOMENTARZ 01. Unikalność identyfikatora w przestrzeni nazw gwarantuje dostawca zbioru danych przestrzennych',
+             'Identyfikator poszczególnej wersji obiektu przestrzennego, o którym mowa w § 5 ust. 1 pkt 3 rozporządzenia, przypisany przez dostawcę danych. KOMENTARZ 01. W zestawie wszystkich wersji danego obiektu identyfikator wersji musi być unikalny',
+             'Nazwa urzędowa regulacji dodatkowej',
+             'Oznaczenia literowe lub literowo-liczbowe Regulacji umożliwiające jednoznaczne powiązanie obiektu z tekstem aktu planowania przestrzennego',
+             'Symbol literowy lub literowo-liczbowy stosowany do wyświetlania identyfikacji o rodzaju Regulacji',
+             'Charakter prawny regulacji w zakresie zagospodarowania przestrzennego',
+             'Data, od której dana wersja aktu planowania przestrzennego obowiązuje',
+             'Data, od której dana wersja aktu planowania przestrzennego przestała obowiązywać',
+             'Ogólne wskazanie etapu procesu planowania, na którym znajduje się akt planowania przestrzennego',
+             'Data i godzina, w której ta wersja obiektu została wprowadzona do zbioru danych przestrzennych lub zmieniona w tym zbiorze danych przestrzennych',
+             'Data i godzina, w której ta wersja obiektu została zastąpiona w zbiorze danych przestrzennych lub wycofana z tego zbioru danych przestrzennych',
+             'Informacja o wyłączeniu terenów zabudowy zagrodowej o którym mowa w art. 13f ust. 7 pkt 5 ustawy z dnia 27 marca 2003 r. o planowaniu i zagospodarowaniu przestrzennym',
+             'Minimalna odległość położenia działki od obiektu infrastruktury społecznej (szkoły podstawowej)',
+             'Minimalna odległość położenia działki od obszarów zieleni publicznej o których mowa w w art. 13f ust. 3 pkt 1 ustawy z dnia 27 marca 2003 r. o planowaniu i zagospodarowaniu przestrzennym',
+             'Łączna powierzchnia obszarów zieleni publicznej o których mowa w w art. 13f ust. 3 pkt 1 ustawy z dnia 27 marca 2003 r. o planowaniu i zagospodarowaniu przestrzennym',
+             'Minimalna odległość położenia działki od obszaru zieleni publicznej o którym mowa w w art. 13f ust. 3 pkt 2 ustawy z dnia 27 marca 2003 r. o planowaniu i zagospodarowaniu przestrzennym',
+             'Powierzchnia obszaru zieleni publicznej o których mowa w w art. 13f ust. 3 pkt 2 ustawy z dnia 27 marca 2003 r. o planowaniu i zagospodarowaniu przestrzennym',
+             'Minimalna odległość położenia działki od obiektu infrastruktury społecznej (przedszkola)',
+             'Minimalna odległość położenia działki od obiektu infrastruktury społecznej (żłobka)',
+             'Minimalna odległość położenia działki od obiektu infrastruktury społecznej (ambulatorium POZ)',
+             'Minimalna odległość położenia działki od obiektu infrastruktury społecznej (biblioteki)',
+             'Minimalna odległość położenia działki od obiektu infrastruktury społecznej (domu kultury)',
+             'Minimalna odległość położenia działki od obiektu infrastruktury społecznej (domu pomocy społecznej)',
+             'Minimalna odległość położenia działki od obiektu infrastruktury społecznej (urządzonego terenu sportu)',
+             'Minimalna odległość położenia działki od obiektu infrastruktury społecznej (przystanku publicznego transportu zbiorowego)',
+             'Minimalna odległość położenia działki od obiektu infrastruktury społecznej (placowki pocztowej)',
+             'Minimalna odległość położenia działki od obiektu infrastruktury społecznej (apteki)',
+             'Minimalna odległość położenia działki od obiektu infrastruktury społecznej (posterunku policji)',
+             'Minimalna odległość położenia działki od obiektu infrastruktury społecznej (jednostki ochrony przeciwpożarowej)']
+    
+    atrybuty.append('geometria')
+    listaBledowAtrybutow = [0 for i in range(len(atrybuty))]
+    
+    atrybutyPOG = odczytajAtrybutyZPOG()
+    
+    wersjaId = dialog.findChild(QDateTimeEdit,"wersjaId")
+    wersjaId.dateTimeChanged.connect(wersjaId_kontrola)
+    if obj.id() < 0: wersjaId.setDateTime(dataCzasTeraz)
+    
+    poczatekWersjiObiektu = dialog.findChild(QDateTimeEdit,"poczatekWersjiObiektu")
+    poczatekWersjiObiektu.dateTimeChanged.connect(poczatekWersjiObiektu_kontrola)
+    if obj.id() < 0: poczatekWersjiObiektu.setDateTime(dataCzasTeraz)
+    
+    przestrzenNazw = dialog.findChild(QLineEdit,"przestrzenNazw")
+    przestrzenNazw.setPlaceholderText(placeHolders['przestrzenNazw'])
+    przestrzenNazw.textChanged.connect(przestrzenNazw_kontrola)
+    
+    lokalnyId = dialog.findChild(QLineEdit,"lokalnyId")
+    lokalnyId.setPlaceholderText(placeHolders['lokalnyId'])
+    lokalnyId.textChanged.connect(lokalnyId_kontrola)
+    if obj.id() <0: lokalnyId_kontrola('')
+    
+    nazwa = dialog.findChild(QLineEdit,"nazwa")
+     
+    oznaczenie = dialog.findChild(QLineEdit,"oznaczenie")
+    oznaczenie.setPlaceholderText(placeHolders['oznaczenie'])
+    oznaczenie.textChanged.connect(oznaczenie_kontrola)
+    if oznaczenie.text() == 'NULL' or oznaczenie.text() == None:
+        oznaczenie.setText('')
+    else:
+        oznaczenie_kontrola(oznaczenie.text())
+    
+    symbol = dialog.findChild(QLineEdit,"symbol")
+    symbol.setPlaceholderText(placeHolders['symbol'])
+    symbol.textChanged.connect(symbol_kontrola)
+    if symbol.text() == 'NULL': symbol.setText('')
+    
+    charakterUstalenia = dialog.findChild(QComboBox,"charakterUstalenia")
+    charakterUstalenia.currentTextChanged.connect(charakterUstalenia_kontrola)
+    if obj.id() < 0: charakterUstalenia.setCurrentIndex(0)
+    
+    obowiazujeOd = dialog.findChild(QDateTimeEdit,"obowiazujeOd")
+    obowiazujeOd_label = dialog.findChild(QLabel,"obowiazujeOd_label")
+    obowiazujeOd.setMaximumDate(QDate.currentDate())
+    obowiazujeOd.valueChanged.connect(poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola)
+    
+    obowiazujeDo = dialog.findChild(QDateTimeEdit,"obowiazujeDo")
+    obowiazujeDo_label = dialog.findChild(QLabel,"obowiazujeDo_label")
+    obowiazujeDo.setMaximumDate(QDate.currentDate())
+    obowiazujeDo.valueChanged.connect(poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola)
+    
+    status = dialog.findChild(QComboBox,"status")
+    status.currentTextChanged.connect(status_kontrola)
+    if obj.id() < 0 and atrybutyPOG != None:
+        status.setCurrentText(atrybutyPOG['status'])
+    status_kontrola(status.currentText())
+    
+    koniecWersjiObiektu = dialog.findChild(QDateTimeEdit,"koniecWersjiObiektu")
+    koniecWersjiObiektu.valueChanged.connect(poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola)
+    koniecWersjiObiektu.setMaximumDate(QDate.currentDate())
+    
+    wylaczenieZabudowyZagrodowej = dialog.findChild(QCheckBox,"wylaczenieZabudowyZagrodowej")
+    wylaczenieZabudowyZagrodowej.stateChanged.connect(wylaczenieZabudowyZagrodowej_kontrola)
+    
+    odlegloscDoSzkolyPodstawowej = dialog.findChild(QLineEdit,"odlegloscDoSzkolyPodstawowej")
+    odlegloscDoSzkolyPodstawowej.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
+    odlegloscDoSzkolyPodstawowej.textChanged.connect(odlegloscDoSzkolyPodstawowej_kontrola)
+    odlegloscDoSzkolyPodstawowej.setValidator(QRegExpValidator(QRegExp("[1-9]\d{0,4}")))
+    if obj.id() < 0: odlegloscDoSzkolyPodstawowej_kontrola('')
+    
+    odlegloscDoObszarowZieleniPublicznej = dialog.findChild(QLineEdit,"odlegloscDoObszarowZieleniPublicznej")
+    odlegloscDoObszarowZieleniPublicznej.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
+    odlegloscDoObszarowZieleniPublicznej.textChanged.connect(odlegloscDoObszarowZieleniPublicznej_kontrola)
+    odlegloscDoObszarowZieleniPublicznej.setValidator(QRegExpValidator(QRegExp("[1-9]\d{0,4}")))
+    if obj.id() < 0: odlegloscDoObszarowZieleniPublicznej_kontrola('')
+    
+    powierzchniaLacznaObszarowZieleniPublicznej = dialog.findChild(QLineEdit,"powierzchniaLacznaObszarowZieleniPublicznej")
+    powierzchniaLacznaObszarowZieleniPublicznej.setPlaceholderText(placeHolders['powierzchnia obszarow'])
+    powierzchniaLacznaObszarowZieleniPublicznej.setText(powierzchniaLacznaObszarowZieleniPublicznej.text().replace(",","."))
+    powierzchniaLacznaObszarowZieleniPublicznej.textChanged.connect(powierzchniaLacznaObszarowZieleniPublicznej_kontrola)
+    powierzchniaLacznaObszarowZieleniPublicznej.setValidator(QRegExpValidator(QRegExp("[1-9][0-9]{0,5}\.([0-9]{1})?")))
+    if obj.id() < 0: powierzchniaLacznaObszarowZieleniPublicznej_kontrola('')
+    
+    odlegloscDoObszaruZieleniPublicznej = dialog.findChild(QLineEdit,"odlegloscDoObszaruZieleniPublicznej")
+    odlegloscDoObszaruZieleniPublicznej.setPlaceholderText(placeHolders['minOdlegloscOdObszaruZieleniPublicznej'])
+    odlegloscDoObszaruZieleniPublicznej.textChanged.connect(odlegloscDoObszaruZieleniPublicznej_kontrola)
+    odlegloscDoObszaruZieleniPublicznej.setValidator(QRegExpValidator(QRegExp("[1-9]\d{0,4}")))
+    if obj.id() < 0: odlegloscDoObszaruZieleniPublicznej_kontrola('')
+    
+    powierzchniaObszaruZieleniPublicznej = dialog.findChild(QLineEdit,"powierzchniaObszaruZieleniPublicznej")
+    powierzchniaObszaruZieleniPublicznej.setPlaceholderText(placeHolders['powierzchnia obszaru'])
+    powierzchniaObszaruZieleniPublicznej.setText(powierzchniaObszaruZieleniPublicznej.text().replace(",","."))
+    powierzchniaObszaruZieleniPublicznej.textChanged.connect(powierzchniaObszaruZieleniPublicznej_kontrola)
+    powierzchniaObszaruZieleniPublicznej.setValidator(QRegExpValidator(QRegExp("[1-9][0-9]{1,5}\.([0-9]{1})?")))
+    if obj.id() < 0: powierzchniaObszaruZieleniPublicznej_kontrola('')
+    
+    odlegloscDoPrzedszkola = dialog.findChild(QLineEdit,"odlegloscDoPrzedszkola")
+    odlegloscDoPrzedszkola.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
+    odlegloscDoPrzedszkola.textChanged.connect(odlegloscDoPrzedszkola_kontrola)
+    odlegloscDoPrzedszkola.setValidator(QRegExpValidator(QRegExp("[1-9]\d{0,4}")))
+    
+    odlegloscDoZlobka = dialog.findChild(QLineEdit,"odlegloscDoZlobka")
+    odlegloscDoZlobka.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
+    odlegloscDoZlobka.textChanged.connect(odlegloscDoZlobka_kontrola)
+    odlegloscDoZlobka.setValidator(QRegExpValidator(QRegExp("[1-9]\d{0,4}")))
+    
+    odlegloscDoAmbulatoriumPOZ = dialog.findChild(QLineEdit,"odlegloscDoAmbulatoriumPOZ")
+    odlegloscDoAmbulatoriumPOZ.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
+    odlegloscDoAmbulatoriumPOZ.textChanged.connect(odlegloscDoAmbulatoriumPOZ_kontrola)
+    odlegloscDoAmbulatoriumPOZ.setValidator(QRegExpValidator(QRegExp("[1-9]\d{0,4}")))
+    
+    odlegloscDoBiblioteki = dialog.findChild(QLineEdit,"odlegloscDoBiblioteki")
+    odlegloscDoBiblioteki.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
+    odlegloscDoBiblioteki.textChanged.connect(odlegloscDoBiblioteki_kontrola)
+    odlegloscDoBiblioteki.setValidator(QRegExpValidator(QRegExp("[1-9]\d{0,4}")))
+    
+    odlegloscDoDomuKultury = dialog.findChild(QLineEdit,"odlegloscDoDomuKultury")
+    odlegloscDoDomuKultury.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
+    odlegloscDoDomuKultury.textChanged.connect(odlegloscDoDomuKultury_kontrola)
+    odlegloscDoDomuKultury.setValidator(QRegExpValidator(QRegExp("[1-9]\d{0,4}")))
+    
+    odlegloscDoDomuPomocySpolecznej = dialog.findChild(QLineEdit,"odlegloscDoDomuPomocySpolecznej")
+    odlegloscDoDomuPomocySpolecznej.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
+    odlegloscDoDomuPomocySpolecznej.textChanged.connect(odlegloscDoDomuPomocySpolecznej_kontrola)
+    odlegloscDoDomuPomocySpolecznej.setValidator(QRegExpValidator(QRegExp("[1-9]\d{0,4}")))
+    
+    odlegloscDoUrzadzonegoTerenuSportu = dialog.findChild(QLineEdit,"odlegloscDoUrzadzonegoTerenuSportu")
+    odlegloscDoUrzadzonegoTerenuSportu.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
+    odlegloscDoUrzadzonegoTerenuSportu.textChanged.connect(odlegloscDoUrzadzonegoTerenuSportu_kontrola)
+    odlegloscDoUrzadzonegoTerenuSportu.setValidator(QRegExpValidator(QRegExp("[1-9]\d{0,4}")))
+    
+    odlegloscDoPrzystanku = dialog.findChild(QLineEdit,"odlegloscDoPrzystanku")
+    odlegloscDoPrzystanku.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
+    odlegloscDoPrzystanku.textChanged.connect(odlegloscDoPrzystanku_kontrola)
+    odlegloscDoPrzystanku.setValidator(QRegExpValidator(QRegExp("[1-9]\d{0,4}")))
+    
+    odlegloscDoPlacowkiPocztowej = dialog.findChild(QLineEdit,"odlegloscDoPlacowkiPocztowej")
+    odlegloscDoPlacowkiPocztowej.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
+    odlegloscDoPlacowkiPocztowej.textChanged.connect(odlegloscDoPlacowkiPocztowej_kontrola)
+    odlegloscDoPlacowkiPocztowej.setValidator(QRegExpValidator(QRegExp("[1-9]\d{0,4}")))
+    
+    odlegloscDoApteki = dialog.findChild(QLineEdit,"odlegloscDoApteki")
+    odlegloscDoApteki.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
+    odlegloscDoApteki.textChanged.connect(odlegloscDoApteki_kontrola)
+    odlegloscDoApteki.setValidator(QRegExpValidator(QRegExp("[1-9]\d{0,4}")))
+    
+    odlegloscDoPosterunkuPolicji = dialog.findChild(QLineEdit,"odlegloscDoPosterunkuPolicji")
+    odlegloscDoPosterunkuPolicji.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
+    odlegloscDoPosterunkuPolicji.textChanged.connect(odlegloscDoPosterunkuPolicji_kontrola)
+    odlegloscDoPosterunkuPolicji.setValidator(QRegExpValidator(QRegExp("[1-9]\d{0,4}")))
+    
+    odlegloscDoPosterunkuJednostkiOchronyPrzeciwpozarowej = dialog.findChild(QLineEdit,"odlegloscDoPosterunkuJednostkiOchronyPrzeciwpozarowej")
+    odlegloscDoPosterunkuJednostkiOchronyPrzeciwpozarowej.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
+    odlegloscDoPosterunkuJednostkiOchronyPrzeciwpozarowej.textChanged.connect(odlegloscDoPosterunkuJednostkiOchronyPrzeciwpozarowej_kontrola)
+    odlegloscDoPosterunkuJednostkiOchronyPrzeciwpozarowej.setValidator(QRegExpValidator(QRegExp("[1-9]\d{0,4}")))
+    
+    geometria_kontrola()
+    poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola()
+    czyWersjaZmieniona = False
+    
+    zapisz = dialog.findChild(QPushButton,"zapisz")
+    zapisz.clicked.connect(zapis)
+    zapisz.setEnabled(False)
+    zapisz.setText("Zapisz")
+    
+    if obj.id() < 0: przestrzenNazw_kontrola()
+    
+    labels = [None for i in range(30)]
+    pixmap = QPixmap(':/plugins/wtyczka_app/img/info2.png')
+    for i in range(30):
+        labels[i] = dialog.findChild(QLabel,"label_" + str(i + 1))
+        labels[i].setPixmap(pixmap)
+        labels[i].setToolTip(pomoc[i])
+
+
+def komunikowanieBledu(object, txt, nazwaAtrybutu):
+    try:
+        object.setToolTip(txt)
+        if txt == '':
+            listaBledowAtrybutow[obj.fieldNameIndex(nazwaAtrybutu)] = 0
+            object.setStyleSheet("")
+            wlaczenieZapisu()
+        else:
+            listaBledowAtrybutow[obj.fieldNameIndex(nazwaAtrybutu)] = 1
+            object.setStyleSheet("border: 1px solid red")
+            wylaczenieZapisu()
+    except:
+        pass
+
+
+def zmianaWersjiIPoczatkuWersji():
+    dataCzasTeraz = datetime.now()
+    if czyObiektZmieniony and koniecWersjiObiektu.dateTime().time().msec() != 0 and koniecWersjiObiektu.dateTime().date().year() != 1 and not czyWersjaZmieniona:
+        wersjaId.setDateTime(dataCzasTeraz)
+        poczatekWersjiObiektu.disconnect()
+        poczatekWersjiObiektu.setDateTime(dataCzasTeraz)
+        poczatekWersjiObiektu.dateTimeChanged.connect(poczatekWersjiObiektu_kontrola)
+
+
+def wlaczenieZapisu():
+    global czyObiektZmieniony
+    try:
+        if sum(listaBledowAtrybutow) == 0 and warstwa.isEditable():
+            zapisz.setEnabled(True)
+            zapisz.setText("Zapisz")
+            czyObiektZmieniony = True
+            zmianaWersjiIPoczatkuWersji()
+    except:
+        pass
+
+
+def wylaczenieZapisu():
+    global czyObiektZmieniony
+    try:
+        if sum(listaBledowAtrybutow) != 0 or not warstwa.isEditable():
+            czyObiektZmieniony = False
+            zapisz.setEnabled(False)
+    except:
+        pass
+
+
+def zapis():
+    dlg.save()
+    warstwa.commitChanges(False)
+    zapisz.setEnabled(False)
+    zapisz.setText("Zapisano")
+    
+    if obj.id() < 0:
+        dlg.parent().close()
+
+# ----------------------------------------------------------------------------------------------------
+
+def geometria_kontrola():
+    try:
+        validator = QgsGeometryValidator(obj.geometry())
+        errors = validator.validateGeometry(obj.geometry())
+        msg = ''
+        for error in errors:
+            msg = msg + error.what() + ' '
+        if len(errors) != 0:
+            dlg.displayWarning('Błędy w geometrii: ' + msg)
+            listaBledowAtrybutow[obj.fieldNameIndex('geometria')] = 1
+        else:
+            listaBledowAtrybutow[obj.fieldNameIndex('geometria')] = 0
+    except:
+        pass
+
+
+def przestrzenNazw_kontrola():
+    try:
+        if rodzajZbioru == '':
+            komunikowanieBledu(przestrzenNazw,'Proszę w ustawieniach wybrać POG dla rodzaju zbioru i zapisać.','przestrzenNazw')
+        elif numerZbioru == '':
+            komunikowanieBledu(przestrzenNazw,'Proszę w ustawieniach wpisać numer zbioru i zapisać.','przestrzenNazw')
+        elif jpt == '':
+            komunikowanieBledu(przestrzenNazw,'Proszę w ustawieniach wpisać numer JPT i zapisać.','przestrzenNazw')
+        else:
+            txt = 'PL.ZIPPZP.' + numerZbioru + '/' + jpt + '-' + rodzajZbioru
+            if przestrzenNazw.text() != txt:
+                przestrzenNazw.setText(txt)
+            teryt_gminy = przestrzenNazw.text().split("/")[1].split("-")[0]
+    except:
+        pass
+
+
+def lokalnyId_kontrola(txt):
+    try:
+        if idLokalnyAPP == '':
+            lokalnyId.setPlaceholderText(placeHolders['lokalnyId'])
+            komunikowanieBledu(lokalnyId,'Proszę w ustawieniach wpisać identyfikator lokalny identyfikujący jednoznacznie i unikalnie akt planowania przestrzennego w zbiorze danych przestrzennych i zapisać.','lokalnyId')
+        elif txt == '':
+            lokalnyId.setText(idLokalnyAPP)
+        elif txt != idLokalnyAPP:
+            lokalnyId.setText(idLokalnyAPP + "-" + oznaczenie.text())
+        else:
+            komunikowanieBledu(lokalnyId,'','lokalnyId')
+    except:
+        pass
+
+
+def wersjaId_kontrola():
+    global czyWersjaZmieniona
+    try:
+        if koniecWersjiObiektu.dateTime().time().msec() != 0 and koniecWersjiObiektu.dateTime().date().year() != 1:
+            poczatekWersjiObiektu.disconnect()
+            poczatekWersjiObiektu.setDateTime(wersjaId.dateTime())
+            poczatekWersjiObiektu.dateTimeChanged.connect(poczatekWersjiObiektu_kontrola)
+    except:
+        pass
+
+
+def poczatekWersjiObiektu_kontrola():
+    global czyWersjaZmieniona
+    try:
+        if koniecWersjiObiektu.dateTime().time().msec() != 0 and koniecWersjiObiektu.dateTime().date().year() != 1:
+            wersjaId.setDateTime(poczatekWersjiObiektu.dateTime())
+            czyWersjaZmieniona = True
+        poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola()
+    except:
+        pass
+
+
+def oznaczenie_kontrola(txt):
+    try:
+        if re.match('^[1-9][0-9]{0,4}$', txt) != None and symbol.text() != '':
+            pozycjaKursora = len(txt)
+            txt = str(txt) + symbol.text()
+            oznaczenie.setText(txt)
+            oznaczenie.setCursorPosition(pozycjaKursora)
+            komunikowanieBledu(oznaczenie,'','oznaczenie')
+            lokalnyId.setText(idLokalnyAPP + "-" + oznaczenie.text())
+        else:
+            if txt == '' or re.match('^[1-9][0-9]{0,4}' + symbol.text() + '$', txt) == None:
+                oznaczenie.setPlaceholderText(placeHolders['oznaczenie'])
+                komunikowanieBledu(oznaczenie,'Należy wpisać liczbę naturalną. Symbol jest dodawany automatycznie.','oznaczenie')
+            else:
+                lokalnyId.setText(idLokalnyAPP + "-" + oznaczenie.text())
+                komunikowanieBledu(oznaczenie,'','oznaczenie')
+        if not czyWartoscAtrybutuJestUnikalna('oznaczenie',txt):
+            komunikowanieBledu(oznaczenie,'Oznaczenie nie jest unikalne w ramach warstwy.','oznaczenie')
+    except:
+        pass
+
+
+def symbol_kontrola(txt):
+    try:
+        if txt == '':
+            symbol.setPlaceholderText(placeHolders['symbol'])
+            komunikowanieBledu(symbol,'Symbol jest polem obowiązkowym','symbol')
+        else:
+            komunikowanieBledu(symbol,'','symbol')
+    except:
+        pass
+
+
+def charakterUstalenia_kontrola(txt):
+    pass
+
+
+def status_kontrola(txt):
+    try:
+        if txt == 'wybierz' or txt == None:
+            komunikowanieBledu(status,'Należy wybrać wartość pola status','status')
+        else:
+            komunikowanieBledu(status,'','status')
+            obowiazujeOd_kontrola(obowiazujeOd.dateTime())
+            obowiazujeDo_kontrola(obowiazujeDo.dateTime())
+    except:
+        pass
+
+
+def poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola():
+    try:
+        obowiazujeOdTxt = obowiazujeOd.dateTime().toString("H:mm")
+        obowiazujeDoTxt = obowiazujeDo.dateTime().toString("H:mm")
+        poczatekWersjiObiektuTxt = poczatekWersjiObiektu.dateTime().toString("H:mm")
+        koniecWersjiObiektuTxt = koniecWersjiObiektu.dateTime().toString("H:mm")
+        
+        if obowiazujeOdTxt not in ['0:00','23:59']:
+            komunikowanieBledu(obowiazujeOd, 'Należy wybrać datę dla obowiązuje od', 'obowiazujeOd')
+        else:
+            if obowiazujeDoTxt in ['0:00','23:59'] and obowiazujeOd.dateTime() >= obowiazujeDo.dateTime():
+                komunikowanieBledu(obowiazujeOd, 'Atrybut obowiązuje od nie może być większy lub równy od obowiązuje do.', 'obowiazujeOd')
+            else:
+                komunikowanieBledu(obowiazujeOd, '', 'obowiazujeOd')
+        if koniecWersjiObiektuTxt in ['0:00','23:59'] and koniecWersjiObiektu.dateTime().date().year() != 1 and poczatekWersjiObiektu.dateTime() >= koniecWersjiObiektu.dateTime():
+            komunikowanieBledu(poczatekWersjiObiektu,'Koniec wersji obiektu musi być późniejszy niż początek wersji obiektu','poczatekWersjiObiektu')
+            komunikowanieBledu(koniecWersjiObiektu,'Koniec wersji obiektu musi być późniejszy niż początek wersji obiektu','koniecWersjiObiektu')
+        else:
+            komunikowanieBledu(poczatekWersjiObiektu,'','poczatekWersjiObiektu')
+            komunikowanieBledu(koniecWersjiObiektu,'','koniecWersjiObiektu')
+            if koniecWersjiObiektu.dateTime().date().year() != 1 and koniecWersjiObiektu.dateTime().time().msec() == 0:
+                obowiazujeDo_label.setText("obowiązuje do*")
+                if obowiazujeDoTxt not in ['0:00','23:59']:
+                    komunikowanieBledu(obowiazujeDo, 'Należy wybrać datę dla obowiązuje do', 'obowiazujeDo')
+                else:
+                    komunikowanieBledu(obowiazujeDo, '', 'obowiazujeDo')
+            else:
+                obowiazujeDo_label.setText("obowiązuje do")
+                if obowiazujeOdTxt not in ['0:00','23:59'] or obowiazujeOd.dateTime() < obowiazujeDo.dateTime():
+                    komunikowanieBledu(obowiazujeDo, '', 'obowiazujeDo')
+                else:
+                    if obowiazujeOdTxt not in ['0:00','23:59'] or obowiazujeOd.dateTime() < obowiazujeDo.dateTime():
+                        komunikowanieBledu(obowiazujeDo, '', 'obowiazujeDo')
+                    else:
+                        komunikowanieBledu(obowiazujeOd, 'Atrybut obowiązuje od nie może być większy lub równy od obowiązuje do.', 'obowiazujeOd')
+                        komunikowanieBledu(obowiazujeDo, 'Atrybut obowiązuje do nie może być mniejszy lub równy od obowiązuje od.','obowiazujeDo')
+    except:
+        pass
+
+
+def wylaczenieZabudowyZagrodowej_kontrola(txt):
+    try:
+        komunikowanieBledu(wylaczenieZabudowyZagrodowej,'','wylaczenieZabudowyZagrodowej')
+    except:
+        pass
+
+
+def odlegloscDoSzkolyPodstawowej_kontrola(txt):
+    try:
+        if txt == '':
+            komunikowanieBledu(odlegloscDoSzkolyPodstawowej,'Wartość atrybutu jest obligatoryjna.','odlegloscDoSzkolyPodstawowej')
+            odlegloscDoSzkolyPodstawowej.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
+        else:
+            komunikowanieBledu(odlegloscDoSzkolyPodstawowej,'','odlegloscDoSzkolyPodstawowej')
+    except:
+        pass
+
+
+def odlegloscDoObszarowZieleniPublicznej_kontrola(txt):
+    try:
+        if txt == '':
+            komunikowanieBledu(odlegloscDoObszarowZieleniPublicznej,'Wartość atrybutu jest obligatoryjna.','odlegloscDoObszarowZieleniPublicznej')
+        else:
+            komunikowanieBledu(odlegloscDoObszarowZieleniPublicznej,'','odlegloscDoObszarowZieleniPublicznej')
+        
+        odlegloscDoObszarowZieleniPublicznej.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
+    except:
+        pass
+
+
+def powierzchniaLacznaObszarowZieleniPublicznej_kontrola(txt):
+    try:
+        txt = txt.replace(",",".")
+        if txt == '':
+            komunikowanieBledu(powierzchniaLacznaObszarowZieleniPublicznej,'Wartość atrybutu jest obligatoryjna.','powierzchniaLacznaObszarowZieleniPublicznej')
+        elif not 1.5 <= float(txt):
+            komunikowanieBledu(powierzchniaLacznaObszarowZieleniPublicznej,'Powierzchnia musi być większa lub równa 1,5 ha.','powierzchniaLacznaObszarowZieleniPublicznej')
+        else:
+            komunikowanieBledu(powierzchniaLacznaObszarowZieleniPublicznej,'','powierzchniaLacznaObszarowZieleniPublicznej')
+        
+        powierzchniaLacznaObszarowZieleniPublicznej.setPlaceholderText(placeHolders['powierzchnia obszarow'])
+    except:
+        pass
+
+
+def odlegloscDoObszaruZieleniPublicznej_kontrola(txt):
+    try:
+        if txt == '':
+            komunikowanieBledu(odlegloscDoObszaruZieleniPublicznej,'Wartość atrybutu jest obligatoryjna.','odlegloscDoObszaruZieleniPublicznej')
+        else:
+            komunikowanieBledu(odlegloscDoObszaruZieleniPublicznej,'','odlegloscDoObszaruZieleniPublicznej')
+        
+        odlegloscDoObszaruZieleniPublicznej.setPlaceholderText(placeHolders['minOdlegloscOdObszaruZieleniPublicznej'])
+    except:
+        pass
+
+
+def powierzchniaObszaruZieleniPublicznej_kontrola(txt):
+    try:
+        txt = txt.replace(",",".")
+        if txt == '':
+            komunikowanieBledu(powierzchniaObszaruZieleniPublicznej,'Wartość atrybutu jest obligatoryjna.','powierzchniaObszaruZieleniPublicznej')
+        elif not 10 <= float(txt):
+            komunikowanieBledu(powierzchniaObszaruZieleniPublicznej,'Powierzchnia musi być większa lub równa 10 ha.','powierzchniaObszaruZieleniPublicznej')
+        else:
+            komunikowanieBledu(powierzchniaObszaruZieleniPublicznej,'','powierzchniaObszaruZieleniPublicznej')
+        
+        powierzchniaObszaruZieleniPublicznej.setPlaceholderText(placeHolders['powierzchnia obszaru'])
+    except:
+        pass
+
+
+def odlegloscDoPrzedszkola_kontrola(txt):
+    try:
+        odlegloscDoPrzedszkola.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
+        komunikowanieBledu(odlegloscDoPrzedszkola,'','odlegloscDoPrzedszkola')
+    except:
+        pass
+
+
+def odlegloscDoZlobka_kontrola(txt):
+    try:
+        odlegloscDoZlobka.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
+        komunikowanieBledu(odlegloscDoZlobka,'','odlegloscDoZlobka')
+    except:
+        pass
+
+
+def odlegloscDoAmbulatoriumPOZ_kontrola(txt):
+    try:
+        odlegloscDoAmbulatoriumPOZ.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
+        komunikowanieBledu(odlegloscDoAmbulatoriumPOZ,'','odlegloscDoAmbulatoriumPOZ')
+    except:
+        pass
+
+
+def odlegloscDoBiblioteki_kontrola(txt):
+    try:
+        odlegloscDoBiblioteki.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
+        komunikowanieBledu(odlegloscDoBiblioteki,'','odlegloscDoBiblioteki')
+    except:
+        pass
+
+
+def odlegloscDoDomuKultury_kontrola(txt):
+    try:
+        odlegloscDoDomuKultury.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
+        komunikowanieBledu(odlegloscDoDomuKultury,'','odlegloscDoDomuKultury')
+    except:
+        pass
+
+
+def odlegloscDoDomuPomocySpolecznej_kontrola(txt):
+    try:
+        odlegloscDoDomuPomocySpolecznej.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
+        komunikowanieBledu(odlegloscDoDomuPomocySpolecznej,'','odlegloscDoDomuPomocySpolecznej')
+    except:
+        pass
+
+
+def odlegloscDoUrzadzonegoTerenuSportu_kontrola(txt):
+    try:
+        odlegloscDoUrzadzonegoTerenuSportu.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
+        komunikowanieBledu(odlegloscDoUrzadzonegoTerenuSportu,'','odlegloscDoUrzadzonegoTerenuSportu')
+    except:
+        pass
+
+
+def odlegloscDoPrzystanku_kontrola(txt):
+    try:
+        odlegloscDoPrzystanku.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
+        komunikowanieBledu(odlegloscDoPrzystanku,'','odlegloscDoPrzystanku')
+    except:
+        pass
+
+
+def odlegloscDoPlacowkiPocztowej_kontrola(txt):
+    try:
+        odlegloscDoPlacowkiPocztowej.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
+        komunikowanieBledu(odlegloscDoPlacowkiPocztowej,'','odlegloscDoPlacowkiPocztowej')
+    except:
+        pass
+
+
+def odlegloscDoApteki_kontrola(txt):
+    try:
+        odlegloscDoApteki.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
+        komunikowanieBledu(odlegloscDoApteki,'','odlegloscDoApteki')
+    except:
+        pass
+
+
+def odlegloscDoPosterunkuPolicji_kontrola(txt):
+    try:
+        odlegloscDoPosterunkuPolicji.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
+        komunikowanieBledu(odlegloscDoPosterunkuPolicji,'','odlegloscDoPosterunkuPolicji')
+    except:
+        pass
+
+
+def odlegloscDoPosterunkuJednostkiOchronyPrzeciwpozarowej_kontrola(txt):
+    try:
+        odlegloscDoPosterunkuJednostkiOchronyPrzeciwpozarowej.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
+        komunikowanieBledu(odlegloscDoPosterunkuJednostkiOchronyPrzeciwpozarowej,'','odlegloscDoPosterunkuJednostkiOchronyPrzeciwpozarowej')
+    except:
+        pass
+
+
+def czyWartoscAtrybutuJestUnikalna(atrybut, wartosc):
+    request = QgsFeatureRequest(QgsExpression(atrybut + "='" + wartosc + "'"))
+    wartoscAtrybutuJestUnikalna = True
+    for x in warstwa.getFeatures(request):
+        if x.id() != obj.id():
+            wartoscAtrybutuJestUnikalna = False
+    return wartoscAtrybutuJestUnikalna
+
+
+def odczytajAtrybutyZPOG():
+    try:
+        warstwy = QgsProject().instance().mapLayers()
+        atrybutyPOG = {}
+        warstwaPOG = None
+        for warstwaTMP in warstwy:
+            if warstwaTMP.startswith('AktPlanowaniaPrzestrzennego'):
+                warstwaPOG = warstwy[warstwaTMP]
+                break
+        if warstwaPOG != None and warstwaPOG.featureCount() > 0:
+            for POG in warstwaPOG.getFeatures():
+                atrybutyPOG['status'] = POG['status']
+                atrybutyPOG['obowiazujeOd'] = POG['obowiazujeOd']
+                atrybutyPOG['obowiazujeDo'] = POG['obowiazujeDo']
+                break
+            return atrybutyPOG
+        else:
+            return None
+    except:
+        pass

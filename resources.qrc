@@ -1,0 +1,17 @@
+<RCC>
+    <qresource prefix="/plugins/wtyczka_app" >
+        <file>img/logo.png</file>
+		<file>img/praca_z_app.png</file>
+		<file>img/tworzenie.png</file>
+		<file>img/ustawienia.png</file>
+		<file>img/walidacja.png</file>
+		<file>img/info1.png</file>
+		<file>img/info2.png</file>
+		<file>img/info3.png</file>
+		<file>img/info4.png</file>
+		<file>img/info5.png</file>
+		<file>img/info6.png</file>
+		<file>img/baner_wtyczka.png</file>
+		<file>img/tworzenieOUZ.png</file>
+    </qresource>
+</RCC>
