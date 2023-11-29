@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Dialog</class>
+ <widget class="QDialog" name="Dialog">
+  <property name="enabled">
+   <bool>true</bool>
+  </property>
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>762</width>
+    <height>430</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Dialog</string>
+  </property>
+  <property name="sizeGripEnabled">
+   <bool>true</bool>
+  </property>
+  <layout class="QGridLayout" name="gridLayout_2">
+   <item row="0" column="0">
+    <layout class="QVBoxLayout" name="verticalLayout">
+     <item>
+      <widget class="QLabel" name="title_lbl">
+       <property name="font">
+        <font>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Przygotowanie granic obszarów uzupełnienia zabudowy</string>
+       </property>
+       <property name="margin">
+        <number>7</number>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QScrollArea" name="instruction_scrollArea">
+       <property name="widgetResizable">
+        <bool>true</bool>
+       </property>
+       <widget class="QWidget" name="scrollAreaWidgetContents">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>0</y>
+          <width>740</width>
+          <height>375</height>
+         </rect>
+        </property>
+        <layout class="QGridLayout" name="gridLayout">
+         <item row="0" column="0">
+          <widget class="QLabel" name="instruction_lbl">
+           <property name="font">
+            <font>
+             <stylestrategy>PreferDefault</stylestrategy>
+            </font>
+           </property>
+           <property name="text">
+            <string>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+  &lt;title&gt;New Page&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;p&gt;Dane przestrzenne tworzone dla planu ogólnego gminy mogą obejmować lokalizację przestrzenną &lt;b&gt;obszaru uzupełnienia zabudowy&lt;/b&gt; w postaci wektorowej w &lt;b&gt;układzie PL-2000&lt;/b&gt;. W warstwie wektorowej powinien znajdować się co najmniej jeden obiekt będący &lt;b&gt;poligonem&lt;/b&gt;, który zostanie opisany poprzez atrybuty.&lt;/p&gt;
+  &lt;p&gt;W zależności od aktualnego stanu prac, wybierz jedną z opcji:&lt;/p&gt;
+  &lt;ol&gt;
+    &lt;li&gt;Wybierz opcję &lt;b&gt;Pomiń&lt;/b&gt; jeśli w planie ogólnym gminy nie określa się obszaru uzupełnienia zabudowy.&lt;/li&gt;
+    &lt;li&gt;W przypadku tworzenia obszaru uzupełnienia zabudowy od podstaw należy kliknąć przycisk &lt;b&gt;Stwórz pustą warstwę&lt;/b&gt;, a następnie edytując automatycznie stworzoną warstwę o nazwie &lt;b&gt;ObszarUzupelnieniaZabudowy&lt;/b&gt; należy narysować granice kolejnych obszarów, a następnie wypełnić atrybuty. Formularz atrybutów należy wypełnić zgodnie z informacjami zawartymi w podpowiedzi do każdego atrybutu (ikony znaku zapytania po prawej stronie). Uzupełnienie pól oznaczonych gwiazdką jest obowiązkowe. Dodatkowo, wymagane pola zaznaczane są czerwoną ramką. Po zakończeniu edycji należy kliknąć &lt;b&gt;Zapisz warstwę do GML&lt;/b&gt;, by zapisać plik na dysku.&lt;/li&gt;
+    &lt;li&gt;Aby wygenerować obszar uzupełnienia zabudowy warto wykorzystać element wtyczki &lt;b&gt;Tworzenie OUZ&lt;/b&gt; i postępować zgodnie ze wskazówkami. Aby wybrać opcję &lt;b&gt;Tworzenie OUZ&lt;/b&gt; należy kliknąć na trójkąt obok ikony &lt;b&gt;wtyczki APP&lt;/b&gt; na pasku narzędzi QGIS.&lt;/li&gt;
+    &lt;li&gt;W przypadku posiadania obszaru uzupełnienia zabudowy, należy wczytać odpowiedni plik klikając przycisk &lt;b&gt;Wczytaj warstwę do edycji&lt;/b&gt;. Następnie możliwa jest jego edycja, przy użyciu standardowych narzędzi do edycji QGIS. Uzupełnienie atrybutów istniejącego już w warstwie obiektu z obszarem uzupełnienia zabudowy jest możliwe po kliknięciu na obiekt przy użyciu standardowego narzędzia QGIS &lt;b&gt;Informacje o obiekcie&lt;/b&gt;. Po zakończeniu edycji należy kliknąć &lt;b&gt;Zapisz warstwę do GML&lt;/b&gt;, by zapisać plik na dysku.&lt;/li&gt;
+  &lt;/ol&gt;
+  &lt;p&gt;Wczytanie obszaru uzupełnienia zabudowy w kroku 3, pozwala na automatyczne sprawdzenie poprawności geometrii, w tym w zakresie wykraczania poza obszar POG. Zapisanie poprawnego pliku w formacie GML przy użyciu przycisku &lt;b&gt;Zapisz warstwę do GML&lt;/b&gt;, umożliwia również ponowne wczytanie zapisanej warstwy do wtyczki w celu dalszej pracy. Istnieje możliwość pominięcia kroku 3. W tym celu należy wybrać opcję &lt;b&gt;Pomiń&lt;/b&gt;.&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignJustify|Qt::AlignVCenter</set>
+           </property>
+           <property name="wordWrap">
+            <bool>true</bool>
+           </property>
+           <property name="openExternalLinks">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="empty1_lbl">
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_4">
+       <item>
+        <widget class="QLabel" name="addAppShp_lbl">
+         <property name="text">
+          <string>Wybierz warstwę z granicami obszarów uzupełnienia zabudowy (opcjonalne)</string>
+         </property>
+         <property name="margin">
+          <number>0</number>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer_2">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <item>
+        <widget class="QgsMapLayerComboBox" name="layers_comboBox">
+         <property name="allowEmptyLayer">
+          <bool>false</bool>
+         </property>
+         <property name="showCrs">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <widget class="QLabel" name="empty2_lbl">
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <item>
+        <widget class="QPushButton" name="prev_btn">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
+         <property name="text">
+          <string>Wstecz</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QPushButton" name="generateTemporaryLayer_btn">
+         <property name="text">
+          <string>Stwórz pustą warstwę</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="loadLayerEdit">
+         <property name="text">
+          <string>Wczytaj warstwę do edycji</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="saveLayer">
+         <property name="text">
+          <string>Zapisz warstwę do GML</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="skip_btn">
+         <property name="toolTip">
+          <string>Pominięcie tworzenia formularza dla POG. Przeniesienie do formularza dla dokumentów formalnych.</string>
+         </property>
+         <property name="text">
+          <string>Pomiń</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="next_btn">
+         <property name="text">
+          <string>Dalej</string>
+         </property>
+         <property name="default">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QgsMapLayerComboBox</class>
+   <extends>QComboBox</extends>
+   <header>qgsmaplayercombobox.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>
