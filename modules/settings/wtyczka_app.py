@@ -90,29 +90,29 @@ class SettingsModule(BaseModule):
     def save_btn_clicked(self):
         valResult = self.validate_settings()
         if valResult[0]:
-            # s = QgsSettings()
-            s.setValue("qgis_app/settings/defaultPath",
+            
+            s.setValue("qgis_app2/settings/defaultPath",
                        self.ustawieniaDialog.folder_lbl.text())
-            s.setValue("qgis_app/settings/contactName",
+            s.setValue("qgis_app2/settings/contactName",
                        self.ustawieniaDialog.contactName_lineEdit.text())
-            s.setValue("qgis_app/settings/contactMail",
+            s.setValue("qgis_app2/settings/contactMail",
                        self.ustawieniaDialog.contactMail_lineEdit.text())
-            s.setValue("qgis_app/settings/adminName",
+            s.setValue("qgis_app2/settings/adminName",
                        self.ustawieniaDialog.adminName_lineEdit.text())
-            s.setValue("qgis_app/settings/adminMail",
+            s.setValue("qgis_app2/settings/adminMail",
                        self.ustawieniaDialog.adminMail_lineEdit.text())
-            s.setValue("qgis_app/settings/przestrzenNazw",
+            s.setValue("qgis_app2/settings/przestrzenNazw",
                        self.ustawieniaDialog.przestrzenNazw_lineEdit.text())
-            s.setValue("qgis_app/settings/numerZbioru",
+            s.setValue("qgis_app2/settings/numerZbioru",
                        self.ustawieniaDialog.numerZbioru_lineEdit.text())
-            s.setValue("qgis_app/settings/jpt",
+            s.setValue("qgis_app2/settings/jpt",
                        self.ustawieniaDialog.jpt_lineEdit.text())
-            s.setValue("qgis_app/settings/rodzajZbioru",
+            s.setValue("qgis_app2/settings/rodzajZbioru",
                        self.ustawieniaDialog.rodzajZbioru_comboBox.currentText())
             if self.ustawieniaDialog.rodzajZbioru_comboBox.currentText() == 'POG':
-                s.setValue("qgis_app/settings/idLokalnyAPP",
+                s.setValue("qgis_app2/settings/idLokalnyAPP",
                            self.ustawieniaDialog.edycjaILAPP.text())
-            s.setValue("qgis_app/settings/strefaPL2000",
+            s.setValue("qgis_app2/settings/strefaPL2000",
                        self.getEPSGukladPL2000())
             
             showPopup('Ustawienia zapisane pomyślnie',
@@ -144,8 +144,7 @@ class SettingsModule(BaseModule):
                 przestrzenNazw_list.append(jpt_lineEdit.strip())
             if rodzajZbioru_comboBox.strip():
                 przestrzenNazw_list.append('-'+rodzajZbioru_comboBox.strip())
-            przestrzenNazw_lineEdit.setText(
-                'PL.ZIPPZP.'+"".join(przestrzenNazw_list))
+            przestrzenNazw_lineEdit.setText('PL.ZIPPZP.'+"".join(przestrzenNazw_list))
 
         # pobranie dynamicznie utworzonych obiektów UI
         przestrzenNazw_lineEdit = self.ustawieniaDialog.przestrzenNazw_lineEdit
@@ -185,28 +184,28 @@ class SettingsModule(BaseModule):
     def readSettings(self):
         # s = QgsSettings()
         self.ustawieniaDialog.folder_lbl.setText(
-            s.value("qgis_app/settings/defaultPath", ""))
+            s.value("qgis_app2/settings/defaultPath", ""))
         self.ustawieniaDialog.contactName_lineEdit.setText(
-            s.value("qgis_app/settings/contactName", ""))
+            s.value("qgis_app2/settings/contactName", ""))
         self.ustawieniaDialog.contactMail_lineEdit.setText(
-            s.value("qgis_app/settings/contactMail", ""))
+            s.value("qgis_app2/settings/contactMail", ""))
         self.ustawieniaDialog.adminName_lineEdit.setText(
-            s.value("qgis_app/settings/adminName", ""))
+            s.value("qgis_app2/settings/adminName", ""))
         self.ustawieniaDialog.adminMail_lineEdit.setText(
-            s.value("qgis_app/settings/adminMail", ""))
+            s.value("qgis_app2/settings/adminMail", ""))
         self.ustawieniaDialog.przestrzenNazw_lineEdit.setText(
-            s.value("qgis_app/settings/przestrzenNazw", "PL.ZIPPZP."))
+            s.value("qgis_app2/settings/przestrzenNazw", "PL.ZIPPZP."))
         self.ustawieniaDialog.numerZbioru_lineEdit.setText(
-            s.value("qgis_app/settings/numerZbioru", ""))
+            s.value("qgis_app2/settings/numerZbioru", ""))
         self.ustawieniaDialog.jpt_lineEdit.setText(
-            s.value("qgis_app/settings/jpt", ""))
+            s.value("qgis_app2/settings/jpt", ""))
         try:
             self.ustawieniaDialog.rodzajZbioru_comboBox.setCurrentIndex(
-                list(dictionaries.rodzajeZbiorow.keys()).index(s.value("qgis_app/settings/rodzajZbioru", "")))
+                list(dictionaries.rodzajeZbiorow.keys()).index(s.value("qgis_app2/settings/rodzajZbioru", "")))
         except:
             pass
-        if s.value("qgis_app/settings/rodzajZbioru", "") == 'POG':
-            self.ustawieniaDialog.edycjaILAPP.setText(s.value("qgis_app/settings/idLokalnyAPP",""))
+        if s.value("qgis_app2/settings/rodzajZbioru", "") == 'POG':
+            self.ustawieniaDialog.edycjaILAPP.setText(s.value("qgis_app2/settings/idLokalnyAPP",""))
     """Helper methods"""
     """Popup windows"""
 

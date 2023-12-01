@@ -346,7 +346,7 @@ def layout_widgets(layout):
 
 def layout_widget_by_name(layout, name):
     """wyszukuje widgeta wedlug nazwy wewnatrz layoutu
-    Do wykorystania również w trakcie tworzenia layoutu (np. QHBoxLayout)"""
+    Do wykorzystania również w trakcie tworzenia layoutu (np. QHBoxLayout)"""
     for item in layout_widgets(layout):
         if isinstance(item, QLayout):   # zagnieżdzony layout
             result = layout_widget_by_name(layout=item, name=name)
@@ -1935,7 +1935,7 @@ def findElementInXmlFile(file, docName, elementName):
 def validateObjectNumber(files):
     global s, rodzajZbioru
     s = QgsSettings()
-    rodzajZbioru = s.value("qgis_app/settings/rodzajZbioru", "/")
+    rodzajZbioru = s.value("qgis_app2/settings/rodzajZbioru", "/")
     
     ns = dictionaries.nameSpaces
     docs = {

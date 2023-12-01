@@ -9,8 +9,8 @@ def initializeMetadataForm(dlg):
     s = QgsSettings()
 
     # Punkt kontaktowy
-    contactName = s.value("qgis_app/settings/contactName", "")
-    contactMail = s.value("qgis_app/settings/contactMail", "")
+    contactName = s.value("qgis_app2/settings/contactName", "")
+    contactMail = s.value("qgis_app2/settings/contactMail", "")
     if contactName and contactMail:
         data = {
             'e22_name_lineEdit': contactName,
@@ -32,8 +32,8 @@ def initializeMetadataForm(dlg):
         dlg.e29_listWidget.addItem(item)
 
     # Administrator danych
-    adminName = s.value("qgis_app/settings/adminName", "")
-    adminMail = s.value("qgis_app/settings/adminMail", "")
+    adminName = s.value("qgis_app2/settings/adminName", "")
+    adminMail = s.value("qgis_app2/settings/adminMail", "")
     if adminName and adminMail:
         data = {
             'e22_name_lineEdit': adminName,

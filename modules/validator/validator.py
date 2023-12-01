@@ -35,7 +35,7 @@ class ValidatorLxml:
         
         global s, rodzajZbioru
         s = QgsSettings()
-        rodzajZbioru = s.value("qgis_app/settings/rodzajZbioru", "/")
+        rodzajZbioru = s.value("qgis_app2/settings/rodzajZbioru", "/")
 
     def validateXml(self, xmlPath):
         """Walidacja XML w zakresie składni i zgodności ze schematem """
