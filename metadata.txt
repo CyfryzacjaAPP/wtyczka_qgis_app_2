@@ -23,7 +23,9 @@ repository=https://github.com/CyfryzacjaAPP/wtyczka_qgis_app_2
 
 hasProcessingProvider=no
 # Uncomment the following line and add your changelog:
-# changelog=
+changelog=
+  Wersja 2.0.1
+  * poprawa drobnych błędów
   Wersja 2.0.0
   * utworzenie narzędzia "Wtyczka APP" dla POG
 
