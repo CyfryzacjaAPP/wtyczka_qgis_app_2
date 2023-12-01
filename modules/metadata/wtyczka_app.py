@@ -45,11 +45,11 @@ class MetadataModule(BaseModule):
 
         # self.metadaneDialog.newFile_widget.clicked.connect(self.saveMetaFile)
         self.metadaneDialog.chooseFile_widget.setFilter(filter="pliki XML (*.xml)")
-        self.metadaneDialog.chooseFile_widget.setDefaultRoot(self.s.value("qgis_app/settings/defaultPath", ""))
+        self.metadaneDialog.chooseFile_widget.setDefaultRoot(self.s.value("qgis_app2/settings/defaultPath", ""))
         self.metadaneDialog.chooseFile_widget.fileChanged.connect(self.chooseFile_widget_fileChanged)
 
         self.metadaneDialog.chooseSet_widget.setFilter(filter="pliki XML/GML (*.xml *.gml)")
-        self.metadaneDialog.chooseSet_widget.setDefaultRoot(self.s.value("qgis_app/settings/defaultPath", ""))
+        self.metadaneDialog.chooseSet_widget.setDefaultRoot(self.s.value("qgis_app2/settings/defaultPath", ""))
         self.metadaneDialog.chooseSet_widget.fileChanged.connect(self.chooseSet_widget_fileChanged)
         # endregion
 
@@ -118,7 +118,7 @@ class MetadataModule(BaseModule):
     """Helper methods"""
     def saveMetaFile(self, xmlString):
 
-        defaultPath = self.s.value("qgis_app/settings/defaultPath", "")
+        defaultPath = self.s.value("qgis_app2/settings/defaultPath", "")
         self.metadataXmlPath = QFileDialog.getSaveFileName(directory=defaultPath, filter="*.xml")[0]
         if self.metadataXmlPath:
             try:

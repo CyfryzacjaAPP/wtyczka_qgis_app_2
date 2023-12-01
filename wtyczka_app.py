@@ -41,7 +41,7 @@ from .modules import utils
 from .modules.base_dialogs import CloseMessageDialog
 
 
-PLUGIN_NAME = 'Wtyczka APP'
+PLUGIN_NAME = 'Wtyczka APP 2'
 
 
 class WtyczkaAPP(AppModule, MetadataModule, ValidatorModule, TworzenieOUZ, SettingsModule):
@@ -84,6 +84,7 @@ class WtyczkaAPP(AppModule, MetadataModule, ValidatorModule, TworzenieOUZ, Setti
         self.prepareXsdForApp()
         self.prepareXsdForMetadata()
 
+
     def clearFormsOnClose(self):
         """czyści formularze przy zamknięciu"""
         for dialogObject in self.closableWindows:
@@ -94,10 +95,12 @@ class WtyczkaAPP(AppModule, MetadataModule, ValidatorModule, TworzenieOUZ, Setti
             except AttributeError:
                 pass
 
+
     def createValidator(self, task):
         QgsMessageLog.logMessage('walidator start')
         self.dataValidator = validator.ValidatorLxml()
         QgsMessageLog.logMessage('walidator gotowy')
+
 
     def createMetadataValidator(self, task):
         QgsMessageLog.logMessage('walidator start')
@@ -110,6 +113,7 @@ class WtyczkaAPP(AppModule, MetadataModule, ValidatorModule, TworzenieOUZ, Setti
         if task.description() not in [task.description() for task in QgsApplication.taskManager().activeTasks()]:
             QgsApplication.taskManager().addTask(task)
             QgsMessageLog.logMessage('starting XSD reading task')
+
 
     def prepareXsdForMetadata(self):
         task = QgsTask.fromFunction('Wczytywanie schematu XSD dla metadanych', self.createMetadataValidator)

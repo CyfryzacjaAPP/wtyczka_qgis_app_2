@@ -52,10 +52,10 @@ def my_form_open(dialog, layer, feature):
     dataCzasTeraz = datetime.now()
     
     s = QgsSettings()
-    rodzajZbioru = s.value("qgis_app/settings/rodzajZbioru", "")
-    numerZbioru = s.value("qgis_app/settings/numerZbioru", "")
-    jpt = s.value("qgis_app/settings/jpt", "")
-    idLokalnyAPP = s.value("qgis_app/settings/idLokalnyAPP","")
+    rodzajZbioru = s.value("qgis_app2/settings/rodzajZbioru", "")
+    numerZbioru = s.value("qgis_app2/settings/numerZbioru", "")
+    jpt = s.value("qgis_app2/settings/jpt", "")
+    idLokalnyAPP = s.value("qgis_app2/settings/idLokalnyAPP","")
     
     placeHolders = {'przestrzenNazw':'np. PL.ZIPPZP.2393/246601-POG',
                     'lokalnyId':'np. 1OSD',

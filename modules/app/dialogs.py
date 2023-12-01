@@ -99,19 +99,28 @@ class RasterFormularzDialog(CloseMessageDialog, FORM_CLASS3, Formularz, ButtonsD
         self.createForm(container=self.form_scrollArea,
                         formElements=self.formElements)
         # self.returnFormElements(self.formElements)
-
+        
         # blokada edycji wersjaId
         self.wersjaId_lineEdit = utils.layout_widget_by_name(self.form_scrollArea.widget().layout(),name="wersjaId_lineEdit")
         self.wersjaId_lineEdit.setEnabled(False)
+        
+        # blokada edycji przestrzenNazw
+        self.przestrzenNazw_lineEdit = utils.layout_widget_by_name(self.form_scrollArea.widget().layout(), name="przestrzenNazw_lineEdit")
+        self.przestrzenNazw_lineEdit.setEnabled(False)
+        
         self.poczatekWersjiObiektu_dateTimeEdit = utils.layout_widget_by_name(self.form_scrollArea.widget().layout(),
                                                                               name="poczatekWersjiObiektu_dateTimeEdit")
         # w związku z ułomnoscią QgsDateTimeEdit muszą być oba sygnały:
         self.poczatekWersjiObiektu_dateTimeEdit.valueChanged.connect(self.updateWersjaId)
         self.poczatekWersjiObiektu_dateTimeEdit.dateTimeChanged.connect(self.updateWersjaId)
+        self.przestrzenNazw_lineEdit.textChanged.connect(self.updatePrzestrzenNazw)
         ButtonsDialog.__init__(self)
 
     def updateWersjaId(self):
         self.wersjaId_lineEdit.setText(self.poczatekWersjiObiektu_dateTimeEdit.dateTime().toString("yyyyMMddThhmmss"))
+
+    def updatePrzestrzenNazw(self):
+        self.przestrzenNazw_lineEdit.setText(s.value("qgis_app2/settings/przestrzenNazw", "/"))
 
 
 class WektorInstrukcjaDialog(CloseMessageDialog, FORM_CLASS7, ButtonsDialog):
@@ -139,20 +148,28 @@ class WektorFormularzDialog(CloseMessageDialog, FORM_CLASS5, Formularz, ButtonsD
         self.createForm(container=self.form_scrollArea,
                         formElements=self.formElements)
         # self.returnFormElements(self.formElements)
-
+        
         # blokada edycji wersjaId
         self.wersjaId_lineEdit = utils.layout_widget_by_name(self.form_scrollArea.widget().layout(), name="wersjaId_lineEdit")
         self.wersjaId_lineEdit.setEnabled(False)
-
+        
+        # blokada edycji przestrzenNazw
+        self.przestrzenNazw_lineEdit = utils.layout_widget_by_name(self.form_scrollArea.widget().layout(), name="przestrzenNazw_lineEdit")
+        self.przestrzenNazw_lineEdit.setEnabled(False)
+        
         self.poczatekWersjiObiektu_dateTimeEdit = utils.layout_widget_by_name(self.form_scrollArea.widget().layout(),
                                                                               name="poczatekWersjiObiektu_dateTimeEdit")
         # w związku z ułomnoscią QgsDateTimeEdit muszą być oba sygnały:
         self.poczatekWersjiObiektu_dateTimeEdit.valueChanged.connect(self.updateWersjaId)
         self.poczatekWersjiObiektu_dateTimeEdit.dateTimeChanged.connect(self.updateWersjaId)
+        self.przestrzenNazw_lineEdit.textChanged.connect(self.updatePrzestrzenNazw)
         ButtonsDialog.__init__(self)
 
     def updateWersjaId(self):
         self.wersjaId_lineEdit.setText(self.poczatekWersjiObiektu_dateTimeEdit.dateTime().toString("yyyyMMddThhmmss"))
+
+    def updatePrzestrzenNazw(self):
+        self.przestrzenNazw_lineEdit.setText(s.value("qgis_app2/settings/przestrzenNazw", "/"))
 
 
 class DokumentyFormularzDialog(CloseMessageDialog, FORM_CLASS4, Formularz, ButtonsDialog):
@@ -160,7 +177,7 @@ class DokumentyFormularzDialog(CloseMessageDialog, FORM_CLASS4, Formularz, Butto
         """Constructor."""
         super(DokumentyFormularzDialog, self).__init__(parent)
         self.setupUi(self)
-        if s.value("qgis_app/settings/rodzajZbioru", "/") == 'POG':
+        if s.value("qgis_app2/settings/rodzajZbioru", "/") == 'POG':
             self.setWindowTitle('%s (krok 6 z 7)' % title_app)
         else:
             self.setWindowTitle('%s (krok 5 z 6)' % title_app)
@@ -188,7 +205,7 @@ class GenerowanieGMLDialog(CloseMessageDialog, FORM_CLASS6, ButtonsDialog):
         """Constructor."""
         super(GenerowanieGMLDialog, self).__init__(parent)
         self.setupUi(self)
-        if s.value("qgis_app/settings/rodzajZbioru", "/") == 'POG':
+        if s.value("qgis_app2/settings/rodzajZbioru", "/") == 'POG':
             self.setWindowTitle('%s (krok 7 z 7)' % title_app)
         else:
             self.setWindowTitle('%s (krok 6 z 6)' % title_app)

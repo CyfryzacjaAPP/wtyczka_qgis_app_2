@@ -37,11 +37,11 @@ class AppModule(BaseModule):
     
     global s, rodzajZbioru, numerZbioru, jpt, idLokalnyAPP, defaultPath, warstwaPOG
     s = QgsSettings()
-    rodzajZbioru = s.value("qgis_app/settings/rodzajZbioru", "/")
-    numerZbioru = s.value("qgis_app/settings/numerZbioru", "")
-    jpt = s.value("qgis_app/settings/jpt", "")
-    idLokalnyAPP = s.value("qgis_app/settings/idLokalnyAPP","")
-    defaultPath = s.value("qgis_app/settings/defaultPath", "/")
+    rodzajZbioru = s.value("qgis_app2/settings/rodzajZbioru", "/")
+    numerZbioru = s.value("qgis_app2/settings/numerZbioru", "")
+    jpt = s.value("qgis_app2/settings/jpt", "")
+    idLokalnyAPP = s.value("qgis_app2/settings/idLokalnyAPP","")
+    defaultPath = s.value("qgis_app2/settings/defaultPath", "/")
     
     QSettings().setValue('/Map/identifyAutoFeatureForm','true')
     
@@ -509,6 +509,7 @@ class AppModule(BaseModule):
             global warstwaPOG
             warstwaPOG = self.wektorInstrukcjaDialogPOG.layers_comboBox.currentLayer()
         else:
+            
             self.openNewDialog(self.dokumentyFormularzDialog)
             self.listaOkienek.append(self.wektorInstrukcjaDialog)
 
@@ -630,7 +631,7 @@ class AppModule(BaseModule):
                 return False
 
             
-            defaultPath = s.value("qgis_app/settings/defaultPath", "/")
+            defaultPath = s.value("qgis_app2/settings/defaultPath", "/")
             self.fn = QFileDialog.getSaveFileName(
                 directory=defaultPath, filter="pliki GML (*.gml)")[0]
             if self.fn:
@@ -799,7 +800,7 @@ class AppModule(BaseModule):
                 utils.showPopup(
                     title='Błąd relacji dokumentów', text='W APP dozwolony jest tylko jeden dokument z relacją "uchwala".')
             else:
-                defaultPath = s.value("qgis_app/settings/defaultPath", "/")
+                defaultPath = s.value("qgis_app2/settings/defaultPath", "/")
                 self.fn = QFileDialog.getSaveFileName(
                     directory=defaultPath, filter="GML Files (*.gml)")[0]
                 if self.fn:
@@ -948,7 +949,7 @@ class AppModule(BaseModule):
 
     def newEmptyLayer(self):
         s = QgsSettings()
-        epsg = s.value("qgis_app/settings/strefaPL2000", "")
+        epsg = s.value("qgis_app2/settings/strefaPL2000", "")
         
         layer = QgsVectorLayer(
             'multipolygon?crs=epsg:' + str(epsg) + self.fieldsDefinition(fields=fields), 'granice_app', 'memory')
@@ -956,10 +957,10 @@ class AppModule(BaseModule):
 
     def newEmptyLayer(self):
         s = QgsSettings()
-        epsg = str(s.value("qgis_app/settings/strefaPL2000", ""))
+        epsg = str(s.value("qgis_app2/settings/strefaPL2000", ""))
         geomTypeEPSG = 'polygon?crs=epsg:' + epsg
         
-        defaultPath = s.value("qgis_app/settings/defaultPath", "/")
+        defaultPath = s.value("qgis_app2/settings/defaultPath", "/")
         if not os.access(defaultPath, os.W_OK):
             showPopup("Wygeneruj warstwę","Brak uprawnień do zapisu w katalogu "+defaultPath+". W ustawieniach wtyczki wskaż domyślną ścieżkę zapisu plików z uprawnieniami do zapisu.")
             return
@@ -1061,7 +1062,7 @@ class AppModule(BaseModule):
     def showPopupSaveForm(self):
         if utils.isFormFilled(self.activeDlg) and utils.validate_form_dates(self.activeDlg.formElements) and utils.validate_status(self.activeDlg.formElements) and utils.validate_typPlanu(self.activeDlg.formElements):
             s = QgsSettings()
-            defaultPath = s.value("qgis_app/settings/defaultPath", "/")
+            defaultPath = s.value("qgis_app2/settings/defaultPath", "/")
             self.fn = QFileDialog.getSaveFileName(directory=defaultPath, filter="GML Files (*.gml)")[0]
             if self.fn:
                 self.saved = True
@@ -1200,25 +1201,19 @@ class AppModule(BaseModule):
                     return
                 dateValue = formElement1.refObject.text()
                 try:
-                    date_time_obj = datetime.datetime.strptime(
-                        dateValue, '%d.%m.%Y')
+                    date_time_obj = datetime.strptime(dateValue, '%d.%m.%Y')
                 except:
-                    date_time_obj = datetime.datetime.strptime(
-                        dateValue, '%Y-%m-%d')
+                    date_time_obj = datetime.strptime(dateValue, '%Y-%m-%d')
                 str_date = date_time_obj.strftime("%Y-%m-%d")
                 utils.setValueToWidget(formElement2, str_date)
             elif formElement1.type == 'dateTime':
                 if utils.checkForNoDateValue(formElement1.refObject):
                     return
                 dateValue = formElement1.refObject.text()
-
                 try:
-                    date_time_obj = datetime.datetime.strptime(dateValue, '%d.%m.%Y %H:%M:%S')
-
+                    date_time_obj = datetime.strptime(dateValue, '%d.%m.%Y %H:%M:%S')
                 except:
-                    date_time_obj = datetime.datetime.strptime(
-                        dateValue, '%Y-%m-%d %H:%M:%S')
-                # str_date = date_time_obj.strftime("%Y-%m-%dT%H:%M")+':00'
+                    date_time_obj = datetime.strptime(dateValue, '%Y-%m-%d %H:%M:%S')
                 str_date = date_time_obj.strftime("%Y-%m-%dT%H:%M:%S")
                 utils.setValueToWidget(formElement2, str_date)
 
@@ -1317,7 +1312,7 @@ class AppModule(BaseModule):
             if self.activeDlg == self.dokumentyFormularzDialog:
                 wersjaId_lineEdit.setText('')
             wersjaId = wersjaId_lineEdit.text()
-
+            
             if przestrzenNazw.strip():
                 idIPP_list.append(przestrzenNazw.strip())
             if lokalnyId.strip():
@@ -1325,9 +1320,9 @@ class AppModule(BaseModule):
             if wersjaId.strip():
                 if self.activeDlg != self.dokumentyFormularzDialog:
                     idIPP_list.append(wersjaId.strip())
-
+                    
             idIIP_lineEdit.setText("_".join(idIPP_list))
-
+            
         # pobranie dynamicznie utworzonych obiektów UI
         idIIP_lineEdit = utils.getWidgetByName(
             layout=formularz,
@@ -1354,8 +1349,8 @@ class AppModule(BaseModule):
 
     def loadFromGMLGPKG(self):
         s = QgsSettings()
-        defaultPath = s.value("qgis_app/settings/defaultPath", "/")
-        epsg_code = s.value("qgis_app/settings/strefaPL2000", "/")
+        defaultPath = s.value("qgis_app2/settings/defaultPath", "/")
+        epsg_code = s.value("qgis_app2/settings/strefaPL2000", "/")
         if not os.access(defaultPath, os.W_OK):
             showPopup("Wczytaj warstwę","Brak uprawnień do zapisu w katalogu "+defaultPath+". W ustawieniach wtyczki wskaż domyślną ścieżkę zapisu plików z uprawnieniami do zapisu.")
             return
@@ -1486,7 +1481,7 @@ class AppModule(BaseModule):
 
     def saveLayerToGML(self):
         s = QgsSettings()
-        defaultPath = s.value("qgis_app/settings/defaultPath", "/")
+        defaultPath = s.value("qgis_app2/settings/defaultPath", "/")
         
         namespace_map = {'wfs': 'http://www.opengis.net/wfs/2.0', 
                          'app': 'https://www.gov.pl/static/zagospodarowanieprzestrzenne/schemas/app/2.0',

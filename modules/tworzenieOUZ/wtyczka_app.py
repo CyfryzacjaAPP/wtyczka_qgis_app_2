@@ -12,7 +12,8 @@ from PyQt5.QtCore import *
 from qgis import processing
 import pathlib
 from qgis.core import QgsSettings
-from datetime import date, datetime
+# from datetime import date, datetime
+import datetime
 
 
 class TworzenieOUZ(BaseModule):
@@ -26,11 +27,12 @@ class TworzenieOUZ(BaseModule):
     """Event handlers"""
 
     def tworzenieOUZ_btn_clicked(self):
+        start = datetime.datetime.now()
         s = QgsSettings()
-        rodzajZbioru = s.value("qgis_app/settings/rodzajZbioru", "")
-        numerZbioru = s.value("qgis_app/settings/numerZbioru", "")
-        jpt = s.value("qgis_app/settings/jpt", "")
-        idLokalnyAPP = s.value("qgis_app/settings/idLokalnyAPP","")
+        rodzajZbioru = s.value("qgis_app2/settings/rodzajZbioru", "")
+        numerZbioru = s.value("qgis_app2/settings/numerZbioru", "")
+        jpt = s.value("qgis_app2/settings/jpt", "")
+        idLokalnyAPP = s.value("qgis_app2/settings/idLokalnyAPP","")
         przestrzenNazw = 'PL.ZIPPZP.' + numerZbioru + '/' + jpt + '-' + rodzajZbioru
         
         try:
@@ -60,6 +62,7 @@ class TworzenieOUZ(BaseModule):
             'OUTPUT': 'memory:'
         })
         self.tworzenieOUZDialog.progressBar.setValue(10)
+        QCoreApplication.processEvents()
         
         # rozbicie multipoligon na poligony
         pojedynczeBufory = processing.run("native:multiparttosingleparts", {
@@ -67,6 +70,7 @@ class TworzenieOUZ(BaseModule):
             'OUTPUT': 'memory:'
         })
         self.tworzenieOUZDialog.progressBar.setValue(30)
+        QCoreApplication.processEvents()
         
         # usunięcie buforów, na których znajduje się mnieij niż 5 budynków
         pojedynczeBufory['OUTPUT'].startEditing()
@@ -79,6 +83,7 @@ class TworzenieOUZ(BaseModule):
                 pojedynczeBufory['OUTPUT'].deleteFeature(bufor.id())
         pojedynczeBufory['OUTPUT'].commitChanges()
         self.tworzenieOUZDialog.progressBar.setValue(50)
+        QCoreApplication.processEvents()
         
         # usunięcie dziur o powierzchni poniżej 5 000 m2
         buforyBezDziur = processing.run("native:deleteholes", {
@@ -87,6 +92,7 @@ class TworzenieOUZ(BaseModule):
             'OUTPUT': 'memory:'
         })
         self.tworzenieOUZDialog.progressBar.setValue(60)
+        QCoreApplication.processEvents()
         
         # bufor -40 m
         buforMinus40m = processing.run("native:buffer", {
@@ -97,6 +103,7 @@ class TworzenieOUZ(BaseModule):
             'OUTPUT': 'memory:'
         })
         self.tworzenieOUZDialog.progressBar.setValue(80)
+        QCoreApplication.processEvents()
         
         # rozbicie multipoligon na poligony
         pojedynczeBufory40m = processing.run("native:multiparttosingleparts", {
@@ -105,6 +112,7 @@ class TworzenieOUZ(BaseModule):
         })
         
         self.tworzenieOUZDialog.progressBar.setValue(90)
+        QCoreApplication.processEvents()
         
         # jeżeli jest obiekt POG to przecięcie z OUZ
         if warstwaZPOG.featureCount() > 0:
@@ -127,7 +135,7 @@ class TworzenieOUZ(BaseModule):
                 'OUTPUT': 'memory:'
             })
         
-        defaultPath = s.value("qgis_app/settings/defaultPath", "/")
+        defaultPath = s.value("qgis_app2/settings/defaultPath", "/")
         pathQML = pathlib.Path(QgsApplication.qgisSettingsDirPath())/pathlib.Path("python/plugins/wtyczka_qgis_app/QML/ObszarUzupelnieniaZabudowy.qml")
         
         newFields = QgsFields()
@@ -210,10 +218,13 @@ class TworzenieOUZ(BaseModule):
         
         self.tworzenieOUZDialog.progressBar.setValue(100)
         self.tworzenieOUZDialog.tworzenie_btn.setEnabled(True)
+        
+        # ts = datetime.datetime.now() - start
+        # print('Tworzenie OUZ zajęło: ', ts.seconds)
+        
         showPopup("Utworzenie OUZ","Utworzono warstwę OUZ i uzupełniono atrybuty.")
         self.tworzenieOUZDialog.progressBar.reset()
         self.tworzenieOUZDialog.progressBar.setValue(0)
-
 
 
 

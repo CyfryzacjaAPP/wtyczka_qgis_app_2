@@ -6,7 +6,7 @@
 name=Wtyczka APP 2
 qgisMinimumVersion=3.22
 description=Wtyczka wspomaga tworzenie danych przestrzennych dla planów ogólnych gminy w pełnym zakresie oraz pozostałych aktów planowania przestrzennego (APP) w zakresie podstawowym, w tym zbiorów APP oraz metadanych zgodnie z polskimi przepisami. Dedykowaną wersją oprogramowania QGIS do korzystania z Wtyczki APP są wersje powyżej 3.22. Do czasu wejścia w życie rozporządzenia w sprawie sposobu przygotowania projektu planu ogólnego gminy, wtyczka stanowi prototyp w zakresie tworzenia ustaleń planu ogólnego gminy.
-version=2.0.0
+version=2.0.1
 author=Marcin Lebiecki z wykorzystaniem wersji pierwszej stworzonej przez EnviroSolutions Sp. z o.o. 
 email=cyfryzacja.app@mrit.gov.pl 
 
@@ -23,7 +23,7 @@ repository=https://github.com/CyfryzacjaAPP/wtyczka_qgis_app_2
 
 hasProcessingProvider=no
 # Uncomment the following line and add your changelog:
-changelog=
+  changelog=
   Wersja 2.0.1
   * poprawa drobnych błędów
   Wersja 2.0.0
