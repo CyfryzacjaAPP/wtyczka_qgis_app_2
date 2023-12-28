@@ -87,7 +87,7 @@ def my_form_open(dialog, layer, feature):
                        "strefa górnictwa":"SG",
                        "strefa otwarta":"SO",
                        "strefa komunikacyjna":"SK",
-                       "NULL":"NULL"
+                       "wybierz":"wybierz"
                       }
     
     klasaPrzeznaczeniaTerenuKod = { "RA":"teren akwakultury i obsługi rybactwa",
@@ -164,7 +164,7 @@ def my_form_open(dialog, layer, feature):
                                  "SU":['PS','PEF','ZN','L','W'],
                                  "SH":['U','PS','PEF','ZN','L','W'],
                                  "SP":['U','ZN','L','W'],
-                                 "SR":['RN','PEB','PEF','PEW','ZP','ZN','L','W'],
+                                 "SR":['RN','PEB','PEF','PEW','PEO','ZP','ZN','L','W'],
                                  "SI":['U','P','ZP','ZN','L','W'],
                                  "SN":['US','UK','UHD','UG','UT','UN','UE','UZ','ZD','ZN','L'],
                                  "SC":['UR','UHD','ZN','L','W'],
@@ -174,25 +174,25 @@ def my_form_open(dialog, layer, feature):
                                  "NULL":['NULL']
                                 }
     
-    pomoc = ['Nazwa strefy planistycznej',
-             'Symbol literowy lub literowo-liczbowy stosowany do wyświetlania identyfikacji Wydzielenia Planistycznego',
-             'Oznaczenia literowe lub literowo-liczbowe umożliwiające jednoznaczne powiązanie dozwolonego sposobu użytkownia terenu z tekstem aktu planowania przestrzennego',
-             'Profil podstawowy strefy planistycznej',
-             'Profil dodatkowy strefy planistycznej',
-             'Maksymalna nadziemna intensywność zabudowy o której mowa w art. 13e ustawy z dnia 27 marca 2003 r. o planowaniu i zagospodarowaniu przestrzennym',
-             'Maksymalna wysokość zabudowy o której mowa w art. 13e ustawy z dnia 27 marca 2003 r. o planowaniu i zagospodarowaniu przestrzennym',
-             'Maksymalny udział powierzchni zabudowy o którym mowa w art. 13e ustawy z dnia 27 marca 2003 r. o planowaniu i zagospodarowaniu przestrzennym',
-             'Minimalny udział powierzchni biologicznie czynnej o której mowa w art. 13e ustawy z dnia 27 marca 2003 r. o planowaniu i zagospodarowaniu przestrzennym',
-             'Ogólne wskazanie etapu procesu planowania, na którym znajduje się akt planowania przestrzennego',
-             'Data, od której dana wersja aktu planowania przestrzennego obowiązuje',
-             'Data, od której dana wersja aktu planowania przestrzennego przestała obowiązywać',
-             'Charakter prawny regulacji w zakresie zagospodarowania przestrzennego',
-             'Nazwa alternatywna strefy planistycznej',
-             'Przestrzeń nazw identyfikująca w sposób jednoznaczny źródło danych obiektu, o której mowa w § 5 ust. 1 pkt 1 rozporządzenia. KOMENTARZ 01. Wartość atrybutu przestrzeń nazw powinna jednoznacznie identyfikować zbiór danych przestrzennych, do którego należy instancja typu obiektu',
-             'Lokalny identyfikator obiektu, o którym mowa w § 5 ust. 1 pkt 2 rozporządzenia,  przypisany przez dostawcę danych. KOMENTARZ 01. Unikalność identyfikatora w przestrzeni nazw gwarantuje dostawca zbioru danych przestrzennych',
-             'Identyfikator poszczególnej wersji obiektu przestrzennego, o którym mowa w § 5 ust. 1 pkt 3 rozporządzenia, przypisany przez dostawcę danych. KOMENTARZ 01. W zestawie wszystkich wersji danego obiektu identyfikator wersji musi być unikalny',
-             'Data i godzina, w której ta wersja obiektu została wprowadzona do zbioru danych przestrzennych lub zmieniona w tym zbiorze danych przestrzennych',
-             'Data i godzina, w której ta wersja obiektu została zastąpiona w zbiorze danych przestrzennych lub wycofana z tego zbioru danych przestrzennych'
+    pomoc = ['Nazwa rodzajów stref planistycznych, o której mowa w art. 13c ust. 2 ustawy z dnia 27 marca 2003 r. o planowaniu i zagospodarowaniu przestrzennym.',
+             'Ciąg literowy stosowany do określenia rodzaju wydzielenia planistycznego.',
+             'Ciąg literowo-liczbowy, który określa wydzielenie planistyczne.',
+             'Profil podstawowy będący obligatoryjnym elementem profilu funkcjonalnego strefy planistycznej, o którym mowa w art. 13e ust. 2 pkt 1 ustawy z dnia 27 marca 2003 r. o planowaniu i zagospodarowaniu przestrzennym.',
+             'Profil dodatkowy będący fakultatywnym elementem profilu funkcjonalnego strefy planistycznej, o którym mowa w art. 13e ust. 2 pkt 1 ustawy z dnia 27 marca 2003 r. o planowaniu i zagospodarowaniu przestrzennym.',
+             'Maksymalna nadziemna intensywność zabudowy o której mowa w art. 13e ust. 2 pkt 2 oraz ust. 3 pkt 1 i 2 ustawy z dnia 27 marca 2003 r. o planowaniu i zagospodarowaniu przestrzennym.\nWartość atrybutu podaje się z dokładnością do pierwszego miejsca po przecinku.',
+             'Maksymalna wysokość zabudowy, o której mowa w art. 13e ust. 2 pkt 2 i ust. 3 pkt 1 i 2 ustawy z dnia 27 marca 2003 r. o planowaniu i zagospodarowaniu przestrzennym.\nWartość atrybutu podaje się z dokładnością do pierwszego miejsca po przecinku.',
+             'Maksymalny udział powierzchni zabudowy, o którym mowa w art. 13e ust. 2 pkt 2 i ust. 3 pkt 1 i 2 ustawy z dnia 27 marca 2003 r. o planowaniu i zagospodarowaniu przestrzennym.\nWartość atrybutu jest wyrażona w % z dokładnością do pierwszego miejsca po przecinku.',
+             'Minimalny udział powierzchni biologicznie czynnej, o której mowa w art. 13e ust. 2 pkt 3 i ust. 3 pkt 2 ustawy z dnia 27 marca 2003 r. o planowaniu i zagospodarowaniu przestrzennym.\nWartość atrybutu wyrażona jest w % z dokładnością do pierwszego miejsca po przecinku.',
+             'Ogólne wskazanie etapu procesu planowania, na którym znajduje się wersja obiektu przestrzennego.',
+             'Data, od której dana wersja obiektu przestrzennego obowiązuje.',
+             'Data, do której dana wersja obiektu przestrzennego obowiązywała.',
+             'Charakter prawny wydzielenia planistycznego.',
+             'Nazwa alternatywna strefy planistycznej.',
+             'Przestrzeń nazw identyfikująca w sposób jednoznaczny źródło danych obiektu, o której mowa w § 5 ust. 1 pkt 1 rozporządzenia.\nWartość atrybutu przestrzeń nazw powinna jednoznacznie identyfikować zbiór danych przestrzennych, do którego należy instancja typu obiektu.',
+             'Identyfikator lokalny obiektu, o którym mowa w § 5 ust. 1 pkt 2 oraz § 5 ust. 1a rozporządzenia, przypisany przez dostawcę danych.\nUnikalność identyfikatora w przestrzeni nazw gwarantuje dostawca zbioru danych przestrzennych.',
+             'Identyfikator poszczególnej wersji obiektu przestrzennego, o którym mowa w § 5 ust. 1 pkt 3 rozporządzenia, przypisany przez dostawcę danych.\nW zestawie wszystkich wersji danego obiektu identyfikator wersji jest unikalny.',
+             'Data i godzina, w której wersja obiektu została wprowadzona do zbioru danych przestrzennych lub zmieniona w tym zbiorze danych przestrzennych.',
+             'Data i godzina, w której wersja obiektu została zastąpiona w zbiorze danych przestrzennych lub wycofana z tego zbioru danych przestrzennych.'
             ]
     
     atrybuty.append('geometria')
@@ -221,10 +221,12 @@ def my_form_open(dialog, layer, feature):
     if obj.id() < 0: poczatekWersjiObiektu.setDateTime(dataCzasTeraz)
     
     przestrzenNazw = dialog.findChild(QLineEdit,"przestrzenNazw")
+    przestrzenNazw.setToolTip('')
     przestrzenNazw.setPlaceholderText(placeHolders['przestrzenNazw'])
     przestrzenNazw.textChanged.connect(przestrzenNazw_kontrola)
     
     lokalnyId = dialog.findChild(QLineEdit,"lokalnyId")
+    lokalnyId.setToolTip('')
     lokalnyId.setPlaceholderText(placeHolders['lokalnyId'])
     lokalnyId.textChanged.connect(lokalnyId_kontrola)
     
@@ -251,12 +253,10 @@ def my_form_open(dialog, layer, feature):
     
     obowiazujeOd = dialog.findChild(QDateTimeEdit,"obowiazujeOd")
     obowiazujeOd_label = dialog.findChild(QLabel,"obowiazujeOd_label")
-    obowiazujeOd.setMaximumDate(QDate.currentDate())
     obowiazujeOd.valueChanged.connect(poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola)
     
     obowiazujeDo = dialog.findChild(QDateTimeEdit,"obowiazujeDo")
     obowiazujeDo_label = dialog.findChild(QLabel,"obowiazujeDo_label")
-    obowiazujeDo.setMaximumDate(QDate.currentDate())
     obowiazujeDo.valueChanged.connect(poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola)
     
     status = dialog.findChild(QComboBox,"status")
@@ -270,7 +270,7 @@ def my_form_open(dialog, layer, feature):
     koniecWersjiObiektu.setMaximumDate(QDate.currentDate())
     
     nazwa.currentTextChanged.connect(nazwa_kontrola)
-    if obj.id() < 0: nazwa_kontrola('NULL')
+    if obj.id() < 0: nazwa_kontrola('wybierz')
     
     nazwaAlternatywna = dialog.findChild(QLineEdit,"nazwaAlternatywna")
     nazwaAlternatywna.setPlaceholderText(placeHolders['nazwaAlternatywna'])
@@ -344,7 +344,7 @@ def my_form_open(dialog, layer, feature):
     zapisz.setEnabled(False)
     zapisz.setText("Zapisz")
     
-    if obj.id() < 0: przestrzenNazw_kontrola()
+    przestrzenNazw_kontrola()
     
     odczytajAtrybutyZPOG()
     
@@ -441,6 +441,7 @@ def przestrzenNazw_kontrola():
             txt = 'PL.ZIPPZP.' + numerZbioru + '/' + jpt + '-' + rodzajZbioru
             if przestrzenNazw.text() != txt:
                 przestrzenNazw.setText(txt)
+                komunikowanieBledu(przestrzenNazw,'','przestrzenNazw')
             teryt_gminy = przestrzenNazw.text().split("/")[1].split("-")[0]
     except:
         pass
@@ -483,7 +484,7 @@ def poczatekWersjiObiektu_kontrola():
 
 def oznaczenie_kontrola(txt):
     try:
-        if re.match('^[1-9][0-9]{0,4}$', txt) != None and symbol.currentText() != 'NULL':
+        if re.match('^[1-9][0-9]{0,4}$', txt) != None and symbol.currentText() != 'wybierz':
             pozycjaKursora = len(txt)
             txt = str(txt) + symbol.currentText()
             oznaczenie.setText(txt)
@@ -505,7 +506,7 @@ def oznaczenie_kontrola(txt):
 
 def oznaczenie_uzupelnienie():
     try:
-        if re.match('^[1-9][0-9]{0,2}S[W|J|Z|U|H|P|R|I|N|C|G|O|K]$', oznaczenie.text()) != None and oznaczenie.text() != 'NULL':
+        if re.match('^[1-9][0-9]{0,2}S[W|J|Z|U|H|P|R|I|N|C|G|O|K]$', oznaczenie.text()) != None and oznaczenie.text() != 'wybierz':
             txt = oznaczenie.text().replace(symbolTXT, symbol.currentText())
             oznaczenie.setText(txt)
     except:
@@ -515,10 +516,10 @@ def oznaczenie_uzupelnienie():
 def symbol_kontrola(txt):
     global symbolTXT
     try:
-        if txt == 'NULL':
+        if txt == 'wybierz':
             komunikowanieBledu(symbol,'Symbol jest polem obowiązkowym','symbol')
             komunikowanieBledu(profilPodstawowy_QCCB,'Należy wybrać symbol lub nazwę','profilPodstawowy')
-            nazwa.setCurrentText('NULL')
+            nazwa.setCurrentText('wybierz')
             komunikowanieBledu(nazwa,'Należy wybrać wartość pola nazwa','nazwa')
             profilPodstawowy_QCCB.clear()
             profilDodatkowy_QCCB.clear()
@@ -549,10 +550,7 @@ def symbol_kontrola(txt):
 
 def charakterUstalenia_kontrola(txt):
     try:
-        if txt == 'NULL':
-            komunikowanieBledu(charakterUstalenia,'Należy wybrać wartość pola charakter ustalenia','charakterUstalenia')
-        else:
-            komunikowanieBledu(charakterUstalenia,'','charakterUstalenia')
+        komunikowanieBledu(charakterUstalenia,'','charakterUstalenia')
     except:
         pass
 
@@ -575,10 +573,10 @@ def poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola():
         koniecWersjiObiektuTxt = koniecWersjiObiektu.dateTime().toString("H:mm")
         
         if obowiazujeOdTxt not in ['0:00','23:59']:
-            komunikowanieBledu(obowiazujeOd, 'Należy wybrać datę dla obowiązuje od', 'obowiazujeOd')
+            komunikowanieBledu(obowiazujeOd, 'Należy wybrać datę dla "obowiązuje od"', 'obowiazujeOd')
         else:
             if obowiazujeDoTxt in ['0:00','23:59'] and obowiazujeOd.dateTime() >= obowiazujeDo.dateTime():
-                komunikowanieBledu(obowiazujeOd, 'Atrybut obowiązuje od nie może być większy lub równy od obowiązuje do.', 'obowiazujeOd')
+                komunikowanieBledu(obowiazujeOd, 'Atrybut "obowiązuje od" nie może być większy lub równy od "obowiązuje do".', 'obowiazujeOd')
             else:
                 komunikowanieBledu(obowiazujeOd, '', 'obowiazujeOd')
         if koniecWersjiObiektuTxt in ['0:00','23:59'] and koniecWersjiObiektu.dateTime().date().year() != 1 and poczatekWersjiObiektu.dateTime() >= koniecWersjiObiektu.dateTime():
@@ -590,7 +588,7 @@ def poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola():
             if koniecWersjiObiektu.dateTime().date().year() != 1 and koniecWersjiObiektu.dateTime().time().msec() == 0:
                 obowiazujeDo_label.setText("obowiązuje do*")
                 if obowiazujeDoTxt not in ['0:00','23:59']:
-                    komunikowanieBledu(obowiazujeDo, 'Należy wybrać datę dla obowiązuje do', 'obowiazujeDo')
+                    komunikowanieBledu(obowiazujeDo, 'Należy wybrać datę dla "obowiązuje do"', 'obowiazujeDo')
                 else:
                     komunikowanieBledu(obowiazujeDo, '', 'obowiazujeDo')
             else:
@@ -601,15 +599,15 @@ def poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola():
                     if obowiazujeOdTxt not in ['0:00','23:59'] or obowiazujeOd.dateTime() < obowiazujeDo.dateTime():
                         komunikowanieBledu(obowiazujeDo, '', 'obowiazujeDo')
                     else:
-                        komunikowanieBledu(obowiazujeOd, 'Atrybut obowiązuje od nie może być większy lub równy od obowiązuje do.', 'obowiazujeOd')
-                        komunikowanieBledu(obowiazujeDo, 'Atrybut obowiązuje do nie może być mniejszy lub równy od obowiązuje od.','obowiazujeDo')
+                        komunikowanieBledu(obowiazujeOd, 'Atrybut "obowiązuje od" nie może być większy lub równy od "obowiązuje do".', 'obowiazujeOd')
+                        komunikowanieBledu(obowiazujeDo, 'Atrybut "obowiązuje do" nie może być mniejszy lub równy od "obowiązuje od".','obowiazujeDo')
     except:
         pass
 
 
 def nazwa_kontrola(txt):
     try:
-        if txt == 'NULL':
+        if txt == 'wybierz':
             komunikowanieBledu(nazwa,'Należy wybrać wartość pola nazwa','nazwa')
         else:
             komunikowanieBledu(nazwa,'','nazwa')
@@ -775,7 +773,7 @@ def minUdzialPowierzchniBiologicznieCzynnej_kontrola(txt):
             komunikowanieBledu(minUdzialPowierzchniBiologicznieCzynnej,'','minUdzialPowierzchniBiologicznieCzynnej')
         minUdzialPowierzchniBiologicznieCzynnej.setPlaceholderText(placeHolders['minUdzialPowierzchniBiologicznieCzynnej'])
         
-        if not symbol.currentText() in ['SG','SO','SK','NULL']:
+        if not symbol.currentText() in ['SG','SO','SK','wybierz']:
             minUdzialPowierzchniBiologicznieCzynnej_label.setText("minimalny udział powierzchni biologicznie czynnej*")
         else:
             minUdzialPowierzchniBiologicznieCzynnej_label.setText("minimalny udział powierzchni biologicznie czynnej")

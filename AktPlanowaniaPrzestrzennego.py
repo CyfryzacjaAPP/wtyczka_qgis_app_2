@@ -59,19 +59,19 @@ def my_form_open(dialog, layer, feature):
                     'tytulAlternatywny':'np. POG nazwa gminy'
                     }
     
-    pomoc = ['Przestrzeń nazw identyfikująca w sposób jednoznaczny źródło danych obiektu, o której mowa w § 5 ust. 1 pkt 1 rozporządzenia. KOMENTARZ 01. Wartość atrybutu przestrzeń nazw powinna jednoznacznie identyfikować zbiór danych przestrzennych, do którego należy instancja typu obiektu',
-             'Lokalny identyfikator obiektu, o którym mowa w § 5 ust. 1 pkt 2 rozporządzenia,  przypisany przez dostawcę danych. KOMENTARZ 01. Unikalność identyfikatora w przestrzeni nazw gwarantuje dostawca zbioru danych przestrzennych',
-             'Identyfikator poszczególnej wersji obiektu przestrzennego, o którym mowa w § 5 ust. 1 pkt 3 rozporządzenia, przypisany przez dostawcę danych. KOMENTARZ 01. W zestawie wszystkich wersji danego obiektu identyfikator wersji musi być unikalny',
-             'Data i godzina, w której ta wersja obiektu została wprowadzona do zbioru danych przestrzennych lub zmieniona w tym zbiorze danych przestrzennych',
-             'Data i godzina, w której ta wersja obiektu została zastąpiona w zbiorze danych przestrzennych lub wycofana z tego zbioru danych przestrzennych',
-             'Oficjalny tytuł aktu planowania przestrzennego',
-             'Alternatywny (nieoficjalny) tytuł aktu planowania przestrzennego',
-             'Formalna nazwa typu/rodzaju aktu planowania przestrzennego',
-             'Poziom w hierarchii terytorialnej kraju obszaru objętego aktem planowania przestrzennego. Komentarz 01. Dla poszczególnych typów aktu planowania przestrzennego atrybut przyjmuje następujące wartości: Plan zagospodarowania przestrzennego województwa – regionalny, Studium uwarunkowań i kierunków zagospodarowania przestrzennego – lokalny, Miejscowy plan zagospodarowania przestrzennego obejmujący obszar całej gminy – lokalny, Miejscowy plan zagospodarowania przestrzennego obejmujący obszar części gminy – sublokalny, Miejscowy plan odbudowy – sublokalny, Miejscowy plan rewitalizacji – sublokalny',
-             'Data, od której dana wersja aktu planowania przestrzennego obowiązuje',
-             'Data, od której dana wersja aktu planowania przestrzennego przestała obowiązywać',
-             'Ogólne wskazanie etapu procesu planowania, na którym znajduje się akt planowania przestrzennego',
-             'Informacja, czy wersja aktu planowania przestrzennego obowiązuje w całości, czy w części (np. w wyniku uchylenia, unieważnienia lub zmiany częściowej)']
+    pomoc = ['Przestrzeń nazw identyfikująca w sposób jednoznaczny źródło danych obiektu, o której mowa w § 5 ust. 1 pkt 1 rozporządzenia.\nWartość atrybutu przestrzeń nazw powinna jednoznacznie identyfikować zbiór danych przestrzennych, do którego należy instancja typu obiektu.',
+             'Identyfikator lokalny obiektu, o którym mowa w § 5 ust. 1 pkt 2 oraz § 5 ust. 1a rozporządzenia, przypisany przez dostawcę danych.\nUnikalność identyfikatora w przestrzeni nazw gwarantuje dostawca zbioru danych przestrzennych.',
+             'Identyfikator poszczególnej wersji obiektu przestrzennego, o którym mowa w § 5 ust. 1 pkt 3 rozporządzenia, przypisany przez dostawcę danych.\nW zestawie wszystkich wersji danego obiektu identyfikator wersji jest unikalny.',
+             'Data i godzina, w której wersja obiektu została wprowadzona do zbioru danych przestrzennych lub zmieniona w tym zbiorze danych przestrzennych.',
+             'Data i godzina, w której wersja obiektu została zastąpiona w zbiorze danych przestrzennych lub wycofana z tego zbioru danych przestrzennych.',
+             'Oficjalny tytuł aktu planowania przestrzennego lub jego projektu.',
+             'Alternatywny (nieoficjalny) tytuł aktu planowania przestrzennego lub jego projektu.',
+             'Formalna nazwa typu aktu planowania przestrzennego lub jego projektu.',
+             'Poziom aktu planowania przestrzennego w hierarchii terytorialnej. \n Dla poszczególnych typów aktu planowania przestrzennego atrybut przyjmuje następujące wartości: \n 1)	Plan zagospodarowania przestrzennego województwa – regionalny; \n 2)	Plan ogólny gminy – lokalny; \n 3)	Miejscowy plan zagospodarowania przestrzennego – sublokalny; \n 4)	Zintegrowany plan inwestycyjny – sublokalny; \n 5)	Miejscowy plan odbudowy – sublokalny; \n 6)	Miejscowy plan rewitalizacji – sublokalny',
+             'Data, od której dana wersja obiektu przestrzennego obowiązuje.',
+             'Data, do której dana wersja obiektu przestrzennego obowiązywała.',
+             'Ogólne wskazanie etapu procesu planowania, na którym znajduje się wersja aktu planowania przestrzennego lub jego projektu.',
+             'Informacja, czy dana wersja aktu planowania przestrzennego obowiązuje w części – nie obejmuje całego obszaru, który jest objęty aktem planowania przestrzennego lub jego projektem (np. w wyniku uchylenia, unieważnienia).']
     
     atrybuty.append('geometria')
     listaBledowAtrybutow = [0 for i in range(len(atrybuty))]
@@ -82,22 +82,22 @@ def my_form_open(dialog, layer, feature):
     if obj.id() < 0: wersjaId.setDateTime(dataCzasTeraz)
     
     przestrzenNazw = dialog.findChild(QLineEdit,"przestrzenNazw")
+    przestrzenNazw.setToolTip('')
     przestrzenNazw.setPlaceholderText(placeHolders['przestrzenNazw'])
     przestrzenNazw.textChanged.connect(przestrzenNazw_kontrola)
     
     lokalnyId = dialog.findChild(QLineEdit,"lokalnyId")
+    lokalnyId.setToolTip('')
     lokalnyId.setPlaceholderText(placeHolders['lokalnyId'])
     lokalnyId.textChanged.connect(lokalnyId_kontrola)
     if lokalnyId.text() == 'NULL': lokalnyId.setText(idLokalnyAPP)
     
     obowiazujeOd = dialog.findChild(QDateTimeEdit,"obowiazujeOd")
     obowiazujeOd_label = dialog.findChild(QLabel,"obowiazujeOd_label")
-    obowiazujeOd.setMaximumDate(QDate.currentDate())
     obowiazujeOd.valueChanged.connect(poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola)
     
     obowiazujeDo = dialog.findChild(QDateTimeEdit,"obowiazujeDo")
     obowiazujeDo_label = dialog.findChild(QLabel,"obowiazujeDo_label")
-    obowiazujeDo.setMaximumDate(QDate.currentDate())
     obowiazujeDo.valueChanged.connect(poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola)
     
     modyfikacja = dialog.findChild(QCheckBox,"modyfikacja")
@@ -118,7 +118,7 @@ def my_form_open(dialog, layer, feature):
     tytul = dialog.findChild(QLineEdit,"tytul")
     tytul.setPlaceholderText(placeHolders['tytul'])
     tytul.textChanged.connect(tytul_kontrola)
-    if tytul.text() == 'NULL': tytul.setText('')
+    if obj.id() < 0: tytul.setText('Plan ogólny gminy ')
     tytul_kontrola(tytul.text())
     
     tytulAlternatywny = dialog.findChild(QLineEdit,"tytulAlternatywny")
@@ -148,7 +148,7 @@ def my_form_open(dialog, layer, feature):
     zapisz.setEnabled(False)
     zapisz.setText("Zapisz")
     
-    if obj.id() < 0: przestrzenNazw_kontrola()
+    przestrzenNazw_kontrola()
     
     labels = [None for i in range(13)]
     pixmap = QPixmap(':/plugins/wtyczka_app/img/info2.png')
@@ -252,6 +252,7 @@ def przestrzenNazw_kontrola():
             txt = 'PL.ZIPPZP.' + numerZbioru + '/' + jpt + '-' + rodzajZbioru
             if przestrzenNazw.text() != txt:
                 przestrzenNazw.setText(txt)
+                komunikowanieBledu(przestrzenNazw,'','przestrzenNazw')
             teryt_gminy = przestrzenNazw.text().split("/")[1].split("-")[0]
     except:
         pass
@@ -311,10 +312,10 @@ def poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola():
         koniecWersjiObiektuTxt = koniecWersjiObiektu.dateTime().toString("H:mm")
         
         if obowiazujeOdTxt not in ['0:00','23:59']:
-            komunikowanieBledu(obowiazujeOd, 'Należy wybrać datę dla obowiązuje od', 'obowiazujeOd')
+            komunikowanieBledu(obowiazujeOd, 'Należy wybrać datę dla "obowiązuje od"', 'obowiazujeOd')
         else:
             if obowiazujeDoTxt in ['0:00','23:59'] and obowiazujeOd.dateTime() >= obowiazujeDo.dateTime():
-                komunikowanieBledu(obowiazujeOd, 'Atrybut obowiązuje od nie może być większy lub równy od obowiązuje do.', 'obowiazujeOd')
+                komunikowanieBledu(obowiazujeOd, 'Atrybut "obowiązuje od" nie może być większy lub równy od "obowiązuje do".', 'obowiazujeOd')
             else:
                 komunikowanieBledu(obowiazujeOd, '', 'obowiazujeOd')
         if koniecWersjiObiektuTxt in ['0:00','23:59'] and koniecWersjiObiektu.dateTime().date().year() != 1 and poczatekWersjiObiektu.dateTime() >= koniecWersjiObiektu.dateTime():
@@ -326,7 +327,7 @@ def poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola():
             if koniecWersjiObiektu.dateTime().date().year() != 1 and koniecWersjiObiektu.dateTime().time().msec() == 0:
                 obowiazujeDo_label.setText("obowiązuje do*")
                 if obowiazujeDoTxt not in ['0:00','23:59']:
-                    komunikowanieBledu(obowiazujeDo, 'Należy wybrać datę dla obowiązuje do', 'obowiazujeDo')
+                    komunikowanieBledu(obowiazujeDo, 'Należy wybrać datę dla "obowiązuje do"', 'obowiazujeDo')
                 else:
                     komunikowanieBledu(obowiazujeDo, '', 'obowiazujeDo')
             else:
@@ -337,17 +338,17 @@ def poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola():
                     if obowiazujeOdTxt not in ['0:00','23:59'] or obowiazujeOd.dateTime() < obowiazujeDo.dateTime():
                         komunikowanieBledu(obowiazujeDo, '', 'obowiazujeDo')
                     else:
-                        komunikowanieBledu(obowiazujeOd, 'Atrybut obowiązuje od nie może być większy lub równy od obowiązuje do.', 'obowiazujeOd')
-                        komunikowanieBledu(obowiazujeDo, 'Atrybut obowiązuje do nie może być mniejszy lub równy od obowiązuje od.','obowiazujeDo')
+                        komunikowanieBledu(obowiazujeOd, 'Atrybut "obowiązuje od" nie może być większy lub równy od "obowiązuje do".', 'obowiazujeOd')
+                        komunikowanieBledu(obowiazujeDo, 'Atrybut "obowiązuje do" nie może być mniejszy lub równy od "obowiązuje od".','obowiazujeDo')
     except:
         pass
 
 
 def tytul_kontrola(txt):
     try:
-        if txt == '':
+        if re.match('^Plan ogólny gminy [A-Z,a-z,ĄŚĘŁÓŻŹĆŃąśęłóżźćń ()-]{2,}$', txt) == None:
             tytul.setPlaceholderText(placeHolders['tytul'])
-            komunikowanieBledu(tytul,'Tytuł jest polem obowiązkowym','tytul')
+            komunikowanieBledu(tytul,'Tytuł jest polem obowiązkowym i musi zaczynać się od Plan ogólny gminy','tytul')
         else:
             komunikowanieBledu(tytul,'','tytul')
     except:
@@ -399,7 +400,9 @@ def read_tytulAlternatywny():
 def modyfikacja_kontrola():
     try:
         komunikowanieBledu(modyfikacja,'','modyfikacja')
-        if modyfikacja.checkState() == 2 and tytul.text() == '':
+        if modyfikacja.checkState() == 2 and tytul.text() != '':
+            tytul.setText('')
+        else:
             tytul.setText('Plan ogólny gminy ')
     except:
         pass

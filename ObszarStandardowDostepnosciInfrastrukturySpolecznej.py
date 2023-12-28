@@ -67,36 +67,36 @@ def my_form_open(dialog, layer, feature):
                     'powierzchnia obszarow':'wartość w hektarach min. 1.5'
                     }
     
-    pomoc = ['Przestrzeń nazw identyfikująca w sposób jednoznaczny źródło danych obiektu, o której mowa w § 5 ust. 1 pkt 1 rozporządzenia. KOMENTARZ 01. Wartość atrybutu przestrzeń nazw powinna jednoznacznie identyfikować zbiór danych przestrzennych, do którego należy instancja typu obiektu',
-             'Lokalny identyfikator obiektu, o którym mowa w § 5 ust. 1 pkt 2 rozporządzenia,  przypisany przez dostawcę danych. KOMENTARZ 01. Unikalność identyfikatora w przestrzeni nazw gwarantuje dostawca zbioru danych przestrzennych',
-             'Identyfikator poszczególnej wersji obiektu przestrzennego, o którym mowa w § 5 ust. 1 pkt 3 rozporządzenia, przypisany przez dostawcę danych. KOMENTARZ 01. W zestawie wszystkich wersji danego obiektu identyfikator wersji musi być unikalny',
-             'Nazwa urzędowa regulacji dodatkowej',
-             'Oznaczenia literowe lub literowo-liczbowe Regulacji umożliwiające jednoznaczne powiązanie obiektu z tekstem aktu planowania przestrzennego',
-             'Symbol literowy lub literowo-liczbowy stosowany do wyświetlania identyfikacji o rodzaju Regulacji',
-             'Charakter prawny regulacji w zakresie zagospodarowania przestrzennego',
-             'Data, od której dana wersja aktu planowania przestrzennego obowiązuje',
-             'Data, od której dana wersja aktu planowania przestrzennego przestała obowiązywać',
-             'Ogólne wskazanie etapu procesu planowania, na którym znajduje się akt planowania przestrzennego',
-             'Data i godzina, w której ta wersja obiektu została wprowadzona do zbioru danych przestrzennych lub zmieniona w tym zbiorze danych przestrzennych',
-             'Data i godzina, w której ta wersja obiektu została zastąpiona w zbiorze danych przestrzennych lub wycofana z tego zbioru danych przestrzennych',
-             'Informacja o wyłączeniu terenów zabudowy zagrodowej o którym mowa w art. 13f ust. 7 pkt 5 ustawy z dnia 27 marca 2003 r. o planowaniu i zagospodarowaniu przestrzennym',
-             'Minimalna odległość położenia działki od obiektu infrastruktury społecznej (szkoły podstawowej)',
-             'Minimalna odległość położenia działki od obszarów zieleni publicznej o których mowa w w art. 13f ust. 3 pkt 1 ustawy z dnia 27 marca 2003 r. o planowaniu i zagospodarowaniu przestrzennym',
-             'Łączna powierzchnia obszarów zieleni publicznej o których mowa w w art. 13f ust. 3 pkt 1 ustawy z dnia 27 marca 2003 r. o planowaniu i zagospodarowaniu przestrzennym',
-             'Minimalna odległość położenia działki od obszaru zieleni publicznej o którym mowa w w art. 13f ust. 3 pkt 2 ustawy z dnia 27 marca 2003 r. o planowaniu i zagospodarowaniu przestrzennym',
-             'Powierzchnia obszaru zieleni publicznej o których mowa w w art. 13f ust. 3 pkt 2 ustawy z dnia 27 marca 2003 r. o planowaniu i zagospodarowaniu przestrzennym',
-             'Minimalna odległość położenia działki od obiektu infrastruktury społecznej (przedszkola)',
-             'Minimalna odległość położenia działki od obiektu infrastruktury społecznej (żłobka)',
-             'Minimalna odległość położenia działki od obiektu infrastruktury społecznej (ambulatorium POZ)',
-             'Minimalna odległość położenia działki od obiektu infrastruktury społecznej (biblioteki)',
-             'Minimalna odległość położenia działki od obiektu infrastruktury społecznej (domu kultury)',
-             'Minimalna odległość położenia działki od obiektu infrastruktury społecznej (domu pomocy społecznej)',
-             'Minimalna odległość położenia działki od obiektu infrastruktury społecznej (urządzonego terenu sportu)',
-             'Minimalna odległość położenia działki od obiektu infrastruktury społecznej (przystanku publicznego transportu zbiorowego)',
-             'Minimalna odległość położenia działki od obiektu infrastruktury społecznej (placowki pocztowej)',
-             'Minimalna odległość położenia działki od obiektu infrastruktury społecznej (apteki)',
-             'Minimalna odległość położenia działki od obiektu infrastruktury społecznej (posterunku policji)',
-             'Minimalna odległość położenia działki od obiektu infrastruktury społecznej (jednostki ochrony przeciwpożarowej)']
+    pomoc = ['Przestrzeń nazw identyfikująca w sposób jednoznaczny źródło danych obiektu, o której mowa w § 5 ust. 1 pkt 1 rozporządzenia.\nWartość atrybutu przestrzeń nazw powinna jednoznacznie identyfikować zbiór danych przestrzennych, do którego należy instancja typu obiektu.',
+             'Identyfikator lokalny obiektu, o którym mowa w § 5 ust. 1 pkt 2 oraz § 5 ust. 1a rozporządzenia, przypisany przez dostawcę danych.\nUnikalność identyfikatora w przestrzeni nazw gwarantuje dostawca zbioru danych przestrzennych.',
+             'Identyfikator poszczególnej wersji obiektu przestrzennego, o którym mowa w § 5 ust. 1 pkt 3 rozporządzenia, przypisany przez dostawcę danych.\nW zestawie wszystkich wersji danego obiektu identyfikator wersji jest unikalny.',
+             'Nazwa regulacji.',
+             'Ciąg literowo-liczbowy, który określa regulację.',
+             'Ciąg literowy stosowany do określenia rodzaju regulacji.',
+             'Charakter prawny regulacji.',
+             'Data, od której dana wersja obiektu przestrzennego obowiązuje.',
+             'Data, do której dana wersja obiektu przestrzennego obowiązywała.',
+             'Ogólne wskazanie etapu procesu planowania, na którym znajduje się wersja obiektu przestrzennego.',
+             'Data i godzina, w której wersja obiektu została wprowadzona do zbioru danych przestrzennych lub zmieniona w tym zbiorze danych przestrzennych.',
+             'Data i godzina, w której wersja obiektu została zastąpiona w zbiorze danych przestrzennych lub wycofana z tego zbioru danych przestrzennych.',
+             'Informacja o wyłączeniu terenów zabudowy zagrodowej o którym mowa w art. 13f ust. 7 pkt 5 ustawy z dnia 27 marca 2003 r. o planowaniu i zagospodarowaniu przestrzennym.',
+             'Maksymalna odległość, o której mowa w art. 13f ust. 2 ustawy z dnia 27 marca 2003 r. o planowaniu i zagospodarowaniu przestrzennym, od granicy działki ewidencyjnej do budynku szkoły podstawowej.\nWartość atrybutu jest wyrażona liczbą całkowitą.',
+             'Maksymalna odległość, o której mowa w art. 13f ust. 3 ustawy z dnia 27 marca 2003 r. o planowaniu i zagospodarowaniu przestrzennym, od granicy działki ewidencyjnej do granicy obszarów zieleni publicznej, o których mowa w art. 13f ust. 3 pkt 1 ustawy z dnia 27 marca 2003 r. o planowaniu i zagospodarowaniu przestrzennym.\nWartość atrybutu jest wyrażona liczbą całkowitą.',
+             'Łączna powierzchnia obszarów zieleni publicznej, o których mowa w art. 13f ust. 3 pkt 1 ustawy z dnia 27 marca 2003 r. o planowaniu i zagospodarowaniu przestrzennym.\nWartość atrybutu jest wyrażona liczbą dziesiętną.',
+             'Maksymalna odległość, o której mowa w art. 13f ust. 3 ustawy z dnia 27 marca 2003 r. o planowaniu i zagospodarowaniu przestrzennym, od granicy działki ewidencyjnej do granicy obszaru zieleni publicznej, o którym mowa w art. 13f ust. 3 pkt 2 ustawy z dnia 27 marca 2003 r. o planowaniu i zagospodarowaniu przestrzennym.\nWartość atrybutu jest wyrażona liczbą całkowitą.',
+             'Powierzchnia obszaru zieleni publicznej, o którym mowa w art. 13f ust. 3 pkt 2 ustawy z dnia 27 marca 2003 r. o planowaniu i zagospodarowaniu przestrzennym.\nWartość atrybutu jest wyrażona liczbą dziesiętną.',
+             'Maksymalna odległość liczona jako droga dojścia ogólnodostępną trasą dla pieszych od granicy działki ewidencyjnej do przedszkola.\nWartość atrybutu jest wyrażona liczbą całkowitą.',
+             'Maksymalna odległość liczona jako droga dojścia ogólnodostępną trasą dla pieszych od granicy działki ewidencyjnej do żłobka.\nWartość atrybutu jest wyrażona liczbą całkowitą.',
+             'Maksymalna odległość liczona jako droga dojścia ogólnodostępną trasą dla pieszych od granicy działki ewidencyjnej do ambulatorium podstawowej opieki zdrowotnej.\nWartość atrybutu jest wyrażona liczbą całkowitą.',
+             'Maksymalna odległość liczona jako droga dojścia ogólnodostępną trasą dla pieszych od granicy działki ewidencyjnej do biblioteki.\nWartość atrybutu jest wyrażona liczbą całkowitą.',
+             'Maksymalna odległość liczona jako droga dojścia ogólnodostępną trasą dla pieszych od granicy działki ewidencyjnej do domu kultury.\nWartość atrybutu jest wyrażona liczbą całkowitą.',
+             'Maksymalna odległość liczona jako droga dojścia ogólnodostępną trasą dla pieszych od granicy działki ewidencyjnej do domu pomocy społecznej.\nWartość atrybutu jest wyrażona liczbą całkowitą.',
+             'Maksymalna odległość liczona jako droga dojścia ogólnodostępną trasą dla pieszych od granicy działki ewidencyjnej do urządzonego terenu sportu.\nWartość atrybutu jest wyrażona liczbą całkowitą.',
+             'Maksymalna odległość liczona jako droga dojścia ogólnodostępną trasą dla pieszych od granicy działki ewidencyjnej do przystanku publicznego transportu zbiorowego.\nWartość atrybutu jest wyrażona liczbą całkowitą.',
+             'Maksymalna odległość liczona jako droga dojścia ogólnodostępną trasą dla pieszych od granicy działki ewidencyjnej do placówki pocztowej.\nWartość atrybutu jest wyrażona liczbą całkowitą.',
+             'Maksymalna odległość liczona jako droga dojścia ogólnodostępną trasą dla pieszych od granicy działki ewidencyjnej do apteki.\nWartość atrybutu jest wyrażona liczbą całkowitą.',
+             'Maksymalna odległość liczona jako droga dojścia ogólnodostępną trasą dla pieszych od granicy działki ewidencyjnej do posterunku policji.\nWartość atrybutu jest wyrażona liczbą całkowitą.',
+             'Maksymalna odległość liczona jako droga dojścia ogólnodostępną trasą dla pieszych od granicy działki ewidencyjnej do posterunku jednostki ochrony przeciwpożarowej.\nWartość atrybutu jest wyrażona liczbą całkowitą.']
     
     atrybuty.append('geometria')
     listaBledowAtrybutow = [0 for i in range(len(atrybuty))]
@@ -112,10 +112,12 @@ def my_form_open(dialog, layer, feature):
     if obj.id() < 0: poczatekWersjiObiektu.setDateTime(dataCzasTeraz)
     
     przestrzenNazw = dialog.findChild(QLineEdit,"przestrzenNazw")
+    przestrzenNazw.setToolTip('')
     przestrzenNazw.setPlaceholderText(placeHolders['przestrzenNazw'])
     przestrzenNazw.textChanged.connect(przestrzenNazw_kontrola)
     
     lokalnyId = dialog.findChild(QLineEdit,"lokalnyId")
+    lokalnyId.setToolTip('')
     lokalnyId.setPlaceholderText(placeHolders['lokalnyId'])
     lokalnyId.textChanged.connect(lokalnyId_kontrola)
     if obj.id() <0: lokalnyId_kontrola('')
@@ -141,12 +143,10 @@ def my_form_open(dialog, layer, feature):
     
     obowiazujeOd = dialog.findChild(QDateTimeEdit,"obowiazujeOd")
     obowiazujeOd_label = dialog.findChild(QLabel,"obowiazujeOd_label")
-    obowiazujeOd.setMaximumDate(QDate.currentDate())
     obowiazujeOd.valueChanged.connect(poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola)
     
     obowiazujeDo = dialog.findChild(QDateTimeEdit,"obowiazujeDo")
     obowiazujeDo_label = dialog.findChild(QLabel,"obowiazujeDo_label")
-    obowiazujeDo.setMaximumDate(QDate.currentDate())
     obowiazujeDo.valueChanged.connect(poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola)
     
     status = dialog.findChild(QComboBox,"status")
@@ -263,7 +263,7 @@ def my_form_open(dialog, layer, feature):
     zapisz.setEnabled(False)
     zapisz.setText("Zapisz")
     
-    if obj.id() < 0: przestrzenNazw_kontrola()
+    przestrzenNazw_kontrola()
     
     labels = [None for i in range(30)]
     pixmap = QPixmap(':/plugins/wtyczka_app/img/info2.png')
@@ -358,6 +358,7 @@ def przestrzenNazw_kontrola():
             txt = 'PL.ZIPPZP.' + numerZbioru + '/' + jpt + '-' + rodzajZbioru
             if przestrzenNazw.text() != txt:
                 przestrzenNazw.setText(txt)
+                komunikowanieBledu(przestrzenNazw,'','przestrzenNazw')
             teryt_gminy = przestrzenNazw.text().split("/")[1].split("-")[0]
     except:
         pass
@@ -457,10 +458,10 @@ def poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola():
         koniecWersjiObiektuTxt = koniecWersjiObiektu.dateTime().toString("H:mm")
         
         if obowiazujeOdTxt not in ['0:00','23:59']:
-            komunikowanieBledu(obowiazujeOd, 'Należy wybrać datę dla obowiązuje od', 'obowiazujeOd')
+            komunikowanieBledu(obowiazujeOd, 'Należy wybrać datę dla "obowiązuje od"', 'obowiazujeOd')
         else:
             if obowiazujeDoTxt in ['0:00','23:59'] and obowiazujeOd.dateTime() >= obowiazujeDo.dateTime():
-                komunikowanieBledu(obowiazujeOd, 'Atrybut obowiązuje od nie może być większy lub równy od obowiązuje do.', 'obowiazujeOd')
+                komunikowanieBledu(obowiazujeOd, 'Atrybut "obowiązuje od" nie może być większy lub równy od "obowiązuje do".', 'obowiazujeOd')
             else:
                 komunikowanieBledu(obowiazujeOd, '', 'obowiazujeOd')
         if koniecWersjiObiektuTxt in ['0:00','23:59'] and koniecWersjiObiektu.dateTime().date().year() != 1 and poczatekWersjiObiektu.dateTime() >= koniecWersjiObiektu.dateTime():
@@ -472,7 +473,7 @@ def poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola():
             if koniecWersjiObiektu.dateTime().date().year() != 1 and koniecWersjiObiektu.dateTime().time().msec() == 0:
                 obowiazujeDo_label.setText("obowiązuje do*")
                 if obowiazujeDoTxt not in ['0:00','23:59']:
-                    komunikowanieBledu(obowiazujeDo, 'Należy wybrać datę dla obowiązuje do', 'obowiazujeDo')
+                    komunikowanieBledu(obowiazujeDo, 'Należy wybrać datę dla "obowiązuje do"', 'obowiazujeDo')
                 else:
                     komunikowanieBledu(obowiazujeDo, '', 'obowiazujeDo')
             else:
@@ -483,8 +484,8 @@ def poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola():
                     if obowiazujeOdTxt not in ['0:00','23:59'] or obowiazujeOd.dateTime() < obowiazujeDo.dateTime():
                         komunikowanieBledu(obowiazujeDo, '', 'obowiazujeDo')
                     else:
-                        komunikowanieBledu(obowiazujeOd, 'Atrybut obowiązuje od nie może być większy lub równy od obowiązuje do.', 'obowiazujeOd')
-                        komunikowanieBledu(obowiazujeDo, 'Atrybut obowiązuje do nie może być mniejszy lub równy od obowiązuje od.','obowiazujeDo')
+                        komunikowanieBledu(obowiazujeOd, 'Atrybut "obowiązuje od" nie może być większy lub równy od "obowiązuje do".', 'obowiazujeOd')
+                        komunikowanieBledu(obowiazujeDo, 'Atrybut "obowiązuje do" nie może być mniejszy lub równy od "obowiązuje od".','obowiazujeDo')
     except:
         pass
 

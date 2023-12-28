@@ -48,19 +48,18 @@ class WtyczkaAPP(AppModule, MetadataModule, ValidatorModule, TworzenieOUZ, Setti
     """QGIS Plugin Implementation."""
 
     def __init__(self, iface):
-
         # wczytanie modułów
         AppModule.__init__(self, iface)
         MetadataModule.__init__(self, iface)
         ValidatorModule.__init__(self, iface)
         TworzenieOUZ.__init__(self, iface)
         SettingsModule.__init__(self, iface)
-
+        
         # Save reference to the QGIS interface
         self.iface = iface
         # initialize plugin directory
         self.plugin_dir = os.path.dirname(__file__)
-
+        
         # zamykane okna do czyszczenia
         self.closableWindows = []
         for dialogObject in vars(self).values():
@@ -68,21 +67,23 @@ class WtyczkaAPP(AppModule, MetadataModule, ValidatorModule, TworzenieOUZ, Setti
                 self.closableWindows.append(dialogObject)
         for dialogObject in self.closableWindows:
             dialogObject.closed.connect(self.clearFormsOnClose)
-
+        
         # Declare instance attributes
         self.actions = []
-
+        
         self.listaPlikow = []
         # for el in utils.all_layout_widgets(self.wektorFormularzDialog.layout()):
         #     print(el.objectName())
-
+        
         # definicja walidatora
         self.dataValidator = None
-
-
+        
         # inicjacja walidatorów
-        self.prepareXsdForApp()
-        self.prepareXsdForMetadata()
+        try:
+            self.prepareXsdForApp()
+            self.prepareXsdForMetadata()
+        except:
+            pass
 
 
     def clearFormsOnClose(self):
@@ -97,9 +98,12 @@ class WtyczkaAPP(AppModule, MetadataModule, ValidatorModule, TworzenieOUZ, Setti
 
 
     def createValidator(self, task):
-        QgsMessageLog.logMessage('walidator start')
-        self.dataValidator = validator.ValidatorLxml()
-        QgsMessageLog.logMessage('walidator gotowy')
+        try:
+            QgsMessageLog.logMessage('walidator start')
+            self.dataValidator = validator.ValidatorLxml()
+            QgsMessageLog.logMessage('walidator gotowy')
+        except:
+            pass
 
 
     def createMetadataValidator(self, task):
