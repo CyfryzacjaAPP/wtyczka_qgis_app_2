@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from . import (UstawieniaDialog, PomocDialog, ustawieniaDialog, PLUGIN_VERSION)
 from .. import BaseModule, dictionaries
-from ..utils import showPopup, getWidgetByName, settingsValidateDatasetId, validate_IIP, validateEmailAddress
+from ..utils import showPopup, getWidgetByName, settingsValidateDatasetId, validate_IIP, validateEmailAddress, validate_ILAPP
 from ..metadata import SmtpDialog, CswDialog
 from qgis.PyQt import QtWidgets
 from PyQt5.QtWidgets import QFileDialog, QTableWidgetItem, QMessageBox
@@ -11,6 +11,7 @@ import os
 from PyQt5.QtGui import *
 from qgis.PyQt.QtCore import Qt, QVariant, QRegExp, QDateTime
 from qgis.PyQt.QtWidgets import *
+import re
 
 class SettingsModule(BaseModule):
 
@@ -26,33 +27,52 @@ class SettingsModule(BaseModule):
         self.settingsCswDialog = CswDialog(self.iface)
         # region okno moduł help
         self.pomocDialog = PomocDialog()
-
+        
         # endregion
         self.set_field_validators()
         self.add_rodzajZbioru_values()
         self.readSettings()
-
         self.preparePrzestrzenNazw()
-
-        self.ustawieniaDialog.folder_btn.clicked.connect(
-            self.folder_btn_clicked)
+        if self.ustawieniaDialog.rodzajZbioru_comboBox.currentText() == 'PZPW':
+            self.ustawieniaDialog.jpt_lineEdit.setPlaceholderText('np. 24')
+            self.ustawieniaDialog.jpt_lineEdit.setValidator(QRegExpValidator(QRegExp("[0-3][0|2|4|6|8]")))
+        else:
+            self.ustawieniaDialog.jpt_lineEdit.setPlaceholderText('np. 246601')
+            self.ustawieniaDialog.jpt_lineEdit.setValidator(QRegExpValidator(QRegExp("[0-3][0|2|4|6|8][0-9]{4}")))
+        self.ustawieniaDialog.folder_btn.clicked.connect(self.folder_btn_clicked)
         self.ustawieniaDialog.save_btn.clicked.connect(self.save_btn_clicked)
         self.ustawieniaDialog.smtp_btn.clicked.connect(self.smtp_btn_clicked)
         self.ustawieniaDialog.csw_btn.clicked.connect(self.csw_btn_clicked)
         self.ustawieniaDialog.numerZbioru_lineEdit.setPlaceholderText('np. 2393')
         self.ustawieniaDialog.jpt_lineEdit.setPlaceholderText('np. 246601')
         self.ustawieniaDialog.edycjaILAPP.setPlaceholderText('np. 1POG')
+        self.ustawieniaDialog.edycjaILAPP.textChanged.connect(self.set_edycjaILAPP)
+        self.ustawieniaDialog.rodzajZbioru_comboBox.currentTextChanged.connect(self.set_field_validators)
 
 
     """Event handlers"""
 
+    def set_edycjaILAPP(self):
+        txt = self.ustawieniaDialog.edycjaILAPP.text()
+        if re.match('^[1-9][0-9]*$', txt) != None:
+            pozycjaKursora = len(txt)
+            txt = str(txt) + 'POG'
+            self.ustawieniaDialog.edycjaILAPP.disconnect()
+            self.ustawieniaDialog.edycjaILAPP.setText(txt)
+            self.ustawieniaDialog.edycjaILAPP.setCursorPosition(pozycjaKursora)
+            self.ustawieniaDialog.edycjaILAPP.textChanged.connect(self.set_edycjaILAPP)
+
+
     def set_field_validators(self):
-        self.ustawieniaDialog.numerZbioru_lineEdit.setValidator(
-            QRegExpValidator(QRegExp("[1-9][0-9]*")))
-        self.ustawieniaDialog.jpt_lineEdit.setValidator(
-            QRegExpValidator(QRegExp("[0-3][0|2|4|6|8][0-9]{4}")))
-        self.ustawieniaDialog.edycjaILAPP.setValidator(
-            QRegExpValidator(QRegExp("[1-9][0-9]*POG")))
+        self.ustawieniaDialog.numerZbioru_lineEdit.setValidator(QRegExpValidator(QRegExp("[1-9][0-9]*")))
+        self.ustawieniaDialog.jpt_lineEdit.setText("")
+        if self.ustawieniaDialog.rodzajZbioru_comboBox.currentText() == 'PZPW':
+            self.ustawieniaDialog.jpt_lineEdit.setPlaceholderText('np. 24')
+            self.ustawieniaDialog.jpt_lineEdit.setValidator(QRegExpValidator(QRegExp("[0-3][0|2|4|6|8]")))
+        else:
+            self.ustawieniaDialog.jpt_lineEdit.setPlaceholderText('np. 246601')
+            self.ustawieniaDialog.jpt_lineEdit.setValidator(QRegExpValidator(QRegExp("[0-3][0|2|4|6|8][0-9]{4}")))
+        self.ustawieniaDialog.edycjaILAPP.setValidator(QRegExpValidator(QRegExp("POG|[1-9][0-9]*POG")))
 
 
     def add_rodzajZbioru_values(self):
@@ -79,8 +99,10 @@ class SettingsModule(BaseModule):
             bledy.append('- Błędna wartość dla adresu email domyślnego punktu kontaktowego.')
         if not (self.ustawieniaDialog.adminMail_lineEdit.text() == '' or validateEmailAddress(self.ustawieniaDialog.adminMail_lineEdit.text())):
             bledy.append('- Błędna wartość dla adresu email administratora danych.')
-        if self.getEPSGukladPL2000() == 0:
+        if self.ustawieniaDialog.rodzajZbioru_comboBox.currentText() == 'POG' and self.getEPSGukladPL2000() == 0:
             bledy.append('- Błędna wartość dla teryt powiatu w jpt.')
+        if self.ustawieniaDialog.rodzajZbioru_comboBox.currentText() == 'POG' and validate_ILAPP(self.ustawieniaDialog.edycjaILAPP.text()):
+            bledy.append('- Błędna wartość dla identyfikatora lokalnego APP.')
         if bledy:
             return (False, '\n\n'.join(bledy))
         else:
@@ -112,9 +134,7 @@ class SettingsModule(BaseModule):
             if self.ustawieniaDialog.rodzajZbioru_comboBox.currentText() == 'POG':
                 s.setValue("qgis_app2/settings/idLokalnyAPP",
                            self.ustawieniaDialog.edycjaILAPP.text())
-            s.setValue("qgis_app2/settings/strefaPL2000",
-                       self.getEPSGukladPL2000())
-            
+            s.setValue("qgis_app2/settings/strefaPL2000", self.getEPSGukladPL2000())
             showPopup('Ustawienia zapisane pomyślnie',
                       'Ustawienia zostały zapisane.\n\nWyłącz i włącz program QGIS lub użyj wtyczki "Plugin Reloader" w celu zastosowania zmian.',
                       icon=QMessageBox.Information)

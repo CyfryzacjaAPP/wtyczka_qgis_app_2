@@ -30,12 +30,20 @@ FORM_CLASS2, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'views', 'ui', 'raster_instrukcja_dialog_base.ui'))
 FORM_CLASS3, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'views', 'ui', 'formularz_raster_dialog_base.ui'))
-FORM_CLASS4, _ = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), 'views', 'ui', 'formularz_dokumenty_dialog_base.ui'))
+if s.value("qgis_app2/settings/rodzajZbioru", "/") != 'POG':
+    FORM_CLASS4, _ = uic.loadUiType(os.path.join(
+        os.path.dirname(__file__), 'views', 'ui', 'formularz_dokumenty_dialog_base.ui'))
+else:
+    FORM_CLASS4, _ = uic.loadUiType(os.path.join(
+        os.path.dirname(__file__), 'views', 'ui', 'formularz_dokumenty_dialog_base_POG.ui'))
 FORM_CLASS5, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'views', 'ui', 'formularz_wektor_dialog_base.ui'))
-FORM_CLASS6, _ = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), 'views', 'ui', 'generowanie_gml_dialog_base.ui'))
+if s.value("qgis_app2/settings/rodzajZbioru", "/") != 'POG':
+    FORM_CLASS6, _ = uic.loadUiType(os.path.join(
+        os.path.dirname(__file__), 'views', 'ui', 'generowanie_gml_dialog_base.ui'))
+else:
+    FORM_CLASS6, _ = uic.loadUiType(os.path.join(
+        os.path.dirname(__file__), 'views', 'ui', 'generowanie_gml_dialog_base_POG.ui'))
 FORM_CLASS7, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'views', 'ui', 'wektor_instrukcja_dialog_base.ui'))
 
@@ -186,17 +194,20 @@ class DokumentyFormularzDialog(CloseMessageDialog, FORM_CLASS4, Formularz, Butto
         self.removeForm(container=self.form_scrollArea)
         self.formElements = utils.createFormElementsDokumentFormalny()
         
-        self.createForm(container=self.form_scrollArea,
-                        formElements=self.formElements)
-
+        self.createForm(container=self.form_scrollArea, formElements=self.formElements)
+        
         # schowanie WersjaId dla dokumentu formalnego
         wersjaId_lineEdit = utils.layout_widget_by_name(self.form_scrollArea.widget().layout(), name="wersjaId_lineEdit")
-        # wersjaId_lineEdit.setEnabled(False)
         wersjaId_lineEdit.setVisible(False)
         wersjaId_lbl = utils.layout_widget_by_name(self.form_scrollArea.widget().layout(), name="wersjaId_lbl")
         wersjaId_lbl.setVisible(False)
         wersjaId_tooltip = utils.layout_widget_by_name(self.form_scrollArea.widget().layout(), name="wersjaId_tooltip")
         wersjaId_tooltip.setVisible(False)
+        
+        # blokada edycji przestrzenNazw
+        self.przestrzenNazw_lineEdit = utils.layout_widget_by_name(self.form_scrollArea.widget().layout(), name="przestrzenNazw_lineEdit")
+        self.przestrzenNazw_lineEdit.setEnabled(False)
+        
         ButtonsDialog.__init__(self)
 
 

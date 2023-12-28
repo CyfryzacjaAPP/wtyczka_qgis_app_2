@@ -45,3 +45,24 @@ def isLayerInPoland(obrysLayer):
     
     return czyGeometrieSaPoprawne
 
+
+def czyWarstwaMaWypelnioneObowiazkoweAtrybuty(obrysLayer):
+    if obrysLayer.name().startswith("AktPlanowaniaPrzestrzennego"):
+        sql = "tytul='' or typPlanu='' or poziomHierarchii='' or status='' or obowiazujeOd is null or lokalnyId='' or przestrzenNazw='' or wersjaId='' or poczatekWersjiObiektu=''"
+    elif obrysLayer.name().startswith("StrefaPlanistyczna"):
+        sql = "nazwa='' or symbol='' or oznaczenie='' or profilPodstawowy='' or status='' or obowiazujeOd is null or charakterUstalenia='' or lokalnyId='' or przestrzenNazw='' or wersjaId='' or poczatekWersjiObiektu=''"
+    elif obrysLayer.name().startswith("ObszarUzupelnieniaZabudowy"):
+        sql = "symbol='' or oznaczenie='' or status='' or obowiazujeOd is null or charakterUstalenia='' or lokalnyId='' or przestrzenNazw='' or wersjaId='' or poczatekWersjiObiektu=''"
+    elif obrysLayer.name().startswith("ObszarZabudowySrodmiejskiej"):
+        sql = "symbol='' or oznaczenie='' or status='' or obowiazujeOd is null or charakterUstalenia='' or lokalnyId='' or przestrzenNazw='' or wersjaId='' or poczatekWersjiObiektu=''"
+    elif obrysLayer.name().startswith("ObszarStandardowDostepnosciInfrastrukturySpolecznej"):
+        sql = "symbol='' or oznaczenie='' or status='' or obowiazujeOd is null or charakterUstalenia='' or odlegloscDoSzkolyPodstawowej='' or odlegloscDoObszarowZieleniPublicznej='' or powierzchniaLacznaObszarowZieleniPublicznej='' or odlegloscDoObszaruZieleniPublicznej='' or powierzchniaObszaruZieleniPublicznej='' or lokalnyId='' or przestrzenNazw='' or wersjaId='' or poczatekWersjiObiektu=''"
+    else:
+        sql=""
+    
+    request = QgsFeatureRequest(QgsExpression(sql))
+    requestFeatures = obrysLayer.getFeatures(request)
+    for x in requestFeatures:
+        return False
+    return True
+

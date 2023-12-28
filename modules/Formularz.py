@@ -42,7 +42,9 @@ class Formularz:
                 "dokument",
                 "rysunek",
                 "zasiegPrzestrzenny",
-                "zmiana"]
+                "zmiana",
+                "wydzielenie",
+                "regulacja"]
 
     def returnFormElements(self, formElements):
         for fe in formElements:
@@ -115,13 +117,6 @@ class Formularz:
                         return False
                     if not data_dateTimeEdit.date():
                         return False
-                    # if (not lacze_lineEdit.text() and
-                    #         not lacze_lineEdit_nilReason_chkbx.isChecked()):
-                    #     return False
-                    # if (not lacze_lineEdit.text() and
-                    #         lacze_lineEdit_nilReason_chkbx.isChecked() and
-                    #         not lacze_lineEdit_nilReason_cmbbx.currentText()):
-                    #     return False
                     return True
                 else:
                     if formItems[0].text().strip():
@@ -140,15 +135,12 @@ class Formularz:
                             textList.append(formItem.text())
                         elif isinstance(formItem, QDateTimeEdit):
                             data[formItem.objectName()] = formItem.dateTime().date()
-                            textList.append(
-                                formItem.dateTime().toString("dd-MM-yyyy")
-                                # formItem.dateTime().date().toString()
-                            )
+                            textList.append(formItem.dateTime().toString("dd-MM-yyyy"))
                         elif isinstance(formItem, QCheckBox):
                             data[formItem.objectName()] = formItem.isChecked()
                         elif isinstance(formItem, QComboBox):
                             data[formItem.objectName()] = formItem.currentIndex()
-
+                            
                     newListWidgetItem.setData(
                         Qt.UserRole,
                         QVariant(data)
@@ -227,7 +219,7 @@ class Formularz:
             listWidget.itemDoubleClicked.connect(setDataToListWidget)
             formElement.refObject = listWidget
             vbox2.addWidget(listWidget)
-
+            
         for formElement in formElements:
             if (
                     formElement.type == 'gml:ReferenceType' or
@@ -235,17 +227,18 @@ class Formularz:
                     formElement.type == "gml:MultiSurfacePropertyType"
             ) and formElement.name in self.pomijane:
                 continue  # pomiń element
-            if formElement.name == 'zmiana':
-                continue  # pomiń zmianę (dodana w postprodukcji 8-) )
-
+            if formElement.name in ['zmiana','modyfikacja','regulacja','wydzielenie']:
+                continue  # pomiń
+                
             hbox = QHBoxLayout()  # wiersz formularza
             hbox.setObjectName(formElement.name + '_hbox')
-
+            
             # label
             # zmiana nazw w formularzu
             mapowanieNazw = {'idIIP':'identyfikator',
                              'przestrzenNazw':'przestrzeń nazw',
                              'lokalnyId':'identyfikator lokalny',
+                             'wersjaId':'identyfikator wersji',
                              'tytul':'tytuł',
                              'nazwaSkrocona':'nazwa skrócona',
                              'numerIdentyfikacyjny':'numer identyfikacyjny',
@@ -260,6 +253,16 @@ class Formularz:
                              'przystapienie':'przystąpienie',
                              'zmienia':'zmienia',
                              'uchyla':'uchyla',
+                             'poczatekWersjiObiektu':'początek wersji obiektu',
+                             'koniecWersjiObiektu':'koniec wersji obiektu',
+                             'tytulAlternatywny':'tytuł alternatywny',
+                             'typPlanu':'typ planu',
+                             'poziomHierarchii':'poziom hierarchii',
+                             'obowiazujeOd':'obowiązuje od',
+                             'obowiazujeDo':'obowiązuje do',
+                             'mapaPodkladowa':'mapa podkładowa',
+                             'rozdzielczoscPrzestrzenna':'rozdzielczość przestrzenna',
+                             'ukladOdniesieniaPrzestrzennego':'układ odniesienia przestrzennego',
                              'uniewaznia':'unieważnia'
                             }
             if formElement.name in mapowanieNazw:
@@ -271,34 +274,39 @@ class Formularz:
                          ('*' if formElement.minOccurs else ''))
             lbl.setObjectName(formElement.name + '_lbl')
             hbox.addWidget(lbl)
-
+            
             input = self.__makeInput(formElement)
             formElement.refObject = input
             tooltipImg = self.__makeTooltip(formElement)
-
+            
             if formElement.maxOccurs == "unbounded":    # pola wielokrotne np: mapaPodkladowa
                 
                 #zmiana nazwy
                 if formElement.name == 'lacze':
                     groupbox = QGroupBox('łącze')
+                elif formElement.name == 'mapaPodkladowa':
+                    groupbox = QGroupBox('mapa podkładowa')
+                elif formElement.name == 'tytulAlternatywny':
+                    groupbox = QGroupBox('tytuł alternatywny')
                 else:
                     groupbox = QGroupBox(formElement.name)
+                
                 vbox2 = QVBoxLayout()
                 groupbox.setLayout(vbox2)
                 vbox2.addLayout(hbox)
-
+                
                 hbox.addWidget(input)
                 hbox.addWidget(tooltipImg)
                 vbox.addWidget(groupbox)
-
+                
                 if formElement.isComplex():  # zawiera podrzędne elementy typu complex
                     input.setVisible(False)
                     # rekurencja dla obiektów wewntrznych
                     self.__loopFormElements(
                         formElement.innerFormElements, vbox2, '  - ')
-
+                        
                 createListWidget(formElement.name)
-
+                
             else:   # pola pojedyncze
                 hbox.addWidget(input)
                 if formElement.type == 'gmd:CI_Date_PropertyType':
@@ -306,12 +314,12 @@ class Formularz:
                     input2.setObjectName(formElement.name + '_cmbbx')
                     input2.addItems(dictionaries.cI_DateTypeCode.keys())
                     formElement.refObject = [input, input2]
-
+                    
                     hbox.addWidget(input2)
-
+                    
                 hbox.addWidget(tooltipImg)
                 vbox.addLayout(hbox)
-
+                
                 if formElement.isComplex():  # zawiera podrzędne elementy typu complex
                     input.setEnabled(False)
                     # rekurencja dla obiektów wewntrznych
@@ -331,9 +339,7 @@ class Formularz:
         elif formElement.name == "poziomHierarchii":
             input = NoScrollQComboBox()
             input.setObjectName(formElement.name + '_cmbbx')
-            input.addItems(
-                reversed(list(dictionaries.poziomyHierarchii.keys())[1:]))
-            # input.addItems(dictionaries.poziomyHierarchii.keys())
+            input.addItems(reversed(list(dictionaries.poziomyHierarchii.keys())[1:]))
         elif formElement.name == "status":
             input = NoScrollQComboBox()
             input.setObjectName(formElement.name + '_cmbbx')
@@ -379,28 +385,20 @@ class Formularz:
                 input.setValidator(QRegExpValidator(
                     QRegExp("^[\d\D\s\S\w\W]{0,1000}")))
             input.setObjectName(formElement.name + '_lineEdit')
-
+            
         # ustawienie podpowiedzi inputa (typ)
-        input.setToolTip((formElement.type + ' - nillable')
-                         if formElement.isNillable else formElement.type)
-
+        # input.setToolTip((formElement.type + ' - nillable')
+        #                  if formElement.isNillable else formElement.type)
+        
         # ustawienie domyślnych wartości
         fullFormElementName = formElement.form + ":" + formElement.name
         # # print(fullFormElementName)
-
-        # wartości domyślne - debug
-        # if fullFormElementName in dictionaries.placeholders.keys():
-        #     if isinstance(input, QLineEdit):  # dla pól tekstowych
-        #         input.setText(
-        #             dictionaries.placeholders[fullFormElementName])
-        #     elif isinstance(input, QComboBox):  # QComboBox
-        #         pass
-
+        
         # ustawienie podpowiedzi
         if fullFormElementName in dictionaries.placeholders.keys():
             input.setPlaceholderText(
                 'np.: ' + dictionaries.placeholders[fullFormElementName])  # dla pól tekstowych
-
+            
         return input
 
     def __makeTooltip(self, formElement):
@@ -422,18 +420,14 @@ class Formularz:
         s = QgsSettings()
         for fe in self.formElements:
             try:
-                valuePath = "qgis_app/settings/%s" % fe.name
+                valuePath = "qgis_app2/settings/%s" % fe.name
                 feValue = s.value(valuePath, "")
                 utils.setValueToWidget(fe, feValue)
             except:
                 pass
             for inner in fe.innerFormElements:
-                # if inner.name == 'przestrzenNazw':
-                #     print('tak')
-                #     valuePath = "qgis_app/settings/%s" % inner.name
-                #     utils.setValueToWidget(inner, s.value(valuePath, ""))
                 try:
-                    valuePath = "qgis_app/settings/%s" % inner.name
+                    valuePath = "qgis_app2/settings/%s" % inner.name
                     feValue = s.value(valuePath, "")
                     utils.setValueToWidget(inner, feValue)
                 except:

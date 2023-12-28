@@ -64,7 +64,21 @@
             </font>
            </property>
            <property name="text">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Poniższy formularz dla dokumentów formalnych należy wypełnić zgodnie z informacjami zawartymi w podpowiedzi do każdego atrybutu (należy najechać kursorem myszy na ikonę znaku zapytania po prawej stronie każdego atrybutu). Uzupełnienie pól oznaczonych gwiazdką (*) jest obligatoryjne. &lt;/p&gt;&lt;p&gt;Po wypełnieniu formularza należy wybrać opcję &lt;span style=&quot; text-decoration: underline;&quot;&gt;Zapisz aktualny formularz&lt;/span&gt;, w rezultacie wygenerowany zostanie plik XML. Zalecamy każdemu plikowi nadawać krótką, unikalną i jednoznaczną nazwę, opisującą jego zawartość (np. DOC1).&lt;/p&gt;&lt;p&gt;Zazwyczaj z danym APP powiązanych jest kilka dokumentów formalnych, zatem niezbędne będzie wypełnienie poniższego formularza dla każdego dokumentu formalnego powiązanego z APP. Aby wypełnić formularz dla kolejnego dokumentu formalnego użytkownik może: &lt;br/&gt;- zmodyfikować wpisane w formularzu dane, tak aby odnosiły się one do kolejnego dokumentu, a następnie ponownie zapisać aktualny formularz;&lt;br/&gt;- rozpocząć uzupełnianie formularza na nowo, wybierając opcję &lt;span style=&quot; text-decoration: underline;&quot;&gt;Wyczyść formularz&lt;/span&gt; (wszystkie obecne dane zostaną usunięte).&lt;br/&gt;- skorzystać z wcześniej wypełnionego i zapisanego formularza, wybierając opcję &lt;span style=&quot; text-decoration: underline;&quot;&gt;Pobierz wartości z istniejącego formularza&lt;/span&gt;, w rezultacie narzędzie odczyta plik XML i uzupełni w formularzu wartości atrybutów. Następnie należy sprawdzić lub zmodyfikować wpisane w formularzu dane tak, aby odnosiły się one do kolejnego dokumentu formalnego oraz ponownie zapisać aktualny formularz;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;Należy pamiętać, że w końcowym kroku tego narzędzia, czyli w oknie &lt;span style=&quot; text-decoration: underline;&quot;&gt;Praca z APP (krok 6 z 6) Generowanie GML dla APP&lt;/span&gt; należy wgrać wszystkie &lt;span style=&quot; font-weight:600;&quot;&gt;(co najmniej jeden)&lt;/span&gt; formularze dla dokumentów formalnych danego APP.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <string>&lt;p&gt;Formularz atrybutów dla &lt;strong&gt;dokumentów formalnych&lt;/strong&gt; należy wypełnić zgodnie z informacjami zawartymi w podpowiedzi do każdego atrybutu (ikony znaku zapytania po prawej stronie).&amp;nbsp; Uzupełnienie pól oznaczonych gwiazdką jest obowiązkowe.&lt;/p&gt;
+&lt;p&gt;Po wypełnieniu formularza należy wybrać opcję Zapisz aktualny formularz, który utworzy plik XML.&lt;/p&gt;
+&lt;p&gt;Jeżeli z danym APP powiązanych jest kilka dokumentów formalnych niezbędne będzie wypełnienie poniższego formularza dla każdego dokumentu formalnego powiązanego z APP. Aby wypełnić formularz dla kolejnego dokumentu formalnego można:&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;
+    &lt;p&gt;zmodyfikować wpisane w formularzu dane tak, aby odnosiły się one do kolejnego dokumentu a następnie ponownie kliknąć &lt;strong&gt;Z&lt;/strong&gt;&lt;strong&gt;apis&lt;/strong&gt;&lt;strong&gt;z&lt;/strong&gt; &lt;strong&gt;aktualny formularz&lt;/strong&gt;,&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;rozpocząć uzupełnianie formularza na nowo, wybierając opcję &lt;strong&gt;Wyczyść formularz&lt;/strong&gt; (wszystkie obecne dane zostaną usunięte);&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;skorzystać z wcześniej wypełnionego i zapisanego formularza, wybierając opcję &lt;strong&gt;Pobierz wartości z istniejącego formularza&lt;/strong&gt;, który odczyta plik XML i uzupełni w formularzu wartości atrybutów. Następnie należy sprawdzić lub zmodyfikować wpisane w formularzu dane tak, aby odnosiły się one do kolejnego dokumentu formalnego oraz ponownie zapisać aktualny formularz.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Należy pamiętać, że w końcowym kroku tego narzędzia, czyli w oknie Praca z APP (krok 7 z 7) Generowanie GML dla APP, należy wgrać wszystkie (co najmniej jeden) formularze dla dokumentów formalnych.&lt;/p&gt;</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignJustify|Qt::AlignVCenter</set>

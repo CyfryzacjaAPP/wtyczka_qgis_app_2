@@ -76,7 +76,14 @@
             </font>
            </property>
            <property name="text">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;W tym oknie zostanie wygenerowany końcowy plik GML dla pojedynczego APP. Składa się on ze wszystkich formularzy wygenerowanych w poprzednich krokach, to znaczy z:&lt;br/&gt;- formularza/y dla rysunku APP (co najmniej jednego dla obowiązującego APP),&lt;br/&gt;- dokładnie jednego formularza dla APP (granica aktu),&lt;br/&gt;- formularza/y dla dokumentów formalnych (co najmniej jeden).&lt;/p&gt;&lt;p&gt;W tabeli poniżej muszą znaleźć się wszystkie ww. formularze składające się na dany APP, aby został wygenerowany poprawny plik GML. Dla każdego pliku odczytanego jako &lt;span style=&quot; text-decoration: underline;&quot;&gt;Dokument formalny&lt;/span&gt;, użytkownik musi wybrać odpowiednią relację jaka wiąże ten dokument z APP. &lt;/p&gt;&lt;p&gt;Następnie można wybrać przycisk &lt;span style=&quot; text-decoration: underline;&quot;&gt;Generuj&lt;/span&gt;, który uruchomi wstępną walidację i umożliwi zapisanie pliku GML dla APP na dysku. Po poprawnym wygenerowaniu użytkownik może zdecydować czy będzie tworzył kolejne dane dla pojedynczych APP, czy przejdzie do tworzenia zbioru. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <string>&lt;p&gt;W tym oknie zostanie wygenerowany &lt;strong&gt;końcowy plik GML dla pojedynczego APP&lt;/strong&gt; &lt;strong&gt;- planu ogólnego gminy&lt;/strong&gt;&lt;strong&gt;.&lt;/strong&gt; Składa się on ze wszystkich formularzy wygenerowanych w poprzednich krokach, to znaczy:&lt;/p&gt;
+&lt;p&gt;- z dokładnie jednego pliku GML dla obszaru objętego&amp;nbsp;POG,&lt;/p&gt;
+&lt;p&gt;- pliku GML dla stref planistycznych,&lt;/p&gt;
+&lt;p&gt;- pliku GML dla obszarów uzupełnienia zabudowy,&lt;/p&gt;
+&lt;p&gt;- pliku GML dla obszarów zabudowy śródmiejskiej,&lt;/p&gt;
+&lt;p&gt;- pliku GML dla obszarów standardów dostępności infrastruktury społecznej,&lt;/p&gt;
+&lt;p&gt;- co najmniej jednego pliku XML dla dokumentu formalnego.&lt;/p&gt;
+&lt;p&gt;W tabeli poniżej muszą znaleźć się wszystkie pliki składające się na dany APP, aby został wygenerowany poprawny plik GML. Dla każdego pliku odczytanego jako Dokument formalny, użytkownik musi wybrać odpowiednią relację jaka wiąże ten dokument z APP. Następnie należy wybrać przycisk Generuj, który uruchomi wstępną walidację i umożliwi zapisanie pliku GML dla APP na dysku. Po poprawnym wygenerowaniu użytkownik może zdecydować czy będzie tworzył kolejne dane dla pojedynczych APP, czy przejdzie do tworzenia zbioru.&lt;/p&gt;</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignJustify|Qt::AlignVCenter</set>

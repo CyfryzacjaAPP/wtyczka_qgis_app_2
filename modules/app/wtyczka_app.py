@@ -4,7 +4,7 @@ from . import (PytanieAppDialog, ZbiorPrzygotowanieDialog, RasterInstrukcjaDialo
                WektorFormularzDialog, DokumentyFormularzDialog, WektorInstrukcjaDialog, GenerowanieGMLDialog,
                WektorInstrukcjaDialogSPL, WektorInstrukcjaDialogOUZ, WektorInstrukcjaDialogOZS, WektorInstrukcjaDialogOSD)
 
-from .app_utils import isLayerInPoland
+from .app_utils import isLayerInPoland, czyWarstwaMaWypelnioneObowiazkoweAtrybuty
 from .. import BaseModule, utils, Formularz
 from ..utils import showPopup
 from ..models import AppTableModel
@@ -927,7 +927,7 @@ class AppModule(BaseModule):
                         'dokument', 'dokumentPrzystepujacy', 'dokumentUchwalajacy', 'dokumentZmieniajacy', 'dokumentUchylajacy', 'dokumentUniewazniajacy']
         else:
             pomijane = ['tytulAlternatywny', 'typPlanu', 'poziomHierarchii', 'status', 'zmiana', 'mapaPodkladowa', 'data', 'referencja', 'lacze',
-                        'dokument', 'dokumentPrzystepujacy', 'dokumentUchwalajacy', 'dokumentZmieniajacy', 'dokumentUchylajacy', 'dokumentUniewazniajacy']
+                        'dokument', 'dokumentPrzystepujacy', 'dokumentUchwalajacy', 'dokumentZmieniajacy', 'dokumentUchylajacy', 'dokumentUniewazniajacy','wydzielenie']
         fieldDef = ''
         for field in fields:
             if field.name in pomijane:
@@ -1053,7 +1053,7 @@ class AppModule(BaseModule):
             layer.startEditing()
         
         QgsProject.instance().addMapLayer(layer)
-
+        
         self.iface.messageBar().pushSuccess("Utworzenie warstwy:","Stworzono warstwę do wektoryzacji.")
         showPopup("Wygeneruj warstwę","Poprawnie utworzono pustą warstwę " + popup_txt + ". Uzupełnij ją danymi przestrzennymi.")
 
@@ -1080,13 +1080,13 @@ class AppModule(BaseModule):
                 except:
                     self.obrysLayer = None
                 data = utils.createXmlData(self.activeDlg, self.obrysLayer)
-
+                
                 ET.indent(data, space="    ", level=0)
                 xml_string = ET.tostring(data, 'unicode')
-
+                
                 myfile = open(self.fn, "w", encoding='utf-8')
                 myfile.write(xml_string)
-
+                
                 if self.activeDlg == self.wektorFormularzDialog:
                     showPopup("Zapisz aktualny formularz",
                               "Poprawnie zapisano formularz.")
@@ -1912,11 +1912,11 @@ class AppModule(BaseModule):
                     srsName = crs
                     break
         
-        if self.obrysLayer.featureCount() > 1:
+        if self.obrysLayer.featureCount() > 1 and obrysLayer.name().startswith("AktPlanowaniaPrzestrzennego"):
             showPopup(title="Błąd warstwy obrysu", text="Wybrana warstwa posiada obiekty w liczbie: %d.\nObrys może składać się wyłącznie z jednego obiektu." % (
                 self.obrysLayer.featureCount()))
             return False
-        elif self.obrysLayer.featureCount() == 0:
+        if self.obrysLayer.featureCount() == 0:
             showPopup("Błąd warstwy obrysu", "Wybrana warstwa nie posiada obiektu.")
             return False
         elif not next(self.obrysLayer.getFeatures()).geometry().isGeosValid():
@@ -1927,6 +1927,9 @@ class AppModule(BaseModule):
             showPopup("Błąd warstwy obrysu",
                       "Niepoprawna geometria - obiekt musi leżeć w Polsce, sprawdź układ współrzędnych warstwy.")
             return False
+        elif not czyWarstwaMaWypelnioneObowiazkoweAtrybuty(self.obrysLayer):
+            showPopup("Błąd warstwy obrysu",
+                      "Występują obiekty z niewypełnionymi atrybutami obowiązkowymi.")
         elif srsName == '':
             showPopup("Błąd warstwy obrysu",
                       "Obrys posiada niezgodny układ współrzędnych - EPSG:%s.\nDostępne CRS:\n    - %s" % (epsg, ',\n    - '.join(['%s : %s' % (a, b) for a, b in zip(dictionaries.ukladyOdniesieniaPrzestrzennego.keys(), dictionaries.ukladyOdniesieniaPrzestrzennego.values())])))

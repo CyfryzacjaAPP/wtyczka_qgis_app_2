@@ -33,6 +33,7 @@ class TworzenieOUZ(BaseModule):
         numerZbioru = s.value("qgis_app2/settings/numerZbioru", "")
         jpt = s.value("qgis_app2/settings/jpt", "")
         idLokalnyAPP = s.value("qgis_app2/settings/idLokalnyAPP","")
+        epsg = str(s.value("qgis_app2/settings/strefaPL2000",""))
         przestrzenNazw = 'PL.ZIPPZP.' + numerZbioru + '/' + jpt + '-' + rodzajZbioru
         
         try:
@@ -123,6 +124,12 @@ class TworzenieOUZ(BaseModule):
                 'OUTPUT': 'memory:'
             })
             
+            if przyciecie['OUTPUT'].featureCount() == 0:
+                showPopup("Utworzenie OUZ","Budynki nie leżą w POG. Tworzenie OUZ zatrzymane.")
+                self.tworzenieOUZDialog.progressBar.reset()
+                self.tworzenieOUZDialog.progressBar.setValue(0)
+                return
+            
             # rozbicie multipoligon na poligony
             pojedynczeBufory = processing.run("native:multiparttosingleparts", {
                 'INPUT': przyciecie['OUTPUT'],
@@ -139,7 +146,7 @@ class TworzenieOUZ(BaseModule):
         pathQML = pathlib.Path(QgsApplication.qgisSettingsDirPath())/pathlib.Path("python/plugins/wtyczka_qgis_app/QML/ObszarUzupelnieniaZabudowy.qml")
         
         newFields = QgsFields()
-        newFields.append(QgsField('przestrzenNazw', QVariant.String, '', 25))
+        newFields.append(QgsField('przestrzenNazw', QVariant.String, '', 30))
         newFields.append(QgsField('lokalnyId', QVariant.String, '', 50))
         newFields.append(QgsField('wersjaId', QVariant.String, '', 15))
         newFields.append(QgsField('nazwa', QVariant.String, '', 255))
@@ -181,7 +188,8 @@ class TworzenieOUZ(BaseModule):
             options.driverName = 'GPKG'
             options.layerName = layerName + numerWarstwy
             options.fileEncoding = 'UTF-8'
-            options.destCRS = QgsCoordinateReferenceSystem('EPSG:2180')
+            options.destCRS = QgsCoordinateReferenceSystem('EPSG:' + epsg)
+            
             error =  QgsVectorFileWriter.writeAsVectorFormatV3(layer, output_path, QgsCoordinateTransformContext(), options)
             
             # Sprawdzenie wyniku zapisu
@@ -199,8 +207,15 @@ class TworzenieOUZ(BaseModule):
                     ouz.setAttribute(5,str(nrOUZ)+"OUZ")
                     ouz.setAttribute(6,'OUZ')
                     ouz.setAttribute(7,'ogólnie wiążące')
+                    ouz.setAttribute(8,dataTime)
                     ouz.setAttribute(10,'w opracowaniu')
                     ouz.setAttribute(11,dataTime)
+                    
+                    if warstwaZPOG.featureCount() > 0:
+                        for pog in warstwaZPOG.getFeatures():
+                            ouz.setAttribute(8,pog['OBOWIAZUJEOD'])
+                            ouz.setAttribute(10,pog['STATUS'])
+                    
                     gkpg.updateFeature(ouz)
                     gkpg.commitChanges(False)
                 

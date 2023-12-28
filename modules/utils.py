@@ -125,20 +125,27 @@ def validate_IIP(przestrzenNazw):
         numer = przestrzenNazw.split('.')[2].split('/')[0]
         rodzaj = przestrzenNazw.split('-')[1]
         teryt = przestrzenNazw.split('/')[1].split('-')[0]
-
+        
     except:
         return False
     if not numer.isdigit():
         return False  # numer porządkowy nie jest liczbą całkowitą
     rodzaj_list = ['PZPW', 'SUIKZP', 'MPZP','POG']
     if rodzaj not in rodzaj_list:
-        # showPopup('Błąd identyfikatora', '')
         return False
-
+    
     if not validate_teryt(teryt, rodzaj):
         return False
-
+    
     return True  # IIP prawidłowe
+
+
+def validate_ILAPP(ILAPP):
+    """sprawdza czy składnia identyfikatora lokalnego APP jest poprawna"""
+    if re.match('^[1-9][0-9]*POG$', ILAPP) == None:
+        return True
+    else:
+        return False
 
 
 def isAppOperative(gmlPath, gmlId=None):
@@ -642,8 +649,7 @@ def formSkippedElements(docName):
     elif docName == 'RysunekAktuPlanowaniaPrzestrzennego':
         pomijane = ['plan']
     elif docName == 'DokumentFormalny':
-        pomijane = ['przystapienie', 'uchwala',
-                    'zmienia', 'uchyla', 'uniewaznia']
+        pomijane = ['przystapienie', 'uchwala','zmienia', 'uchyla', 'uniewaznia']
     return(pomijane)
 
 
@@ -679,10 +685,9 @@ def checkElement(fe, element):
         try:
             if fe.minOccurs > 0 and (element.text() is None or element.text() == 'NULL' or element.text() == ''):
                 return False
-
         except:
             try:  # Combobox
-                if fe.minOccurs > 0 and (element.currentText() is None or element.currentText() == ''):
+                if fe.minOccurs > 0 and (element.currentText() is None or element.currentText() == 'NULL' or element.currentText() == ''):
                     return False
             except:
                 try:  # ListWidget
@@ -797,7 +802,7 @@ def isFormFilled(dialog):
                     showPopup(title='Błąd formularza',
                               text='Brak wartości dla wymaganego atrybutu (*).')
                     return False
-
+                
         elif fe.refNilObject is not None:
             widgets = all_layout_widgets(fe.refNilObject)
             if checkElement(fe, fe.refObject) == False:  # Brak wartości
@@ -807,7 +812,7 @@ def isFormFilled(dialog):
                             showPopup(title='Błąd formularza',
                                       text='Brak wartości dla wymaganego atrybutu (*).')
                             return False
-
+                        
         else:
             if checkElement(fe, fe.refObject) == False:  # Brak wartości
                 showPopup(title='Błąd formularza',
@@ -938,8 +943,7 @@ def checkForNoValue(element):
     return False  # jest wartość
 
 
-def createXmlData(dialog, obrysLayer):  # NOWE
-
+def createXmlData(dialog, obrysLayer):
     dict_map = {
         'status': dictionaries.statusListaKodowa,
         'poziomHierarchii': dictionaries.poziomyHierarchii,
@@ -950,13 +954,13 @@ def createXmlData(dialog, obrysLayer):  # NOWE
         'ukladOdniesieniaPrzestrzennego': dictionaries.ukladyOdniesieniaPrzestrzennego,
         'data': dictionaries.cI_DateTypeCode
     }
-
+    
     docNames = {
         'RasterFormularzDialog': 'RysunekAktuPlanowaniaPrzestrzennego',
         'WektorFormularzDialog': 'AktPlanowaniaPrzestrzennego',
         'DokumentyFormularzDialog': 'DokumentFormalny'
     }
-
+    
     docName = docNames[type(dialog).__name__]
     try:
         CoordinatesList = getCoordinates(obrysLayer)
@@ -1000,7 +1004,6 @@ def createXmlData(dialog, obrysLayer):  # NOWE
 
     for fe in dialog.formElements:
         refObject = fe.refObject
-
         if checkForNoValue(refObject) and fe.minOccurs < 1:
             continue
         if (fe.type == 'date' or fe.type == 'dateTime') and checkForNoDateValue(refObject):
