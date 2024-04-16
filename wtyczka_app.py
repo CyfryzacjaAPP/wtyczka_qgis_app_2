@@ -25,7 +25,8 @@ from PyQt5.QtWidgets import QDialog, QFileDialog
 import os
 from . import PLUGIN_VERSION
 from qgis.PyQt.QtGui import QIcon
-from qgis.PyQt.QtWidgets import QAction, QToolButton, QMenu
+from qgis.PyQt.QtCore import *
+from qgis.PyQt.QtWidgets import *
 from qgis.core import QgsTask, QgsApplication, QgsMessageLog
 # Initialize Qt resources from file resources.py
 from .resources import *
@@ -72,18 +73,9 @@ class WtyczkaAPP(AppModule, MetadataModule, ValidatorModule, TworzenieOUZ, Setti
         self.actions = []
         
         self.listaPlikow = []
-        # for el in utils.all_layout_widgets(self.wektorFormularzDialog.layout()):
-        #     print(el.objectName())
         
         # definicja walidatora
         self.dataValidator = None
-        
-        # inicjacja walidatorów
-        try:
-            self.prepareXsdForApp()
-            self.prepareXsdForMetadata()
-        except:
-            pass
 
 
     def clearFormsOnClose(self):
@@ -97,33 +89,28 @@ class WtyczkaAPP(AppModule, MetadataModule, ValidatorModule, TworzenieOUZ, Setti
                 pass
 
 
-    def createValidator(self, task):
-        try:
-            QgsMessageLog.logMessage('walidator start')
-            self.dataValidator = validator.ValidatorLxml()
-            QgsMessageLog.logMessage('walidator gotowy')
-        except:
-            pass
+    def createValidator(self):
+        self.iface.messageBar().pushSuccess("Informacja:","Schemat jest importowany. Proszę nie podejmować żadnych akcji w programie QGIS.")
+        QCoreApplication.processEvents()
+        self.dataValidator = validator.ValidatorLxml(schema_path=os.path.join(os.path.dirname(__file__), 'modules/validator', 'planowaniePrzestrzenne.xsd'))
+        QCoreApplication.processEvents()
+        showPopup("Informacja", "Schemat został zaimportowany.")
 
 
-    def createMetadataValidator(self, task):
-        QgsMessageLog.logMessage('walidator start')
+    def createMetadataValidator(self):
+        self.iface.messageBar().pushSuccess("Informacja:","Schemat metadanych jest importowany. Proszę nie podejmować żadnych akcji w programie QGIS.")
+        QCoreApplication.processEvents()
         self.metadataValidator = validator.ValidatorLxml(schema_path=os.path.join(os.path.dirname(__file__), 'modules/validator', 'metadane.xsd'))
-        QgsMessageLog.logMessage('walidator gotowy')
+        QCoreApplication.processEvents()
+        showPopup("Informacja", "Schemat metadanych został zaimportowany.")
 
 
     def prepareXsdForApp(self):
-        task = QgsTask.fromFunction('Wczytywanie schematu XSD dla APP', self.createValidator)
-        if task.description() not in [task.description() for task in QgsApplication.taskManager().activeTasks()]:
-            QgsApplication.taskManager().addTask(task)
-            QgsMessageLog.logMessage('starting XSD reading task')
+        self.createValidator()
 
 
     def prepareXsdForMetadata(self):
-        task = QgsTask.fromFunction('Wczytywanie schematu XSD dla metadanych', self.createMetadataValidator)
-        if task.description() not in [task.description() for task in QgsApplication.taskManager().activeTasks()]:
-            QgsApplication.taskManager().addTask(task)
-            QgsMessageLog.logMessage('starting XSD reading task')
+        self.createMetadataValidator()
 
 
     def addAction(self, icon_path, text, callback):

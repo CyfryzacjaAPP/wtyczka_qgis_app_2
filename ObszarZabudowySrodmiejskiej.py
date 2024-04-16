@@ -12,7 +12,7 @@ from pathlib import Path
 import configparser
 import re
 import string
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from qgis.core import QgsProject, NULL, QgsSettings
 from PyQt5.QtCore import QDateTime, QDate, QTime
 import ctypes
@@ -45,7 +45,7 @@ def my_form_open(dialog, layer, feature):
     
     mainPath = Path(QgsApplication.qgisSettingsDirPath())/Path("python/plugins/wtyczka_qgis_app/")
     teryt_gminy = ''
-    dataCzasTeraz = datetime.now()
+    dataCzasTeraz = datetime.utcnow()
     
     s = QgsSettings()
     rodzajZbioru = s.value("qgis_app2/settings/rodzajZbioru", "")
@@ -69,8 +69,8 @@ def my_form_open(dialog, layer, feature):
              'Data, od której dana wersja obiektu przestrzennego obowiązuje.',
              'Data, do której dana wersja obiektu przestrzennego obowiązywała.',
              'Ogólne wskazanie etapu procesu planowania, na którym znajduje się wersja obiektu przestrzennego.',
-             'Data i godzina, w której ta wersja obiektu została wprowadzona do zbioru danych przestrzennych lub zmieniona w tym zbiorze danych przestrzennych.',
-             'Data i godzina, w której wersja obiektu została zastąpiona w zbiorze danych przestrzennych lub wycofana z tego zbioru danych przestrzennych.',
+             'Data i godzina, w której ta wersja obiektu została wprowadzona do zbioru danych przestrzennych\n lub zmieniona w tym zbiorze danych przestrzennych.',
+             'Data i godzina, w której wersja obiektu została zastąpiona w zbiorze danych przestrzennych\n lub wycofana z tego zbioru danych przestrzennych.',
              'Odniesienie do aktu planowania przestrzennego, w ramach którego wyznaczone jest dane wydzielenie planistyczne.']
     
     atrybuty.append('geometria')
@@ -100,6 +100,7 @@ def my_form_open(dialog, layer, feature):
     
     nazwa = dialog.findChild(QLineEdit,"nazwa")
     nazwa.setText('Obszar zabudowy śródmiejskiej')
+    koniecWersjiObiektu = dialog.findChild(QDateTimeEdit,"koniecWersjiObiektu")
      
     oznaczenie = dialog.findChild(QLineEdit,"oznaczenie")
     oznaczenie.setPlaceholderText(placeHolders['oznaczenie'])
@@ -130,7 +131,6 @@ def my_form_open(dialog, layer, feature):
         status.setCurrentText(atrybutyPOG['status'])
     status_kontrola(status.currentText())
     
-    koniecWersjiObiektu = dialog.findChild(QDateTimeEdit,"koniecWersjiObiektu")
     koniecWersjiObiektu.valueChanged.connect(poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola)
     koniecWersjiObiektu.setMaximumDate(QDate.currentDate())
     
@@ -169,7 +169,7 @@ def komunikowanieBledu(object, txt, nazwaAtrybutu):
 
 
 def zmianaWersjiIPoczatkuWersji():
-    dataCzasTeraz = datetime.now()
+    dataCzasTeraz = datetime.utcnow()
     if czyObiektZmieniony and koniecWersjiObiektu.dateTime().time().msec() != 0 and koniecWersjiObiektu.dateTime().date().year() != 1 and not czyWersjaZmieniona:
         wersjaId.setDateTime(dataCzasTeraz)
         poczatekWersjiObiektu.disconnect()
@@ -200,13 +200,16 @@ def wylaczenieZapisu():
 
 
 def zapis():
-    dlg.save()
-    warstwa.commitChanges(False)
-    zapisz.setEnabled(False)
-    zapisz.setText("Zapisano")
-    
-    if obj.id() < 0:
-        dlg.parent().close()
+    try:
+        dlg.save()
+        warstwa.commitChanges(False)
+        zapisz.setEnabled(False)
+        zapisz.setText("Zapisano")
+        
+        if obj.id() < 0:
+            dlg.parent().close()
+    except:
+        pass
 
 # ----------------------------------------------------------------------------------------------------
 
@@ -313,8 +316,12 @@ def status_kontrola(txt):
             komunikowanieBledu(status,'Należy wybrać wartość pola status','status')
         else:
             komunikowanieBledu(status,'','status')
-            obowiazujeOd_kontrola(obowiazujeOd.dateTime())
-            obowiazujeDo_kontrola(obowiazujeDo.dateTime())
+        if txt == 'nieaktualny':
+            obowiazujeDo_label.setText("obowiązuje do*")
+            if obowiazujeDo.dateTime().toString("H:mm") not in ['0:00','23:59']:
+                komunikowanieBledu(obowiazujeDo, 'Należy wybrać datę dla "obowiązuje do"', 'obowiazujeDo')
+        else:
+            poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola()
     except:
         pass
 
@@ -339,7 +346,7 @@ def poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola():
         else:
             komunikowanieBledu(poczatekWersjiObiektu,'','poczatekWersjiObiektu')
             komunikowanieBledu(koniecWersjiObiektu,'','koniecWersjiObiektu')
-            if koniecWersjiObiektu.dateTime().date().year() != 1 and koniecWersjiObiektu.dateTime().time().msec() == 0:
+            if koniecWersjiObiektu.dateTime().date().year() != 1 and koniecWersjiObiektu.dateTime().time().msec() == 0 or status.currentText() == 'nieaktualny':
                 obowiazujeDo_label.setText("obowiązuje do*")
                 if obowiazujeDoTxt not in ['0:00','23:59']:
                     komunikowanieBledu(obowiazujeDo, 'Należy wybrać datę dla "obowiązuje do"', 'obowiazujeDo')
@@ -347,24 +354,21 @@ def poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola():
                     komunikowanieBledu(obowiazujeDo, '', 'obowiazujeDo')
             else:
                 obowiazujeDo_label.setText("obowiązuje do")
-                if obowiazujeOdTxt not in ['0:00','23:59'] or obowiazujeOd.dateTime() < obowiazujeDo.dateTime():
-                    komunikowanieBledu(obowiazujeDo, '', 'obowiazujeDo')
+                if (obowiazujeOd.dateTime() >= obowiazujeDo.dateTime() and obowiazujeDo.dateTime().time().msec() == 0 and obowiazujeOd.dateTime().time().msec() == 0):
+                    komunikowanieBledu(obowiazujeOd, 'Atrybut "obowiązuje od" nie może być większy lub równy od "obowiązuje do".', 'obowiazujeOd')
                 else:
-                    if obowiazujeOdTxt not in ['0:00','23:59'] or obowiazujeOd.dateTime() < obowiazujeDo.dateTime():
-                        komunikowanieBledu(obowiazujeDo, '', 'obowiazujeDo')
-                    else:
-                        komunikowanieBledu(obowiazujeOd, 'Atrybut "obowiązuje od" nie może być większy lub równy od "obowiązuje do".', 'obowiazujeOd')
-                        komunikowanieBledu(obowiazujeDo, 'Atrybut "obowiązuje do" nie może być mniejszy lub równy od "obowiązuje od".','obowiazujeDo')
+                    komunikowanieBledu(obowiazujeDo, '', 'obowiazujeDo')
     except:
         pass
 
 
 def czyWartoscAtrybutuJestUnikalna(atrybut, wartosc):
-    request = QgsFeatureRequest(QgsExpression(atrybut + "='" + wartosc + "'"))
     wartoscAtrybutuJestUnikalna = True
-    for x in warstwa.getFeatures(request):
-        if x.id() != obj.id():
-            wartoscAtrybutuJestUnikalna = False
+    if koniecWersjiObiektu.dateTime().time().msec() != 0:
+        request = QgsFeatureRequest(QgsExpression('koniecWersjiObiektu is NULL and ' + atrybut + "='" + wartosc + "'"))
+        for x in warstwa.getFeatures(request):
+            if x.id() != obj.id():
+                wartoscAtrybutuJestUnikalna = False
     return wartoscAtrybutuJestUnikalna
 
 

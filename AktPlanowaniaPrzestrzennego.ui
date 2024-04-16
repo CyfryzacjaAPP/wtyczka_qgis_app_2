@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>520</width>
+    <width>540</width>
     <height>520</height>
    </rect>
   </property>
@@ -595,24 +595,52 @@
      </item>
      <item>
       <layout class="QGridLayout" name="gridLayout_3">
-       <item row="4" column="0">
-        <widget class="QLabel" name="koniecWersjiObiektu_label_2">
+       <item row="3" column="0">
+        <widget class="QLabel" name="poczatekWersjiObiektu_label">
          <property name="sizePolicy">
           <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
+         <property name="font">
+          <font>
+           <weight>50</weight>
+           <bold>false</bold>
+          </font>
+         </property>
          <property name="text">
-          <string>koniec wersji obiektu</string>
+          <string>początek wersji obiektu*</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
          </property>
         </widget>
        </item>
-       <item row="1" column="1">
-        <widget class="QLineEdit" name="lokalnyId">
+       <item row="0" column="0">
+        <widget class="QLabel" name="przestrzenNazw_label">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="font">
+          <font>
+           <weight>50</weight>
+           <bold>false</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>przestrzeń nazw*</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="1">
+        <widget class="QgsDateTimeEdit" name="koniecWersjiObiektu">
          <property name="sizePolicy">
           <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
            <horstretch>0</horstretch>
@@ -631,30 +659,33 @@
            <height>20</height>
           </size>
          </property>
-         <property name="toolTip">
-          <string>string</string>
+         <property name="displayFormat">
+          <string>yyyy-MM-ddTHH:mm:ss</string>
          </property>
         </widget>
        </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="lokalnyId_label">
+       <item row="2" column="1">
+        <widget class="QDateTimeEdit" name="wersjaId">
          <property name="sizePolicy">
           <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
-         <property name="font">
-          <font>
-           <weight>50</weight>
-           <bold>false</bold>
-          </font>
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>20</height>
+          </size>
          </property>
-         <property name="text">
-          <string>identyfikator lokalny*</string>
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>20</height>
+          </size>
          </property>
-         <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         <property name="displayFormat">
+          <string>yyyy-MM-ddTHH:mm:ss</string>
          </property>
         </widget>
        </item>
@@ -680,28 +711,6 @@
          </property>
          <property name="toolTip">
           <string>string</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0">
-        <widget class="QLabel" name="wersjaId_label">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="font">
-          <font>
-           <weight>50</weight>
-           <bold>false</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>identyfikator wersji*</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
          </property>
         </widget>
        </item>
@@ -736,8 +745,8 @@
          </property>
         </widget>
        </item>
-       <item row="0" column="2">
-        <widget class="QLabel" name="label_1">
+       <item row="1" column="2">
+        <widget class="QLabel" name="label_2">
          <property name="minimumSize">
           <size>
            <width>20</width>
@@ -749,56 +758,33 @@
          </property>
         </widget>
        </item>
-       <item row="2" column="2">
-        <widget class="QLabel" name="label_3">
-         <property name="minimumSize">
-          <size>
-           <width>20</width>
-           <height>0</height>
-          </size>
-         </property>
-         <property name="text">
-          <string>?</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="2">
-        <widget class="QLabel" name="label_4">
-         <property name="minimumSize">
-          <size>
-           <width>20</width>
-           <height>0</height>
-          </size>
-         </property>
-         <property name="text">
-          <string>?</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="0">
-        <widget class="QLabel" name="poczatekWersjiObiektu_label">
+       <item row="1" column="1">
+        <widget class="QLineEdit" name="lokalnyId">
          <property name="sizePolicy">
           <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
-         <property name="font">
-          <font>
-           <weight>50</weight>
-           <bold>false</bold>
-          </font>
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>20</height>
+          </size>
          </property>
-         <property name="text">
-          <string>początek wersji obiektu*</string>
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>20</height>
+          </size>
          </property>
-         <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         <property name="toolTip">
+          <string>string</string>
          </property>
         </widget>
        </item>
-       <item row="1" column="2">
-        <widget class="QLabel" name="label_2">
+       <item row="2" column="2">
+        <widget class="QLabel" name="label_3">
          <property name="minimumSize">
           <size>
            <width>20</width>
@@ -823,8 +809,50 @@
          </property>
         </widget>
        </item>
-       <item row="0" column="0">
-        <widget class="QLabel" name="przestrzenNazw_label">
+       <item row="0" column="2">
+        <widget class="QLabel" name="label_1">
+         <property name="minimumSize">
+          <size>
+           <width>20</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>?</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="2">
+        <widget class="QLabel" name="label_4">
+         <property name="minimumSize">
+          <size>
+           <width>20</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>?</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <widget class="QLabel" name="koniecWersjiObiektu_label_2">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>koniec wersji obiektu</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="lokalnyId_label">
          <property name="sizePolicy">
           <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
            <horstretch>0</horstretch>
@@ -838,60 +866,32 @@
           </font>
          </property>
          <property name="text">
-          <string>przestrzeń nazw*</string>
+          <string>identyfikator lokalny*</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
          </property>
         </widget>
        </item>
-       <item row="2" column="1">
-        <widget class="QDateTimeEdit" name="wersjaId">
+       <item row="2" column="0">
+        <widget class="QLabel" name="wersjaId_label">
          <property name="sizePolicy">
           <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
-         <property name="minimumSize">
-          <size>
-           <width>0</width>
-           <height>20</height>
-          </size>
+         <property name="font">
+          <font>
+           <weight>50</weight>
+           <bold>false</bold>
+          </font>
          </property>
-         <property name="maximumSize">
-          <size>
-           <width>16777215</width>
-           <height>20</height>
-          </size>
+         <property name="text">
+          <string>identyfikator wersji*</string>
          </property>
-         <property name="displayFormat">
-          <string>yyyy-MM-ddTHH:mm:ss</string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="1">
-        <widget class="QgsDateTimeEdit" name="koniecWersjiObiektu">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="minimumSize">
-          <size>
-           <width>0</width>
-           <height>20</height>
-          </size>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>16777215</width>
-           <height>20</height>
-          </size>
-         </property>
-         <property name="displayFormat">
-          <string>yyyy-MM-ddTHH:mm:ss</string>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
          </property>
         </widget>
        </item>
@@ -993,21 +993,22 @@
   </customwidget>
  </customwidgets>
  <tabstops>
-  <tabstop>tytul</tabstop>
-  <tabstop>typPlanu</tabstop>
-  <tabstop>poziomHierarchii</tabstop>
-  <tabstop>status</tabstop>
-  <tabstop>obowiazujeOd</tabstop>
-  <tabstop>obowiazujeDo</tabstop>
-  <tabstop>tytulAlternatywny_QLE</tabstop>
-  <tabstop>dodaj</tabstop>
-  <tabstop>usun</tabstop>
-  <tabstop>tytulyAlternatywne</tabstop>
   <tabstop>przestrzenNazw</tabstop>
   <tabstop>lokalnyId</tabstop>
   <tabstop>wersjaId</tabstop>
   <tabstop>poczatekWersjiObiektu</tabstop>
   <tabstop>koniecWersjiObiektu</tabstop>
+  <tabstop>tytul</tabstop>
+  <tabstop>tytulAlternatywny_QLE</tabstop>
+  <tabstop>dodaj</tabstop>
+  <tabstop>usun</tabstop>
+  <tabstop>tytulyAlternatywne</tabstop>
+  <tabstop>typPlanu</tabstop>
+  <tabstop>poziomHierarchii</tabstop>
+  <tabstop>obowiazujeOd</tabstop>
+  <tabstop>obowiazujeDo</tabstop>
+  <tabstop>status</tabstop>
+  <tabstop>modyfikacja</tabstop>
   <tabstop>zapisz</tabstop>
   <tabstop>tytulAlternatywny</tabstop>
  </tabstops>

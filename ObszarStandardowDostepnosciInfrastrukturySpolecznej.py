@@ -12,7 +12,7 @@ from pathlib import Path
 import configparser
 import re
 import string
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from qgis.core import QgsProject, NULL, QgsSettings
 from PyQt5.QtCore import QDateTime, QDate, QTime, QRegExp
 
@@ -37,7 +37,8 @@ def my_form_open(dialog, layer, feature):
         return
     try:
         dlg.parent().setWindowTitle("Atrybuty OSD, nazwa warstwy: " + layer.name())
-        dlg.parent().setMaximumWidth(650)
+        dlg.parent().setMinimumWidth(670)
+        dlg.parent().setMaximumWidth(700)
         dlg.parent().setMaximumHeight(590)
     except:
         pass
@@ -49,7 +50,7 @@ def my_form_open(dialog, layer, feature):
     
     mainPath = Path(QgsApplication.qgisSettingsDirPath())/Path("python/plugins/wtyczka_qgis_app/")
     teryt_gminy = ''
-    dataCzasTeraz = datetime.now()
+    dataCzasTeraz = datetime.utcnow()
     
     s = QgsSettings()
     rodzajZbioru = s.value("qgis_app2/settings/rodzajZbioru", "")
@@ -77,26 +78,26 @@ def my_form_open(dialog, layer, feature):
              'Data, od której dana wersja obiektu przestrzennego obowiązuje.',
              'Data, do której dana wersja obiektu przestrzennego obowiązywała.',
              'Ogólne wskazanie etapu procesu planowania, na którym znajduje się wersja obiektu przestrzennego.',
-             'Data i godzina, w której wersja obiektu została wprowadzona do zbioru danych przestrzennych lub zmieniona w tym zbiorze danych przestrzennych.',
-             'Data i godzina, w której wersja obiektu została zastąpiona w zbiorze danych przestrzennych lub wycofana z tego zbioru danych przestrzennych.',
-             'Informacja o wyłączeniu terenów zabudowy zagrodowej o którym mowa w art. 13f ust. 7 pkt 5 ustawy z dnia 27 marca 2003 r. o planowaniu i zagospodarowaniu przestrzennym.',
-             'Maksymalna odległość, o której mowa w art. 13f ust. 2 ustawy z dnia 27 marca 2003 r. o planowaniu i zagospodarowaniu przestrzennym, od granicy działki ewidencyjnej do budynku szkoły podstawowej.\nWartość atrybutu jest wyrażona liczbą całkowitą.',
-             'Maksymalna odległość, o której mowa w art. 13f ust. 3 ustawy z dnia 27 marca 2003 r. o planowaniu i zagospodarowaniu przestrzennym, od granicy działki ewidencyjnej do granicy obszarów zieleni publicznej, o których mowa w art. 13f ust. 3 pkt 1 ustawy z dnia 27 marca 2003 r. o planowaniu i zagospodarowaniu przestrzennym.\nWartość atrybutu jest wyrażona liczbą całkowitą.',
+             'Data i godzina, w której wersja obiektu została wprowadzona do zbioru danych przestrzennych\n lub zmieniona w tym zbiorze danych przestrzennych.',
+             'Data i godzina, w której wersja obiektu została zastąpiona w zbiorze danych przestrzennych\n lub wycofana z tego zbioru danych przestrzennych.',
+             'Informacja o wyłączeniu terenów zabudowy zagrodowej o którym mowa w art. 13f ust. 7 pkt 5 ustawy\n z dnia 27 marca 2003 r. o planowaniu i zagospodarowaniu przestrzennym.',
+             'Maksymalna odległość, o której mowa w art. 13f ust. 2 ustawy z dnia 27 marca 2003 r. o planowaniu i zagospodarowaniu przestrzennym,\n od granicy działki ewidencyjnej do budynku szkoły podstawowej.\nWartość atrybutu jest wyrażona liczbą całkowitą.',
+             'Maksymalna odległość, o której mowa w art. 13f ust. 3 ustawy z dnia 27 marca 2003 r. o planowaniu i zagospodarowaniu przestrzennym,\n od granicy działki ewidencyjnej do granicy obszarów zieleni publicznej, o których mowa w art. 13f ust. 3 pkt 1 ustawy z dnia 27 marca 2003 r. o planowaniu i zagospodarowaniu przestrzennym.\nWartość atrybutu jest wyrażona liczbą całkowitą.',
              'Łączna powierzchnia obszarów zieleni publicznej, o których mowa w art. 13f ust. 3 pkt 1 ustawy z dnia 27 marca 2003 r. o planowaniu i zagospodarowaniu przestrzennym.\nWartość atrybutu jest wyrażona liczbą dziesiętną.',
-             'Maksymalna odległość, o której mowa w art. 13f ust. 3 ustawy z dnia 27 marca 2003 r. o planowaniu i zagospodarowaniu przestrzennym, od granicy działki ewidencyjnej do granicy obszaru zieleni publicznej, o którym mowa w art. 13f ust. 3 pkt 2 ustawy z dnia 27 marca 2003 r. o planowaniu i zagospodarowaniu przestrzennym.\nWartość atrybutu jest wyrażona liczbą całkowitą.',
-             'Powierzchnia obszaru zieleni publicznej, o którym mowa w art. 13f ust. 3 pkt 2 ustawy z dnia 27 marca 2003 r. o planowaniu i zagospodarowaniu przestrzennym.\nWartość atrybutu jest wyrażona liczbą dziesiętną.',
-             'Maksymalna odległość liczona jako droga dojścia ogólnodostępną trasą dla pieszych od granicy działki ewidencyjnej do przedszkola.\nWartość atrybutu jest wyrażona liczbą całkowitą.',
-             'Maksymalna odległość liczona jako droga dojścia ogólnodostępną trasą dla pieszych od granicy działki ewidencyjnej do żłobka.\nWartość atrybutu jest wyrażona liczbą całkowitą.',
-             'Maksymalna odległość liczona jako droga dojścia ogólnodostępną trasą dla pieszych od granicy działki ewidencyjnej do ambulatorium podstawowej opieki zdrowotnej.\nWartość atrybutu jest wyrażona liczbą całkowitą.',
-             'Maksymalna odległość liczona jako droga dojścia ogólnodostępną trasą dla pieszych od granicy działki ewidencyjnej do biblioteki.\nWartość atrybutu jest wyrażona liczbą całkowitą.',
-             'Maksymalna odległość liczona jako droga dojścia ogólnodostępną trasą dla pieszych od granicy działki ewidencyjnej do domu kultury.\nWartość atrybutu jest wyrażona liczbą całkowitą.',
-             'Maksymalna odległość liczona jako droga dojścia ogólnodostępną trasą dla pieszych od granicy działki ewidencyjnej do domu pomocy społecznej.\nWartość atrybutu jest wyrażona liczbą całkowitą.',
-             'Maksymalna odległość liczona jako droga dojścia ogólnodostępną trasą dla pieszych od granicy działki ewidencyjnej do urządzonego terenu sportu.\nWartość atrybutu jest wyrażona liczbą całkowitą.',
-             'Maksymalna odległość liczona jako droga dojścia ogólnodostępną trasą dla pieszych od granicy działki ewidencyjnej do przystanku publicznego transportu zbiorowego.\nWartość atrybutu jest wyrażona liczbą całkowitą.',
-             'Maksymalna odległość liczona jako droga dojścia ogólnodostępną trasą dla pieszych od granicy działki ewidencyjnej do placówki pocztowej.\nWartość atrybutu jest wyrażona liczbą całkowitą.',
-             'Maksymalna odległość liczona jako droga dojścia ogólnodostępną trasą dla pieszych od granicy działki ewidencyjnej do apteki.\nWartość atrybutu jest wyrażona liczbą całkowitą.',
-             'Maksymalna odległość liczona jako droga dojścia ogólnodostępną trasą dla pieszych od granicy działki ewidencyjnej do posterunku policji.\nWartość atrybutu jest wyrażona liczbą całkowitą.',
-             'Maksymalna odległość liczona jako droga dojścia ogólnodostępną trasą dla pieszych od granicy działki ewidencyjnej do posterunku jednostki ochrony przeciwpożarowej.\nWartość atrybutu jest wyrażona liczbą całkowitą.']
+             'Maksymalna odległość, o której mowa w art. 13f ust. 3 ustawy z dnia 27 marca 2003 r. o planowaniu i zagospodarowaniu przestrzennym,\n od granicy działki ewidencyjnej do granicy obszaru zieleni publicznej, o którym mowa w art. 13f ust. 3 pkt 2 ustawy z dnia 27 marca 2003 r. o planowaniu i zagospodarowaniu przestrzennym.\nWartość atrybutu jest wyrażona liczbą całkowitą.',
+             'Powierzchnia obszaru zieleni publicznej, o którym mowa w art. 13f ust. 3 pkt 2 ustawy\n z dnia 27 marca 2003 r. o planowaniu i zagospodarowaniu przestrzennym.\nWartość atrybutu jest wyrażona liczbą dziesiętną.',
+             'Maksymalna odległość liczona jako droga dojścia ogólnodostępną\n trasą dla pieszych od granicy działki ewidencyjnej do przedszkola.\nWartość atrybutu jest wyrażona liczbą całkowitą.',
+             'Maksymalna odległość liczona jako droga dojścia ogólnodostępną\n trasą dla pieszych od granicy działki ewidencyjnej do żłobka.\nWartość atrybutu jest wyrażona liczbą całkowitą.',
+             'Maksymalna odległość liczona jako droga dojścia ogólnodostępną\n trasą dla pieszych od granicy działki ewidencyjnej do ambulatorium podstawowej opieki zdrowotnej.\nWartość atrybutu jest wyrażona liczbą całkowitą.',
+             'Maksymalna odległość liczona jako droga dojścia ogólnodostępną\n trasą dla pieszych od granicy działki ewidencyjnej do biblioteki.\nWartość atrybutu jest wyrażona liczbą całkowitą.',
+             'Maksymalna odległość liczona jako droga dojścia ogólnodostępną\n trasą dla pieszych od granicy działki ewidencyjnej do domu kultury.\nWartość atrybutu jest wyrażona liczbą całkowitą.',
+             'Maksymalna odległość liczona jako droga dojścia ogólnodostępną\n trasą dla pieszych od granicy działki ewidencyjnej do domu pomocy społecznej.\nWartość atrybutu jest wyrażona liczbą całkowitą.',
+             'Maksymalna odległość liczona jako droga dojścia ogólnodostępną\n trasą dla pieszych od granicy działki ewidencyjnej do urządzonego terenu sportu.\nWartość atrybutu jest wyrażona liczbą całkowitą.',
+             'Maksymalna odległość liczona jako droga dojścia ogólnodostępną\n trasą dla pieszych od granicy działki ewidencyjnej do przystanku publicznego transportu zbiorowego.\nWartość atrybutu jest wyrażona liczbą całkowitą.',
+             'Maksymalna odległość liczona jako droga dojścia ogólnodostępną\n trasą dla pieszych od granicy działki ewidencyjnej do placówki pocztowej.\nWartość atrybutu jest wyrażona liczbą całkowitą.',
+             'Maksymalna odległość liczona jako droga dojścia ogólnodostępną\n trasą dla pieszych od granicy działki ewidencyjnej do apteki.\nWartość atrybutu jest wyrażona liczbą całkowitą.',
+             'Maksymalna odległość liczona jako droga dojścia ogólnodostępną\n trasą dla pieszych od granicy działki ewidencyjnej do posterunku policji.\nWartość atrybutu jest wyrażona liczbą całkowitą.',
+             'Maksymalna odległość liczona jako droga dojścia ogólnodostępną\n trasą dla pieszych od granicy działki ewidencyjnej do posterunku jednostki ochrony przeciwpożarowej.\nWartość atrybutu jest wyrażona liczbą całkowitą.']
     
     atrybuty.append('geometria')
     listaBledowAtrybutow = [0 for i in range(len(atrybuty))]
@@ -123,6 +124,7 @@ def my_form_open(dialog, layer, feature):
     if obj.id() <0: lokalnyId_kontrola('')
     
     nazwa = dialog.findChild(QLineEdit,"nazwa")
+    koniecWersjiObiektu = dialog.findChild(QDateTimeEdit,"koniecWersjiObiektu")
      
     oznaczenie = dialog.findChild(QLineEdit,"oznaczenie")
     oznaczenie.setPlaceholderText(placeHolders['oznaczenie'])
@@ -155,7 +157,6 @@ def my_form_open(dialog, layer, feature):
         status.setCurrentText(atrybutyPOG['status'])
     status_kontrola(status.currentText())
     
-    koniecWersjiObiektu = dialog.findChild(QDateTimeEdit,"koniecWersjiObiektu")
     koniecWersjiObiektu.valueChanged.connect(poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola)
     koniecWersjiObiektu.setMaximumDate(QDate.currentDate())
     
@@ -163,96 +164,99 @@ def my_form_open(dialog, layer, feature):
     wylaczenieZabudowyZagrodowej.stateChanged.connect(wylaczenieZabudowyZagrodowej_kontrola)
     
     odlegloscDoSzkolyPodstawowej = dialog.findChild(QLineEdit,"odlegloscDoSzkolyPodstawowej")
+    odlegloscDoSzkolyPodstawowej.setValidator(QRegExpValidator(QRegExp("[1-9]\d{0,4}")))
     odlegloscDoSzkolyPodstawowej.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
     odlegloscDoSzkolyPodstawowej.textChanged.connect(odlegloscDoSzkolyPodstawowej_kontrola)
-    odlegloscDoSzkolyPodstawowej.setValidator(QRegExpValidator(QRegExp("[1-9]\d{0,4}")))
     if obj.id() < 0: odlegloscDoSzkolyPodstawowej_kontrola('')
     
     odlegloscDoObszarowZieleniPublicznej = dialog.findChild(QLineEdit,"odlegloscDoObszarowZieleniPublicznej")
+    odlegloscDoObszarowZieleniPublicznej.setValidator(QRegExpValidator(QRegExp("[1-9]\d{0,4}")))
     odlegloscDoObszarowZieleniPublicznej.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
     odlegloscDoObszarowZieleniPublicznej.textChanged.connect(odlegloscDoObszarowZieleniPublicznej_kontrola)
-    odlegloscDoObszarowZieleniPublicznej.setValidator(QRegExpValidator(QRegExp("[1-9]\d{0,4}")))
     if obj.id() < 0: odlegloscDoObszarowZieleniPublicznej_kontrola('')
     
     powierzchniaLacznaObszarowZieleniPublicznej = dialog.findChild(QLineEdit,"powierzchniaLacznaObszarowZieleniPublicznej")
+    powierzchniaLacznaObszarowZieleniPublicznej.setValidator(QRegExpValidator(QRegExp("[1-9][0-9]{0,5}\.([0-9]{1})?")))
     powierzchniaLacznaObszarowZieleniPublicznej.setPlaceholderText(placeHolders['powierzchnia obszarow'])
     powierzchniaLacznaObszarowZieleniPublicznej.setText(powierzchniaLacznaObszarowZieleniPublicznej.text().replace(",","."))
     powierzchniaLacznaObszarowZieleniPublicznej.textChanged.connect(powierzchniaLacznaObszarowZieleniPublicznej_kontrola)
-    powierzchniaLacznaObszarowZieleniPublicznej.setValidator(QRegExpValidator(QRegExp("[1-9][0-9]{0,5}\.([0-9]{1})?")))
     if obj.id() < 0: powierzchniaLacznaObszarowZieleniPublicznej_kontrola('')
     
     odlegloscDoObszaruZieleniPublicznej = dialog.findChild(QLineEdit,"odlegloscDoObszaruZieleniPublicznej")
+    odlegloscDoObszaruZieleniPublicznej.setValidator(QRegExpValidator(QRegExp("[1-9]\d{0,4}")))
     odlegloscDoObszaruZieleniPublicznej.setPlaceholderText(placeHolders['minOdlegloscOdObszaruZieleniPublicznej'])
     odlegloscDoObszaruZieleniPublicznej.textChanged.connect(odlegloscDoObszaruZieleniPublicznej_kontrola)
-    odlegloscDoObszaruZieleniPublicznej.setValidator(QRegExpValidator(QRegExp("[1-9]\d{0,4}")))
     if obj.id() < 0: odlegloscDoObszaruZieleniPublicznej_kontrola('')
     
     powierzchniaObszaruZieleniPublicznej = dialog.findChild(QLineEdit,"powierzchniaObszaruZieleniPublicznej")
+    powierzchniaObszaruZieleniPublicznej.setValidator(QRegExpValidator(QRegExp("[1-9][0-9]{1,5}\.([0-9]{1})?")))
     powierzchniaObszaruZieleniPublicznej.setPlaceholderText(placeHolders['powierzchnia obszaru'])
     powierzchniaObszaruZieleniPublicznej.setText(powierzchniaObszaruZieleniPublicznej.text().replace(",","."))
     powierzchniaObszaruZieleniPublicznej.textChanged.connect(powierzchniaObszaruZieleniPublicznej_kontrola)
-    powierzchniaObszaruZieleniPublicznej.setValidator(QRegExpValidator(QRegExp("[1-9][0-9]{1,5}\.([0-9]{1})?")))
     if obj.id() < 0: powierzchniaObszaruZieleniPublicznej_kontrola('')
     
     odlegloscDoPrzedszkola = dialog.findChild(QLineEdit,"odlegloscDoPrzedszkola")
+    odlegloscDoPrzedszkola.setValidator(QRegExpValidator(QRegExp("[1-9]\d{0,4}")))
     odlegloscDoPrzedszkola.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
     odlegloscDoPrzedszkola.textChanged.connect(odlegloscDoPrzedszkola_kontrola)
-    odlegloscDoPrzedszkola.setValidator(QRegExpValidator(QRegExp("[1-9]\d{0,4}")))
     
     odlegloscDoZlobka = dialog.findChild(QLineEdit,"odlegloscDoZlobka")
+    odlegloscDoZlobka.setValidator(QRegExpValidator(QRegExp("[1-9]\d{0,4}")))
     odlegloscDoZlobka.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
     odlegloscDoZlobka.textChanged.connect(odlegloscDoZlobka_kontrola)
-    odlegloscDoZlobka.setValidator(QRegExpValidator(QRegExp("[1-9]\d{0,4}")))
     
     odlegloscDoAmbulatoriumPOZ = dialog.findChild(QLineEdit,"odlegloscDoAmbulatoriumPOZ")
+    odlegloscDoAmbulatoriumPOZ.setValidator(QRegExpValidator(QRegExp("[1-9]\d{0,4}")))
     odlegloscDoAmbulatoriumPOZ.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
     odlegloscDoAmbulatoriumPOZ.textChanged.connect(odlegloscDoAmbulatoriumPOZ_kontrola)
-    odlegloscDoAmbulatoriumPOZ.setValidator(QRegExpValidator(QRegExp("[1-9]\d{0,4}")))
     
     odlegloscDoBiblioteki = dialog.findChild(QLineEdit,"odlegloscDoBiblioteki")
+    odlegloscDoBiblioteki.setValidator(QRegExpValidator(QRegExp("[1-9]\d{0,4}")))
     odlegloscDoBiblioteki.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
     odlegloscDoBiblioteki.textChanged.connect(odlegloscDoBiblioteki_kontrola)
-    odlegloscDoBiblioteki.setValidator(QRegExpValidator(QRegExp("[1-9]\d{0,4}")))
     
     odlegloscDoDomuKultury = dialog.findChild(QLineEdit,"odlegloscDoDomuKultury")
+    odlegloscDoDomuKultury.setValidator(QRegExpValidator(QRegExp("[1-9]\d{0,4}")))
     odlegloscDoDomuKultury.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
     odlegloscDoDomuKultury.textChanged.connect(odlegloscDoDomuKultury_kontrola)
-    odlegloscDoDomuKultury.setValidator(QRegExpValidator(QRegExp("[1-9]\d{0,4}")))
     
     odlegloscDoDomuPomocySpolecznej = dialog.findChild(QLineEdit,"odlegloscDoDomuPomocySpolecznej")
+    odlegloscDoDomuPomocySpolecznej.setValidator(QRegExpValidator(QRegExp("[1-9]\d{0,4}")))
     odlegloscDoDomuPomocySpolecznej.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
     odlegloscDoDomuPomocySpolecznej.textChanged.connect(odlegloscDoDomuPomocySpolecznej_kontrola)
-    odlegloscDoDomuPomocySpolecznej.setValidator(QRegExpValidator(QRegExp("[1-9]\d{0,4}")))
     
     odlegloscDoUrzadzonegoTerenuSportu = dialog.findChild(QLineEdit,"odlegloscDoUrzadzonegoTerenuSportu")
+    odlegloscDoUrzadzonegoTerenuSportu.setValidator(QRegExpValidator(QRegExp("[1-9]\d{0,4}")))
     odlegloscDoUrzadzonegoTerenuSportu.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
     odlegloscDoUrzadzonegoTerenuSportu.textChanged.connect(odlegloscDoUrzadzonegoTerenuSportu_kontrola)
-    odlegloscDoUrzadzonegoTerenuSportu.setValidator(QRegExpValidator(QRegExp("[1-9]\d{0,4}")))
     
     odlegloscDoPrzystanku = dialog.findChild(QLineEdit,"odlegloscDoPrzystanku")
+    odlegloscDoPrzystanku.setValidator(QRegExpValidator(QRegExp("[1-9]\d{0,4}")))
     odlegloscDoPrzystanku.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
     odlegloscDoPrzystanku.textChanged.connect(odlegloscDoPrzystanku_kontrola)
-    odlegloscDoPrzystanku.setValidator(QRegExpValidator(QRegExp("[1-9]\d{0,4}")))
     
     odlegloscDoPlacowkiPocztowej = dialog.findChild(QLineEdit,"odlegloscDoPlacowkiPocztowej")
+    try:
+        odlegloscDoPlacowkiPocztowej.setValidator(QRegExpValidator(QRegExp("[1-9]\d{0,4}")))
+    except:
+        pass
     odlegloscDoPlacowkiPocztowej.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
     odlegloscDoPlacowkiPocztowej.textChanged.connect(odlegloscDoPlacowkiPocztowej_kontrola)
-    odlegloscDoPlacowkiPocztowej.setValidator(QRegExpValidator(QRegExp("[1-9]\d{0,4}")))
     
     odlegloscDoApteki = dialog.findChild(QLineEdit,"odlegloscDoApteki")
+    odlegloscDoApteki.setValidator(QRegExpValidator(QRegExp("[1-9]\d{0,4}")))
     odlegloscDoApteki.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
     odlegloscDoApteki.textChanged.connect(odlegloscDoApteki_kontrola)
-    odlegloscDoApteki.setValidator(QRegExpValidator(QRegExp("[1-9]\d{0,4}")))
     
     odlegloscDoPosterunkuPolicji = dialog.findChild(QLineEdit,"odlegloscDoPosterunkuPolicji")
+    odlegloscDoPosterunkuPolicji.setValidator(QRegExpValidator(QRegExp("[1-9]\d{0,4}")))
     odlegloscDoPosterunkuPolicji.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
     odlegloscDoPosterunkuPolicji.textChanged.connect(odlegloscDoPosterunkuPolicji_kontrola)
-    odlegloscDoPosterunkuPolicji.setValidator(QRegExpValidator(QRegExp("[1-9]\d{0,4}")))
     
     odlegloscDoPosterunkuJednostkiOchronyPrzeciwpozarowej = dialog.findChild(QLineEdit,"odlegloscDoPosterunkuJednostkiOchronyPrzeciwpozarowej")
+    odlegloscDoPosterunkuJednostkiOchronyPrzeciwpozarowej.setValidator(QRegExpValidator(QRegExp("[1-9]\d{0,4}")))
     odlegloscDoPosterunkuJednostkiOchronyPrzeciwpozarowej.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
     odlegloscDoPosterunkuJednostkiOchronyPrzeciwpozarowej.textChanged.connect(odlegloscDoPosterunkuJednostkiOchronyPrzeciwpozarowej_kontrola)
-    odlegloscDoPosterunkuJednostkiOchronyPrzeciwpozarowej.setValidator(QRegExpValidator(QRegExp("[1-9]\d{0,4}")))
     
     geometria_kontrola()
     poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola()
@@ -289,7 +293,7 @@ def komunikowanieBledu(object, txt, nazwaAtrybutu):
 
 
 def zmianaWersjiIPoczatkuWersji():
-    dataCzasTeraz = datetime.now()
+    dataCzasTeraz = datetime.utcnow()
     if czyObiektZmieniony and koniecWersjiObiektu.dateTime().time().msec() != 0 and koniecWersjiObiektu.dateTime().date().year() != 1 and not czyWersjaZmieniona:
         wersjaId.setDateTime(dataCzasTeraz)
         poczatekWersjiObiektu.disconnect()
@@ -320,13 +324,16 @@ def wylaczenieZapisu():
 
 
 def zapis():
-    dlg.save()
-    warstwa.commitChanges(False)
-    zapisz.setEnabled(False)
-    zapisz.setText("Zapisano")
-    
-    if obj.id() < 0:
-        dlg.parent().close()
+    try:
+        dlg.save()
+        warstwa.commitChanges(False)
+        zapisz.setEnabled(False)
+        zapisz.setText("Zapisano")
+        
+        if obj.id() < 0:
+            dlg.parent().close()
+    except:
+        pass
 
 # ----------------------------------------------------------------------------------------------------
 
@@ -444,8 +451,12 @@ def status_kontrola(txt):
             komunikowanieBledu(status,'Należy wybrać wartość pola status','status')
         else:
             komunikowanieBledu(status,'','status')
-            obowiazujeOd_kontrola(obowiazujeOd.dateTime())
-            obowiazujeDo_kontrola(obowiazujeDo.dateTime())
+        if txt == 'nieaktualny':
+            obowiazujeDo_label.setText("obowiązuje do*")
+            if obowiazujeDo.dateTime().toString("H:mm") not in ['0:00','23:59']:
+                komunikowanieBledu(obowiazujeDo, 'Należy wybrać datę dla "obowiązuje do"', 'obowiazujeDo')
+        else:
+            poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola()
     except:
         pass
 
@@ -470,7 +481,7 @@ def poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola():
         else:
             komunikowanieBledu(poczatekWersjiObiektu,'','poczatekWersjiObiektu')
             komunikowanieBledu(koniecWersjiObiektu,'','koniecWersjiObiektu')
-            if koniecWersjiObiektu.dateTime().date().year() != 1 and koniecWersjiObiektu.dateTime().time().msec() == 0:
+            if koniecWersjiObiektu.dateTime().date().year() != 1 and koniecWersjiObiektu.dateTime().time().msec() == 0 or status.currentText() == 'nieaktualny':
                 obowiazujeDo_label.setText("obowiązuje do*")
                 if obowiazujeDoTxt not in ['0:00','23:59']:
                     komunikowanieBledu(obowiazujeDo, 'Należy wybrać datę dla "obowiązuje do"', 'obowiazujeDo')
@@ -478,14 +489,10 @@ def poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola():
                     komunikowanieBledu(obowiazujeDo, '', 'obowiazujeDo')
             else:
                 obowiazujeDo_label.setText("obowiązuje do")
-                if obowiazujeOdTxt not in ['0:00','23:59'] or obowiazujeOd.dateTime() < obowiazujeDo.dateTime():
-                    komunikowanieBledu(obowiazujeDo, '', 'obowiazujeDo')
+                if (obowiazujeOd.dateTime() >= obowiazujeDo.dateTime() and obowiazujeDo.dateTime().time().msec() == 0 and obowiazujeOd.dateTime().time().msec() == 0):
+                    komunikowanieBledu(obowiazujeOd, 'Atrybut "obowiązuje od" nie może być większy lub równy od "obowiązuje do".', 'obowiazujeOd')
                 else:
-                    if obowiazujeOdTxt not in ['0:00','23:59'] or obowiazujeOd.dateTime() < obowiazujeDo.dateTime():
-                        komunikowanieBledu(obowiazujeDo, '', 'obowiazujeDo')
-                    else:
-                        komunikowanieBledu(obowiazujeOd, 'Atrybut "obowiązuje od" nie może być większy lub równy od "obowiązuje do".', 'obowiazujeOd')
-                        komunikowanieBledu(obowiazujeDo, 'Atrybut "obowiązuje do" nie może być mniejszy lub równy od "obowiązuje od".','obowiazujeDo')
+                    komunikowanieBledu(obowiazujeDo, '', 'obowiazujeDo')
     except:
         pass
 
@@ -659,11 +666,12 @@ def odlegloscDoPosterunkuJednostkiOchronyPrzeciwpozarowej_kontrola(txt):
 
 
 def czyWartoscAtrybutuJestUnikalna(atrybut, wartosc):
-    request = QgsFeatureRequest(QgsExpression(atrybut + "='" + wartosc + "'"))
     wartoscAtrybutuJestUnikalna = True
-    for x in warstwa.getFeatures(request):
-        if x.id() != obj.id():
-            wartoscAtrybutuJestUnikalna = False
+    if koniecWersjiObiektu.dateTime().time().msec() != 0:
+        request = QgsFeatureRequest(QgsExpression('koniecWersjiObiektu is NULL and ' + atrybut + "='" + wartosc + "'"))
+        for x in warstwa.getFeatures(request):
+            if x.id() != obj.id():
+                wartoscAtrybutuJestUnikalna = False
     return wartoscAtrybutuJestUnikalna
 
 

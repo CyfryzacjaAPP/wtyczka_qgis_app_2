@@ -12,10 +12,11 @@ from pathlib import Path
 import configparser
 import re
 import string
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from qgis.core import QgsProject, NULL, QgsSettings
 from qgis.gui import QgsCheckableComboBox
 from PyQt5.QtCore import QDateTime, QDate, QTime
+import os
 
 
 def my_form_open(dialog, layer, feature):
@@ -31,8 +32,15 @@ def my_form_open(dialog, layer, feature):
     dlg = dialog
     if dlg.parent() == None:
         return
+    
+    s = QgsSettings()
+    rodzajZbioru = s.value("qgis_app2/settings/rodzajZbioru", "")
+    numerZbioru = s.value("qgis_app2/settings/numerZbioru", "")
+    jpt = s.value("qgis_app2/settings/jpt", "")
+    idLokalnyAPP = s.value("qgis_app2/settings/idLokalnyAPP","")
+    
     try:
-        dlg.parent().setWindowTitle("Atrybuty POG, nazwa warstwy: " + layer.name())
+        dlg.parent().setWindowTitle("Atrybuty " + rodzajZbioru + ", nazwa warstwy: " + layer.name())
         dlg.parent().setMaximumWidth(520)
         dlg.parent().setMaximumHeight(520)
     except:
@@ -45,25 +53,20 @@ def my_form_open(dialog, layer, feature):
     
     mainPath = Path(QgsApplication.qgisSettingsDirPath())/Path("python/plugins/wtyczka_qgis_app/")
     teryt_gminy = ''
-    dataCzasTeraz = datetime.now()
-    
-    s = QgsSettings()
-    rodzajZbioru = s.value("qgis_app2/settings/rodzajZbioru", "")
-    numerZbioru = s.value("qgis_app2/settings/numerZbioru", "")
-    jpt = s.value("qgis_app2/settings/jpt", "")
-    idLokalnyAPP = s.value("qgis_app2/settings/idLokalnyAPP","")
+    dataCzasTeraz = datetime.utcnow()
     
     placeHolders = {'przestrzenNazw':'np. PL.ZIPPZP.2393/246601-POG',
                     'lokalnyId':'np. 1POG',
                     'tytul':'np. Plan ogólny gminy …',
+                    'tytul2':'np. ' + rodzajZbioru,
                     'tytulAlternatywny':'np. POG nazwa gminy'
                     }
     
     pomoc = ['Przestrzeń nazw identyfikująca w sposób jednoznaczny źródło danych obiektu, o której mowa w § 5 ust. 1 pkt 1 rozporządzenia.\nWartość atrybutu przestrzeń nazw powinna jednoznacznie identyfikować zbiór danych przestrzennych, do którego należy instancja typu obiektu.',
              'Identyfikator lokalny obiektu, o którym mowa w § 5 ust. 1 pkt 2 oraz § 5 ust. 1a rozporządzenia, przypisany przez dostawcę danych.\nUnikalność identyfikatora w przestrzeni nazw gwarantuje dostawca zbioru danych przestrzennych.',
              'Identyfikator poszczególnej wersji obiektu przestrzennego, o którym mowa w § 5 ust. 1 pkt 3 rozporządzenia, przypisany przez dostawcę danych.\nW zestawie wszystkich wersji danego obiektu identyfikator wersji jest unikalny.',
-             'Data i godzina, w której wersja obiektu została wprowadzona do zbioru danych przestrzennych lub zmieniona w tym zbiorze danych przestrzennych.',
-             'Data i godzina, w której wersja obiektu została zastąpiona w zbiorze danych przestrzennych lub wycofana z tego zbioru danych przestrzennych.',
+             'Data i godzina, w której wersja obiektu została wprowadzona do zbioru danych przestrzennych\n lub zmieniona w tym zbiorze danych przestrzennych.',
+             'Data i godzina, w której wersja obiektu została zastąpiona w zbiorze danych przestrzennych\n lub wycofana z tego zbioru danych przestrzennych.',
              'Oficjalny tytuł aktu planowania przestrzennego lub jego projektu.',
              'Alternatywny (nieoficjalny) tytuł aktu planowania przestrzennego lub jego projektu.',
              'Formalna nazwa typu aktu planowania przestrzennego lub jego projektu.',
@@ -71,7 +74,7 @@ def my_form_open(dialog, layer, feature):
              'Data, od której dana wersja obiektu przestrzennego obowiązuje.',
              'Data, do której dana wersja obiektu przestrzennego obowiązywała.',
              'Ogólne wskazanie etapu procesu planowania, na którym znajduje się wersja aktu planowania przestrzennego lub jego projektu.',
-             'Informacja, czy dana wersja aktu planowania przestrzennego obowiązuje w części – nie obejmuje całego obszaru, który jest objęty aktem planowania przestrzennego lub jego projektem (np. w wyniku uchylenia, unieważnienia).']
+             'Informacja, czy dana wersja aktu planowania przestrzennego obowiązuje w części – nie obejmuje całego obszaru,\n który jest objęty aktem planowania przestrzennego lub jego projektem (np. w wyniku uchylenia, unieważnienia).']
     
     atrybuty.append('geometria')
     listaBledowAtrybutow = [0 for i in range(len(atrybuty))]
@@ -100,8 +103,14 @@ def my_form_open(dialog, layer, feature):
     obowiazujeDo_label = dialog.findChild(QLabel,"obowiazujeDo_label")
     obowiazujeDo.valueChanged.connect(poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola)
     
+    typPlanu = dialog.findChild(QComboBox,"typPlanu")
+    typPlanu.currentTextChanged.connect(typPlanu_kontrola)
+    
     modyfikacja = dialog.findChild(QCheckBox,"modyfikacja")
     modyfikacja.stateChanged.connect(modyfikacja_kontrola)
+    
+    poziomHierarchii = dialog.findChild(QComboBox,"poziomHierarchii")
+    poziomHierarchii.currentTextChanged.connect(poziomHierarchii_kontrola)
     
     status = dialog.findChild(QComboBox,"status")
     status.currentTextChanged.connect(status_kontrola)
@@ -118,7 +127,7 @@ def my_form_open(dialog, layer, feature):
     tytul = dialog.findChild(QLineEdit,"tytul")
     tytul.setPlaceholderText(placeHolders['tytul'])
     tytul.textChanged.connect(tytul_kontrola)
-    if obj.id() < 0: tytul.setText('Plan ogólny gminy ')
+    if obj.id() < 0: tytul.setText('Plan ogólny ')
     tytul_kontrola(tytul.text())
     
     tytulAlternatywny = dialog.findChild(QLineEdit,"tytulAlternatywny")
@@ -156,6 +165,20 @@ def my_form_open(dialog, layer, feature):
         labels[i] = dialog.findChild(QLabel,"label_" + str(i + 1))
         labels[i].setPixmap(pixmap)
         labels[i].setToolTip(pomoc[i])
+    
+    
+    # qWidget = QWidget()
+    # wyborAkcji = QgsCheckableComboBox(qWidget)
+    # wyborAkcji.setMaximumWidth(18)
+    # wyborAkcji.view().setMinimumWidth(300)
+    # wyborAkcji.setStyleSheet("QComboBox::down-arrow"
+    #                                   "{"
+    #                                   "background-image : url(:/plugins/wtyczka_app/img/info6.png);"
+    #                                   "}")
+    # gridLayout = dlg.findChild(QGridLayout,"gridLayout_3")
+    # gridLayout.addWidget(wyborAkcji,1,4)
+    # wyborAkcji.addItems(['kontrola','hurtowa zmiana atrybutu w ramach klasy','hurtowa zmiana atrybutu w ramach wszystkich klas'])
+    
 
 
 def komunikowanieBledu(object, txt, nazwaAtrybutu):
@@ -174,7 +197,7 @@ def komunikowanieBledu(object, txt, nazwaAtrybutu):
 
 
 def zmianaWersjiIPoczatkuWersji():
-    dataCzasTeraz = datetime.now()
+    dataCzasTeraz = datetime.utcnow()
     if czyObiektZmieniony and koniecWersjiObiektu.dateTime().time().msec() != 0 and koniecWersjiObiektu.dateTime().date().year() != 1 and not czyWersjaZmieniona:
         wersjaId.setDateTime(dataCzasTeraz)
         poczatekWersjiObiektu.disconnect()
@@ -205,13 +228,16 @@ def wylaczenieZapisu():
 
 
 def zapis():
-    dlg.save()
-    warstwa.commitChanges(False)
-    zapisz.setEnabled(False)
-    zapisz.setText("Zapisano")
-    
-    if obj.id() < 0:
-        dlg.parent().close()
+    try:
+        dlg.save()
+        warstwa.commitChanges(False)
+        zapisz.setEnabled(False)
+        zapisz.setText("Zapisano")
+        
+        if obj.id() < 0:
+            dlg.parent().close()
+    except:
+        pass
 
 # ----------------------------------------------------------------------------------------------------
 
@@ -229,13 +255,14 @@ def geometria_kontrola():
             listaBledowAtrybutow[obj.fieldNameIndex('geometria')] = 0
         
         for obiekty_bliskie in warstwa.getFeatures(geometria.boundingBox()): # wybiera obiekty w zasiegu opracowywanego obiektu
-            if geometria.intersects(obiekty_bliskie.geometry()) == True and \
-                not geometria.touches(obiekty_bliskie.geometry()) == True and \
-                (obj.id() != obiekty_bliskie.id() and (obiekty_bliskie.id() >= 0 or obiekty_bliskie.id()< -100000)):
-                msg = 'Obiekty wewnątrz warstwy przecinają się.'
-                listaBledowAtrybutow[obj.fieldNameIndex('geometria')] = 1
-                dlg.displayWarning(msg)
-                break
+            if obj.attribute("koniecWersjiObiektu") == NULL and obiekty_bliskie.attribute("koniecWersjiObiektu") == NULL:
+                if geometria.intersects(obiekty_bliskie.geometry()) == True and \
+                    not geometria.touches(obiekty_bliskie.geometry()) == True and \
+                    (obj.id() != obiekty_bliskie.id() and (obiekty_bliskie.id() >= 0 or obiekty_bliskie.id()< -100000)):
+                    msg = 'Obiekty wewnątrz warstwy przecinają się.'
+                    listaBledowAtrybutow[obj.fieldNameIndex('geometria')] = 1
+                    dlg.displayWarning(msg)
+                    break
     except:
         pass
 
@@ -300,6 +327,12 @@ def status_kontrola(txt):
             komunikowanieBledu(status,'Należy wybrać wartość pola status','status')
         else:
             komunikowanieBledu(status,'','status')
+        if txt == 'nieaktualny':
+            obowiazujeDo_label.setText("obowiązuje do*")
+            if obowiazujeDo.dateTime().toString("H:mm") not in ['0:00','23:59']:
+                komunikowanieBledu(obowiazujeDo, 'Należy wybrać datę dla "obowiązuje do"', 'obowiazujeDo')
+        else:
+            poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola()
     except:
         pass
 
@@ -324,7 +357,7 @@ def poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola():
         else:
             komunikowanieBledu(poczatekWersjiObiektu,'','poczatekWersjiObiektu')
             komunikowanieBledu(koniecWersjiObiektu,'','koniecWersjiObiektu')
-            if koniecWersjiObiektu.dateTime().date().year() != 1 and koniecWersjiObiektu.dateTime().time().msec() == 0:
+            if koniecWersjiObiektu.dateTime().date().year() != 1 and koniecWersjiObiektu.dateTime().time().msec() == 0 or status.currentText() == 'nieaktualny':
                 obowiazujeDo_label.setText("obowiązuje do*")
                 if obowiazujeDoTxt not in ['0:00','23:59']:
                     komunikowanieBledu(obowiazujeDo, 'Należy wybrać datę dla "obowiązuje do"', 'obowiazujeDo')
@@ -332,23 +365,22 @@ def poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola():
                     komunikowanieBledu(obowiazujeDo, '', 'obowiazujeDo')
             else:
                 obowiazujeDo_label.setText("obowiązuje do")
-                if obowiazujeOdTxt not in ['0:00','23:59'] or obowiazujeOd.dateTime() < obowiazujeDo.dateTime():
-                    komunikowanieBledu(obowiazujeDo, '', 'obowiazujeDo')
+                if (obowiazujeOd.dateTime() >= obowiazujeDo.dateTime() and obowiazujeDo.dateTime().time().msec() == 0 and obowiazujeOd.dateTime().time().msec() == 0):
+                    komunikowanieBledu(obowiazujeOd, 'Atrybut "obowiązuje od" nie może być większy lub równy od "obowiązuje do".', 'obowiazujeOd')
                 else:
-                    if obowiazujeOdTxt not in ['0:00','23:59'] or obowiazujeOd.dateTime() < obowiazujeDo.dateTime():
-                        komunikowanieBledu(obowiazujeDo, '', 'obowiazujeDo')
-                    else:
-                        komunikowanieBledu(obowiazujeOd, 'Atrybut "obowiązuje od" nie może być większy lub równy od "obowiązuje do".', 'obowiazujeOd')
-                        komunikowanieBledu(obowiazujeDo, 'Atrybut "obowiązuje do" nie może być mniejszy lub równy od "obowiązuje od".','obowiazujeDo')
+                    komunikowanieBledu(obowiazujeDo, '', 'obowiazujeDo')
     except:
         pass
 
 
 def tytul_kontrola(txt):
     try:
-        if re.match('^Plan ogólny gminy [A-Z,a-z,ĄŚĘŁÓŻŹĆŃąśęłóżźćń ()-]{2,}$', txt) == None:
+        if re.match('^Plan ogólny [A-Z,a-z,ĄŚĘŁÓŻŹĆŃąśęłóżźćń ()-]{2,}$', txt) == None and rodzajZbioru == 'POG':
             tytul.setPlaceholderText(placeHolders['tytul'])
-            komunikowanieBledu(tytul,'Tytuł jest polem obowiązkowym i musi zaczynać się od Plan ogólny gminy','tytul')
+            komunikowanieBledu(tytul,'Tytuł jest polem obowiązkowym i musi zaczynać się od Plan ogólny','tytul')
+        elif txt == '':
+            tytul.setPlaceholderText(placeHolders['tytul2'])
+            komunikowanieBledu(tytul,'Tytuł jest polem obowiązkowym','tytul')
         else:
             komunikowanieBledu(tytul,'','tytul')
     except:
@@ -398,11 +430,22 @@ def read_tytulAlternatywny():
 
 
 def modyfikacja_kontrola():
-    try:
-        komunikowanieBledu(modyfikacja,'','modyfikacja')
-        if modyfikacja.checkState() == 2 and tytul.text() != '':
-            tytul.setText('')
-        else:
-            tytul.setText('Plan ogólny gminy ')
-    except:
-        pass
+    komunikowanieBledu(modyfikacja,'','modyfikacja')
+
+
+def poziomHierarchii_kontrola():
+    if rodzajZbioru == 'POG' and poziomHierarchii.currentText() != 'lokalny':
+        komunikowanieBledu(poziomHierarchii,"Należy wybrać 'lokalny'",'poziomHierarchii')
+    elif rodzajZbioru == 'MPZP' and poziomHierarchii.currentText() not in ['sublokalny','lokalny']:
+        komunikowanieBledu(poziomHierarchii,"Należy wybrać 'sublokalny' lub 'lokalny'",'poziomHierarchii')
+    else:
+        komunikowanieBledu(poziomHierarchii,'','poziomHierarchii')
+
+
+def typPlanu_kontrola():
+    if rodzajZbioru == 'POG' and typPlanu.currentText() != 'plan ogólny gminy':
+        komunikowanieBledu(typPlanu,"Należy wybrać 'plan ogólny gminy'",'typPlanu')
+    elif rodzajZbioru == 'MPZP' and typPlanu.currentText() != 'miejscowy plan zagospodarowania przestrzennego':
+        komunikowanieBledu(typPlanu,"Należy wybrać 'miejscowy plan zagospodarowania przestrzennego'",'typPlanu')
+    else:
+        komunikowanieBledu(typPlanu,'','typPlanu')

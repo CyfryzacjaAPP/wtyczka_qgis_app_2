@@ -12,7 +12,7 @@ from pathlib import Path
 import configparser
 import re
 import string
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from qgis.core import QgsProject, NULL, QgsSettings
 from qgis.gui import QgsCheckableComboBox
 from PyQt5.QtCore import QDateTime, QDate, QTime, QRegExp
@@ -46,7 +46,13 @@ def my_form_open(dialog, layer, feature):
     except:
         pass
     
+    open_tables = qgis.utils.iface.mainWindow().findChildren(QDockWidget)
+    for table in open_tables:
+        if table.objectName() == 'AttributeTable' and table.windowTitle().startswith(" StrefaPlanistyczna"):
+            table.close()
+    
     warstwa = layer
+    
     warstwa.geometryOptions().setGeometryPrecision(0.01)
     warstwa.startEditing()
     qgis.utils.iface.setActiveLayer(warstwa)
@@ -54,7 +60,7 @@ def my_form_open(dialog, layer, feature):
     mainPath = Path(QgsApplication.qgisSettingsDirPath())/Path("python/plugins/wtyczka_qgis_app/")
     teryt_gminy = ''
     czyObiektZmieniony = False
-    dataCzasTeraz = datetime.now()
+    dataCzasTeraz = datetime.utcnow()
     
     s = QgsSettings()
     rodzajZbioru = s.value("qgis_app2/settings/rodzajZbioru", "")
@@ -177,12 +183,12 @@ def my_form_open(dialog, layer, feature):
     pomoc = ['Nazwa rodzajów stref planistycznych, o której mowa w art. 13c ust. 2 ustawy z dnia 27 marca 2003 r. o planowaniu i zagospodarowaniu przestrzennym.',
              'Ciąg literowy stosowany do określenia rodzaju wydzielenia planistycznego.',
              'Ciąg literowo-liczbowy, który określa wydzielenie planistyczne.',
-             'Profil podstawowy będący obligatoryjnym elementem profilu funkcjonalnego strefy planistycznej, o którym mowa w art. 13e ust. 2 pkt 1 ustawy z dnia 27 marca 2003 r. o planowaniu i zagospodarowaniu przestrzennym.',
-             'Profil dodatkowy będący fakultatywnym elementem profilu funkcjonalnego strefy planistycznej, o którym mowa w art. 13e ust. 2 pkt 1 ustawy z dnia 27 marca 2003 r. o planowaniu i zagospodarowaniu przestrzennym.',
-             'Maksymalna nadziemna intensywność zabudowy o której mowa w art. 13e ust. 2 pkt 2 oraz ust. 3 pkt 1 i 2 ustawy z dnia 27 marca 2003 r. o planowaniu i zagospodarowaniu przestrzennym.\nWartość atrybutu podaje się z dokładnością do pierwszego miejsca po przecinku.',
-             'Maksymalna wysokość zabudowy, o której mowa w art. 13e ust. 2 pkt 2 i ust. 3 pkt 1 i 2 ustawy z dnia 27 marca 2003 r. o planowaniu i zagospodarowaniu przestrzennym.\nWartość atrybutu podaje się z dokładnością do pierwszego miejsca po przecinku.',
-             'Maksymalny udział powierzchni zabudowy, o którym mowa w art. 13e ust. 2 pkt 2 i ust. 3 pkt 1 i 2 ustawy z dnia 27 marca 2003 r. o planowaniu i zagospodarowaniu przestrzennym.\nWartość atrybutu jest wyrażona w % z dokładnością do pierwszego miejsca po przecinku.',
-             'Minimalny udział powierzchni biologicznie czynnej, o której mowa w art. 13e ust. 2 pkt 3 i ust. 3 pkt 2 ustawy z dnia 27 marca 2003 r. o planowaniu i zagospodarowaniu przestrzennym.\nWartość atrybutu wyrażona jest w % z dokładnością do pierwszego miejsca po przecinku.',
+             'Profil podstawowy będący obligatoryjnym elementem profilu funkcjonalnego strefy planistycznej,\n o którym mowa w art. 13e ust. 2 pkt 1 ustawy z dnia 27 marca 2003 r. o planowaniu i zagospodarowaniu przestrzennym.',
+             'Profil dodatkowy będący fakultatywnym elementem profilu funkcjonalnego strefy planistycznej,\n o którym mowa w art. 13e ust. 2 pkt 1 ustawy z dnia 27 marca 2003 r. o planowaniu i zagospodarowaniu przestrzennym.',
+             'Maksymalna nadziemna intensywność zabudowy, o której mowa w art. 13e ust. 2 pkt 2 oraz ust. 3 pkt 1 i 2 ustawy\n z dnia 27 marca 2003 r. o planowaniu i zagospodarowaniu przestrzennym.\nWartość atrybutu podaje się z dokładnością do pierwszego miejsca po przecinku.',
+             'Maksymalna wysokość zabudowy, o której mowa w art. 13e ust. 2 pkt 2 i ust. 3 pkt 1 i 2 ustawy z dnia 27 marca 2003 r.\n o planowaniu i zagospodarowaniu przestrzennym.\nWartość atrybutu podaje się z dokładnością do pierwszego miejsca po przecinku.',
+             'Maksymalny udział powierzchni zabudowy, o którym mowa w art. 13e ust. 2 pkt 2 i ust. 3 pkt 1 i 2 ustawy z dnia 27 marca 2003 r.\n o planowaniu i zagospodarowaniu przestrzennym.\nWartość atrybutu jest wyrażona w % z dokładnością do pierwszego miejsca po przecinku.',
+             'Minimalny udział powierzchni biologicznie czynnej, o której mowa w art. 13e ust. 2 pkt 3 i ust. 3 pkt 2 ustawy z dnia 27 marca 2003 r.\n o planowaniu i zagospodarowaniu przestrzennym.\nWartość atrybutu wyrażona jest w % z dokładnością do pierwszego miejsca po przecinku.',
              'Ogólne wskazanie etapu procesu planowania, na którym znajduje się wersja obiektu przestrzennego.',
              'Data, od której dana wersja obiektu przestrzennego obowiązuje.',
              'Data, do której dana wersja obiektu przestrzennego obowiązywała.',
@@ -190,9 +196,9 @@ def my_form_open(dialog, layer, feature):
              'Nazwa alternatywna strefy planistycznej.',
              'Przestrzeń nazw identyfikująca w sposób jednoznaczny źródło danych obiektu, o której mowa w § 5 ust. 1 pkt 1 rozporządzenia.\nWartość atrybutu przestrzeń nazw powinna jednoznacznie identyfikować zbiór danych przestrzennych, do którego należy instancja typu obiektu.',
              'Identyfikator lokalny obiektu, o którym mowa w § 5 ust. 1 pkt 2 oraz § 5 ust. 1a rozporządzenia, przypisany przez dostawcę danych.\nUnikalność identyfikatora w przestrzeni nazw gwarantuje dostawca zbioru danych przestrzennych.',
-             'Identyfikator poszczególnej wersji obiektu przestrzennego, o którym mowa w § 5 ust. 1 pkt 3 rozporządzenia, przypisany przez dostawcę danych.\nW zestawie wszystkich wersji danego obiektu identyfikator wersji jest unikalny.',
-             'Data i godzina, w której wersja obiektu została wprowadzona do zbioru danych przestrzennych lub zmieniona w tym zbiorze danych przestrzennych.',
-             'Data i godzina, w której wersja obiektu została zastąpiona w zbiorze danych przestrzennych lub wycofana z tego zbioru danych przestrzennych.'
+             'Identyfikator poszczególnej wersji obiektu przestrzennego, o którym mowa w § 5 ust. 1 pkt 3 rozporządzenia,\n przypisany przez dostawcę danych.\nW zestawie wszystkich wersji danego obiektu identyfikator wersji jest unikalny.',
+             'Data i godzina, w której wersja obiektu została wprowadzona do zbioru danych przestrzennych\n lub zmieniona w tym zbiorze danych przestrzennych.',
+             'Data i godzina, w której wersja obiektu została zastąpiona w zbiorze danych przestrzennych\n lub wycofana z tego zbioru danych przestrzennych.'
             ]
     
     atrybuty.append('geometria')
@@ -235,6 +241,7 @@ def my_form_open(dialog, layer, feature):
     symbol_kontrola(symbol.currentText())
     
     symbolTXT = symbol.currentText()
+    koniecWersjiObiektu = dialog.findChild(QDateTimeEdit,"koniecWersjiObiektu")
     
     oznaczenie = dialog.findChild(QLineEdit,"oznaczenie")
     oznaczenie.setPlaceholderText(placeHolders['oznaczenie'])
@@ -265,7 +272,6 @@ def my_form_open(dialog, layer, feature):
         status.setCurrentText(atrybutyPOG['status'])
     status_kontrola(status.currentText())
     
-    koniecWersjiObiektu = dialog.findChild(QDateTimeEdit,"koniecWersjiObiektu")
     koniecWersjiObiektu.valueChanged.connect(poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola)
     koniecWersjiObiektu.setMaximumDate(QDate.currentDate())
     
@@ -304,36 +310,36 @@ def my_form_open(dialog, layer, feature):
     wlaczenieWylaczenieProfiliDoEdycji()
     
     maksNadziemnaIntensywnoscZabudowy = dialog.findChild(QLineEdit,"maksNadziemnaIntensywnoscZabudowy")
+    maksNadziemnaIntensywnoscZabudowy.setValidator(QRegExpValidator(QRegExp("(?!0\d)\d{0,3}(?:[\.]\d)?$"),))
     maksNadziemnaIntensywnoscZabudowy_label = dialog.findChild(QLabel,"maksNadziemnaIntensywnoscZabudowy_label")
     maksNadziemnaIntensywnoscZabudowy.setPlaceholderText(placeHolders['maksNadziemnaIntensywnoscZabudowy'])
     maksNadziemnaIntensywnoscZabudowy.setText(maksNadziemnaIntensywnoscZabudowy.text().replace(",","."))
     maksNadziemnaIntensywnoscZabudowy_kontrola(maksNadziemnaIntensywnoscZabudowy.text())
     maksNadziemnaIntensywnoscZabudowy.textChanged.connect(maksNadziemnaIntensywnoscZabudowy_kontrola)
-    maksNadziemnaIntensywnoscZabudowy.setValidator(QRegExpValidator(QRegExp("[0-9]{1,3}\\.[0-9]?")))
     
     maksUdzialPowierzchniZabudowy = dialog.findChild(QLineEdit,"maksUdzialPowierzchniZabudowy")
+    maksUdzialPowierzchniZabudowy.setValidator(QRegExpValidator(QRegExp("^(?!0\d)\d{0,2}(?:\.\d)?|100(?:\.0)?$")))
     maksUdzialPowierzchniZabudowy_label = dialog.findChild(QLabel,"maksUdzialPowierzchniZabudowy_label")
     maksUdzialPowierzchniZabudowy.setPlaceholderText(placeHolders['maksUdzialPowierzchniZabudowy'])
     maksUdzialPowierzchniZabudowy.setText(maksUdzialPowierzchniZabudowy.text().replace(",","."))
     maksUdzialPowierzchniZabudowy_kontrola(maksUdzialPowierzchniZabudowy.text())
     maksUdzialPowierzchniZabudowy.textChanged.connect(maksUdzialPowierzchniZabudowy_kontrola)
-    maksUdzialPowierzchniZabudowy.setValidator(QRegExpValidator(QRegExp("[0-9]{1,3}\\.[0-9]?")))
     
     maksWysokoscZabudowy = dialog.findChild(QLineEdit,"maksWysokoscZabudowy")
+    maksWysokoscZabudowy.setValidator(QRegExpValidator(QRegExp("^(?!0\d)\d{0,3}(?:[\.]\d)?$")))
     maksWysokoscZabudowy_label = dialog.findChild(QLabel,"maksWysokoscZabudowy_label")
     maksWysokoscZabudowy.setPlaceholderText(placeHolders['maksWysokoscZabudowy'])
     maksWysokoscZabudowy.setText(maksWysokoscZabudowy.text().replace(",","."))
     maksWysokoscZabudowy_kontrola(maksWysokoscZabudowy.text())
     maksWysokoscZabudowy.textChanged.connect(maksWysokoscZabudowy_kontrola)
-    maksWysokoscZabudowy.setValidator(QRegExpValidator(QRegExp("[0-9]{1,4}\\.[0-9]?")))
     
     minUdzialPowierzchniBiologicznieCzynnej = dialog.findChild(QLineEdit,"minUdzialPowierzchniBiologicznieCzynnej")
+    minUdzialPowierzchniBiologicznieCzynnej.setValidator(QRegExpValidator(QRegExp("^(?:[1-9]\d?|0|1[0-4]\d?|150)(?:[\.]\d)?$")))
     minUdzialPowierzchniBiologicznieCzynnej_label = dialog.findChild(QLabel,"minUdzialPowierzchniBiologicznieCzynnej_label")
     minUdzialPowierzchniBiologicznieCzynnej.setPlaceholderText(placeHolders['minUdzialPowierzchniBiologicznieCzynnej'])
     minUdzialPowierzchniBiologicznieCzynnej.setText(minUdzialPowierzchniBiologicznieCzynnej.text().replace(",","."))
     minUdzialPowierzchniBiologicznieCzynnej_kontrola(minUdzialPowierzchniBiologicznieCzynnej.text())
     minUdzialPowierzchniBiologicznieCzynnej.textChanged.connect(minUdzialPowierzchniBiologicznieCzynnej_kontrola)
-    minUdzialPowierzchniBiologicznieCzynnej.setValidator(QRegExpValidator(QRegExp("[0-9]{1,3}\\.[0-9]?")))
     
     geometria_kontrola()
     poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola()
@@ -372,7 +378,7 @@ def komunikowanieBledu(object, txt, nazwaAtrybutu):
 
 
 def zmianaWersjiIPoczatkuWersji():
-    dataCzasTeraz = datetime.now()
+    dataCzasTeraz = datetime.utcnow()
     if czyObiektZmieniony and koniecWersjiObiektu.dateTime().time().msec() != 0 and koniecWersjiObiektu.dateTime().date().year() != 1 and not czyWersjaZmieniona:
         wersjaId.setDateTime(dataCzasTeraz)
         poczatekWersjiObiektu.disconnect()
@@ -403,13 +409,16 @@ def wylaczenieZapisu():
 
 
 def zapis():
-    dlg.save()
-    warstwa.commitChanges(False)
-    zapisz.setEnabled(False)
-    zapisz.setText("Zapisano")
-    
-    if obj.id() < 0:
-        dlg.parent().close()
+    try:
+        dlg.save()
+        warstwa.commitChanges(False)
+        zapisz.setEnabled(False)
+        zapisz.setText("Zapisano")
+        
+        if obj.id() < 0:
+            dlg.parent().close()
+    except:
+        pass
 
 # ----------------------------------------------------------------------------------------------------
 
@@ -506,9 +515,7 @@ def oznaczenie_kontrola(txt):
 
 def oznaczenie_uzupelnienie():
     try:
-        if re.match('^[1-9][0-9]{0,2}S[W|J|Z|U|H|P|R|I|N|C|G|O|K]$', oznaczenie.text()) != None and oznaczenie.text() != 'wybierz':
-            txt = oznaczenie.text().replace(symbolTXT, symbol.currentText())
-            oznaczenie.setText(txt)
+        oznaczenie.clear()
     except:
         pass
 
@@ -516,27 +523,26 @@ def oznaczenie_uzupelnienie():
 def symbol_kontrola(txt):
     global symbolTXT
     try:
+        profilDodatkowy_QCCB.clear()
+        profilDodatkowy_QCCB.deselectAllOptions()
         if txt == 'wybierz':
             komunikowanieBledu(symbol,'Symbol jest polem obowiązkowym','symbol')
             komunikowanieBledu(profilPodstawowy_QCCB,'Należy wybrać symbol lub nazwę','profilPodstawowy')
             nazwa.setCurrentText('wybierz')
             komunikowanieBledu(nazwa,'Należy wybrać wartość pola nazwa','nazwa')
             profilPodstawowy_QCCB.clear()
-            profilDodatkowy_QCCB.clear()
         else:
             komunikowanieBledu(symbol,'','symbol')
             komunikowanieBledu(profilPodstawowy_QCCB,'','profilPodstawowy')
             nazwa.setCurrentText([k for k, v in mapaNazwaSymbol.items() if v == txt][0])
             oznaczenie_uzupelnienie()
             profilPodstawowy_QCCB.clear()
-            profilDodatkowy_QCCB.clear()
             profilPodstawowy_QCCB.addItems(profilPodstawowy_createList())
             profilPodstawowy_QCCB.selectAllOptions()
             lista = []
             for l in mapaSymbolProfilPodstawowy[txt]:
                 lista.append(klasaPrzeznaczeniaTerenuKod[l])
             profilPodstawowy.setText(','.join(lista))
-        
             profilDodatkowy_QCCB.addItems(profilDodatkowy_createList())
             symbolTXT = symbol.currentText()
         oznaczenie_kontrola(oznaczenie.text())
@@ -561,6 +567,12 @@ def status_kontrola(txt):
             komunikowanieBledu(status,'Należy wybrać wartość pola status','status')
         else:
             komunikowanieBledu(status,'','status')
+        if txt == 'nieaktualny':
+            obowiazujeDo_label.setText("obowiązuje do*")
+            if obowiazujeDo.dateTime().toString("H:mm") not in ['0:00','23:59']:
+                komunikowanieBledu(obowiazujeDo, 'Należy wybrać datę dla "obowiązuje do"', 'obowiazujeDo')
+        else:
+            poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola()
     except:
         pass
 
@@ -571,13 +583,13 @@ def poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola():
         obowiazujeDoTxt = obowiazujeDo.dateTime().toString("H:mm")
         poczatekWersjiObiektuTxt = poczatekWersjiObiektu.dateTime().toString("H:mm")
         koniecWersjiObiektuTxt = koniecWersjiObiektu.dateTime().toString("H:mm")
-        
         if obowiazujeOdTxt not in ['0:00','23:59']:
             komunikowanieBledu(obowiazujeOd, 'Należy wybrać datę dla "obowiązuje od"', 'obowiazujeOd')
         else:
             if obowiazujeDoTxt in ['0:00','23:59'] and obowiazujeOd.dateTime() >= obowiazujeDo.dateTime():
                 komunikowanieBledu(obowiazujeOd, 'Atrybut "obowiązuje od" nie może być większy lub równy od "obowiązuje do".', 'obowiazujeOd')
             else:
+                
                 komunikowanieBledu(obowiazujeOd, '', 'obowiazujeOd')
         if koniecWersjiObiektuTxt in ['0:00','23:59'] and koniecWersjiObiektu.dateTime().date().year() != 1 and poczatekWersjiObiektu.dateTime() >= koniecWersjiObiektu.dateTime():
             komunikowanieBledu(poczatekWersjiObiektu,'Koniec wersji obiektu musi być późniejszy niż początek wersji obiektu','poczatekWersjiObiektu')
@@ -585,7 +597,7 @@ def poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola():
         else:
             komunikowanieBledu(poczatekWersjiObiektu,'','poczatekWersjiObiektu')
             komunikowanieBledu(koniecWersjiObiektu,'','koniecWersjiObiektu')
-            if koniecWersjiObiektu.dateTime().date().year() != 1 and koniecWersjiObiektu.dateTime().time().msec() == 0:
+            if koniecWersjiObiektu.dateTime().date().year() != 1 and koniecWersjiObiektu.dateTime().time().msec() == 0 or status.currentText() == 'nieaktualny':
                 obowiazujeDo_label.setText("obowiązuje do*")
                 if obowiazujeDoTxt not in ['0:00','23:59']:
                     komunikowanieBledu(obowiazujeDo, 'Należy wybrać datę dla "obowiązuje do"', 'obowiazujeDo')
@@ -593,14 +605,10 @@ def poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola():
                     komunikowanieBledu(obowiazujeDo, '', 'obowiazujeDo')
             else:
                 obowiazujeDo_label.setText("obowiązuje do")
-                if obowiazujeOdTxt not in ['0:00','23:59'] or obowiazujeOd.dateTime() < obowiazujeDo.dateTime():
-                    komunikowanieBledu(obowiazujeDo, '', 'obowiazujeDo')
+                if (obowiazujeOd.dateTime() >= obowiazujeDo.dateTime() and obowiazujeDo.dateTime().time().msec() == 0 and obowiazujeOd.dateTime().time().msec() == 0):
+                    komunikowanieBledu(obowiazujeOd, 'Atrybut "obowiązuje od" nie może być większy lub równy od "obowiązuje do".', 'obowiazujeOd')
                 else:
-                    if obowiazujeOdTxt not in ['0:00','23:59'] or obowiazujeOd.dateTime() < obowiazujeDo.dateTime():
-                        komunikowanieBledu(obowiazujeDo, '', 'obowiazujeDo')
-                    else:
-                        komunikowanieBledu(obowiazujeOd, 'Atrybut "obowiązuje od" nie może być większy lub równy od "obowiązuje do".', 'obowiazujeOd')
-                        komunikowanieBledu(obowiazujeDo, 'Atrybut "obowiązuje do" nie może być mniejszy lub równy od "obowiązuje od".','obowiazujeDo')
+                    komunikowanieBledu(obowiazujeDo, '', 'obowiazujeDo')
     except:
         pass
 
@@ -717,7 +725,7 @@ def maksUdzialPowierzchniZabudowy_kontrola(txt):
     try:
         separator_dziesietny = locale.localeconv()['decimal_point']
         txt = txt.replace(",", separator_dziesietny)
-        if txt != '' and (not symbol.currentText() in ['SW','SJ','SZ','SU','SH','SP','SR'] and not 0 <= float(txt) <= 100):
+        if txt != '' and not symbol.currentText() in ['SW','SJ','SZ','SU','SH','SP','SR'] and not 0 <= float(txt) <= 100:
             komunikowanieBledu(maksUdzialPowierzchniZabudowy,'Maksymalny udział powierzchni zabudowy powinien być w przedziale <0; 100>%.','maksUdzialPowierzchniZabudowy')
         elif symbol.currentText() in ['SW','SJ','SZ','SU','SH','SP','SR'] and (txt == '' or not 0 <= float(txt) <= 100):
             komunikowanieBledu(maksUdzialPowierzchniZabudowy,'Wartość atrybutu jest wyrażona w % z dokładnością do pierwszego miejsca po przecinku. \
@@ -755,20 +763,8 @@ def minUdzialPowierzchniBiologicznieCzynnej_kontrola(txt):
     try:
         separator_dziesietny = locale.localeconv()['decimal_point']
         txt = txt.replace(",", separator_dziesietny)
-        if txt != '' and (symbol.currentText() in ['SG','SO','SK','NULL'] and not 0 <= float(txt) <= 150):
+        if not (symbol.currentText() in ['SG','SO','SK','wybierz']) and (txt == '' or not 0 <= float(txt) <= 150):
             komunikowanieBledu(minUdzialPowierzchniBiologicznieCzynnej,'Minimalny udział powierzchni biologicznie czynnej powinien być w przedziale <0; 150>%.','minUdzialPowierzchniBiologicznieCzynnej')
-        elif symbol.currentText() in ['SW','SJ','SZ','SU','SH','SR','SC'] and (txt == '' or not 30 <= float(txt) <= 150):
-            komunikowanieBledu(minUdzialPowierzchniBiologicznieCzynnej,'Minimalny udział powierzchni biologicznie czynnej wyznaczony dla strefy planistycznej musi być równy lub większy od 30% i nie może przekroczyć 150%. \
-    Wartość atrybutu wyrażona jest w % z dokładnością do pierwszego miejsca po przecinku. \
-    Udział musi być podany dla: ' + nazwa.currentText(),'minUdzialPowierzchniBiologicznieCzynnej')
-        elif symbol.currentText() in ['SP','SI'] and (txt == '' or not 20 <= float(txt) <= 150):
-            komunikowanieBledu(minUdzialPowierzchniBiologicznieCzynnej,'Minimalny udział powierzchni biologicznie czynnej wyznaczony dla strefy planistycznej musi być równy lub większy od 20% i nie może przekroczyć 150%. \
-    Wartość atrybutu wyrażona jest w % z dokładnością do pierwszego miejsca po przecinku. \
-    Udział musi być podany dla: ' + nazwa.currentText(),'minUdzialPowierzchniBiologicznieCzynnej')
-        elif symbol.currentText() in ['SN'] and (txt == '' or not 50 <= float(txt) <= 150):
-            komunikowanieBledu(minUdzialPowierzchniBiologicznieCzynnej,'Minimalny udział powierzchni biologicznie czynnej wyznaczony dla strefy planistycznej musi być równy lub większy od 50% i nie może przekroczyć 150%. \
-    Wartość atrybutu wyrażona jest w % z dokładnością do pierwszego miejsca po przecinku. \
-    Udział musi być podany dla: ' + nazwa.currentText(),'minUdzialPowierzchniBiologicznieCzynnej')
         else:
             komunikowanieBledu(minUdzialPowierzchniBiologicznieCzynnej,'','minUdzialPowierzchniBiologicznieCzynnej')
         minUdzialPowierzchniBiologicznieCzynnej.setPlaceholderText(placeHolders['minUdzialPowierzchniBiologicznieCzynnej'])
@@ -794,11 +790,12 @@ def wlaczenieWylaczenieProfiliDoEdycji():
 
 
 def czyWartoscAtrybutuJestUnikalna(atrybut, wartosc):
-    request = QgsFeatureRequest(QgsExpression(atrybut + "='" + wartosc + "'"))
     wartoscAtrybutuJestUnikalna = True
-    for x in warstwa.getFeatures(request):
-        if x.id() != obj.id():
-            wartoscAtrybutuJestUnikalna = False
+    if koniecWersjiObiektu.dateTime().time().msec() != 0:
+        request = QgsFeatureRequest(QgsExpression('koniecWersjiObiektu is NULL and ' + atrybut + "='" + wartosc + "'"))
+        for x in warstwa.getFeatures(request):
+            if x.id() != obj.id():
+                wartoscAtrybutuJestUnikalna = False
     return wartoscAtrybutuJestUnikalna
 
 
