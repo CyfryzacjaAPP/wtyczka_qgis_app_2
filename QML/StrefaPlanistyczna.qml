@@ -822,12 +822,12 @@
     <constraint exp="" desc="" field="plan"/>
     <constraint exp="" desc="" field="nazwa"/>
     <constraint exp="" desc="" field="nazwaAlternatywna"/>
+    <constraint exp="" desc="" field="profilPodstawowy"/>
+    <constraint exp="" desc="" field="profilDodatkowy"/>
     <constraint exp="" desc="" field="maksNadziemnaIntensywnoscZabudowy"/>
     <constraint exp="" desc="" field="maksUdzialPowierzchniZabudowy"/>
     <constraint exp="" desc="" field="maksWysokoscZabudowy"/>
     <constraint exp="" desc="" field="minUdzialPowierzchniBiologicznieCzynnej"/>
-    <constraint exp="" desc="" field="profilPodstawowy"/>
-    <constraint exp="" desc="" field="profilDodatkowy"/>
   </constraintExpressions>
   <expressionfields/>
   <attributeactions>
@@ -835,17 +835,18 @@
   </attributeactions>
   <attributetableconfig actionWidgetStyle="dropDown" sortOrder="0" sortExpression="">
     <columns>
+      <column name="fid" hidden="0" width="-1" type="field"/>
       <column name="przestrzenNazw" hidden="0" width="174" type="field"/>
       <column name="lokalnyId" hidden="0" width="-1" type="field"/>
       <column name="wersjaId" hidden="0" width="-1" type="field"/>
+      <column name="oznaczenie" hidden="0" width="-1" type="field"/>
+      <column name="symbol" hidden="0" width="-1" type="field"/>
       <column name="poczatekWersjiObiektu" hidden="0" width="-1" type="field"/>
       <column name="koniecWersjiObiektu" hidden="0" width="-1" type="field"/>
       <column name="obowiazujeOd" hidden="0" width="-1" type="field"/>
       <column name="obowiazujeDo" hidden="0" width="-1" type="field"/>
-      <column name="oznaczenie" hidden="0" width="-1" type="field"/>
-      <column name="symbol" hidden="0" width="-1" type="field"/>
-      <column name="charakterUstalenia" hidden="0" width="-1" type="field"/>
       <column name="status" hidden="0" width="-1" type="field"/>
+      <column name="charakterUstalenia" hidden="0" width="-1" type="field"/>
       <column name="plan" hidden="0" width="-1" type="field"/>
       <column name="nazwa" hidden="0" width="-1" type="field"/>
       <column name="nazwaAlternatywna" hidden="0" width="-1" type="field"/>
@@ -855,7 +856,6 @@
       <column name="maksUdzialPowierzchniZabudowy" hidden="0" width="-1" type="field"/>
       <column name="maksWysokoscZabudowy" hidden="0" width="-1" type="field"/>
       <column name="minUdzialPowierzchniBiologicznieCzynnej" hidden="0" width="-1" type="field"/>
-      <column name="fid" hidden="0" width="-1" type="field"/>
       <column hidden="1" width="-1" type="actions"/>
     </columns>
   </attributetableconfig>
@@ -864,10 +864,8 @@
     <fieldstyles/>
   </conditionalstyles>
   <storedexpressions/>
-  <editform tolerant="1">C:\Users\mlebiecki\AppData\Roaming\QGIS\QGIS3\profiles\default\python\plugins\wtyczka_qgis_app\StrefaPlanistyczna.ui</editform>
   <editforminit>my_form_open</editforminit>
   <editforminitcodesource>1</editforminitcodesource>
-  <editforminitfilepath>C:\Users\mlebiecki\AppData\Roaming\QGIS\QGIS3\profiles\default\python\plugins\wtyczka_qgis_app\StrefaPlanistyczna.py</editforminitfilepath>
   <editforminitcode><![CDATA[# -*- coding: utf-8 -*-
 """
 QGIS forms can have a Python function that is called when the form is
