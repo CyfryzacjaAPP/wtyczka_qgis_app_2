@@ -1,0 +1,102 @@
+# -*- coding: utf-8 -*-
+
+# Form implementation generated from reading ui file 'modules/metadata/views/ui/csw_dlg.ui'
+#
+# Created by: PyQt5 UI code generator 5.11.3
+#
+# WARNING! All changes made in this file will be lost!
+
+from PyQt5 import QtCore, QtGui, QtWidgets
+
+class Ui_smtp_dlg(object):
+    def setupUi(self, smtp_dlg):
+        smtp_dlg.setObjectName("smtp_dlg")
+        smtp_dlg.resize(439, 183)
+        self.verticalLayout_2 = QtWidgets.QVBoxLayout(smtp_dlg)
+        self.verticalLayout_2.setObjectName("verticalLayout_2")
+        self.verticalGroupBox = QtWidgets.QGroupBox(smtp_dlg)
+        self.verticalGroupBox.setObjectName("verticalGroupBox")
+        self.verticalLayout = QtWidgets.QVBoxLayout(self.verticalGroupBox)
+        self.verticalLayout.setObjectName("verticalLayout")
+        self.horizontalLayout = QtWidgets.QHBoxLayout()
+        self.horizontalLayout.setObjectName("horizontalLayout")
+        self.host_lbl = QtWidgets.QLabel(self.verticalGroupBox)
+        self.host_lbl.setObjectName("host_lbl")
+        self.horizontalLayout.addWidget(self.host_lbl)
+        self.host_lineEdit = QgsFilterLineEdit(self.verticalGroupBox)
+        self.host_lineEdit.setMinimumSize(QtCore.QSize(200, 0))
+        self.host_lineEdit.setProperty("qgisRelation", "")
+        self.host_lineEdit.setObjectName("host_lineEdit")
+        self.horizontalLayout.addWidget(self.host_lineEdit)
+        self.host_chkbx = QtWidgets.QCheckBox(self.verticalGroupBox)
+        self.host_chkbx.setObjectName("host_chkbx")
+        self.horizontalLayout.addWidget(self.host_chkbx)
+        self.verticalLayout.addLayout(self.horizontalLayout)
+        self.horizontalLayout_3 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_3.setObjectName("horizontalLayout_3")
+        self.user_lbl = QtWidgets.QLabel(self.verticalGroupBox)
+        self.user_lbl.setObjectName("user_lbl")
+        self.horizontalLayout_3.addWidget(self.user_lbl)
+        self.user_lineEdit = QgsFilterLineEdit(self.verticalGroupBox)
+        self.user_lineEdit.setMinimumSize(QtCore.QSize(200, 0))
+        self.user_lineEdit.setProperty("qgisRelation", "")
+        self.user_lineEdit.setObjectName("user_lineEdit")
+        self.horizontalLayout_3.addWidget(self.user_lineEdit)
+        self.user_chkbx = QtWidgets.QCheckBox(self.verticalGroupBox)
+        self.user_chkbx.setEnabled(True)
+        self.user_chkbx.setObjectName("user_chkbx")
+        self.horizontalLayout_3.addWidget(self.user_chkbx)
+        self.verticalLayout.addLayout(self.horizontalLayout_3)
+        self.horizontalLayout_5 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_5.setObjectName("horizontalLayout_5")
+        self.pass_lbl = QtWidgets.QLabel(self.verticalGroupBox)
+        self.pass_lbl.setObjectName("pass_lbl")
+        self.horizontalLayout_5.addWidget(self.pass_lbl)
+        self.pass_lineEdit = QgsPasswordLineEdit(self.verticalGroupBox)
+        self.pass_lineEdit.setMinimumSize(QtCore.QSize(200, 0))
+        self.pass_lineEdit.setObjectName("pass_lineEdit")
+        self.horizontalLayout_5.addWidget(self.pass_lineEdit)
+        self.pass_chkbx = QtWidgets.QCheckBox(self.verticalGroupBox)
+        self.pass_chkbx.setEnabled(False)
+        self.pass_chkbx.setObjectName("pass_chkbx")
+        self.horizontalLayout_5.addWidget(self.pass_chkbx)
+        self.verticalLayout.addLayout(self.horizontalLayout_5)
+        self.verticalLayout_2.addWidget(self.verticalGroupBox)
+        spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        self.verticalLayout_2.addItem(spacerItem)
+        self.horizontalLayout_6 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_6.setObjectName("horizontalLayout_6")
+        self.save_btn = QtWidgets.QPushButton(smtp_dlg)
+        self.save_btn.setObjectName("save_btn")
+        self.horizontalLayout_6.addWidget(self.save_btn)
+        spacerItem1 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout_6.addItem(spacerItem1)
+        self.send_btn = QtWidgets.QPushButton(smtp_dlg)
+        self.send_btn.setObjectName("send_btn")
+        self.horizontalLayout_6.addWidget(self.send_btn)
+        self.cancel_btn = QtWidgets.QPushButton(smtp_dlg)
+        self.cancel_btn.setObjectName("cancel_btn")
+        self.horizontalLayout_6.addWidget(self.cancel_btn)
+        self.verticalLayout_2.addLayout(self.horizontalLayout_6)
+
+        self.retranslateUi(smtp_dlg)
+        QtCore.QMetaObject.connectSlotsByName(smtp_dlg)
+
+    def retranslateUi(self, smtp_dlg):
+        _translate = QtCore.QCoreApplication.translate
+        smtp_dlg.setWindowTitle(_translate("smtp_dlg", "Serwer katalogowy CSW"))
+        self.verticalGroupBox.setTitle(_translate("smtp_dlg", "Parametry połaczenia z serwerem katalogowym CSW"))
+        self.host_lbl.setText(_translate("smtp_dlg", "Adres serwera:"))
+        self.host_lineEdit.setPlaceholderText(_translate("smtp_dlg", "np:. http://mapy.geoportal.gov.pl/wss/service/CSW/guest"))
+        self.host_chkbx.setText(_translate("smtp_dlg", "zapisz"))
+        self.user_lbl.setText(_translate("smtp_dlg", "Użytkownik:     "))
+        self.user_lineEdit.setPlaceholderText(_translate("smtp_dlg", "np.: jan.kowalski"))
+        self.user_chkbx.setText(_translate("smtp_dlg", "zapisz"))
+        self.pass_lbl.setText(_translate("smtp_dlg", "Hasło:              "))
+        self.pass_chkbx.setText(_translate("smtp_dlg", "zapisz"))
+        self.save_btn.setText(_translate("smtp_dlg", "Zapisz"))
+        self.send_btn.setText(_translate("smtp_dlg", "Wyślij"))
+        self.cancel_btn.setText(_translate("smtp_dlg", "Anuluj"))
+
+from qgsfilterlineedit import QgsFilterLineEdit
+from qgspasswordlineedit import QgsPasswordLineEdit
