@@ -54,13 +54,6 @@
       <Width>255</Width>
     </PropertyDefn>
     <PropertyDefn>
-      <Name>modyfikacja</Name>
-      <ElementPath>modyfikacja</ElementPath>
-      <Type>String</Type>
-      <Subtype>Boolean</Subtype>
-      <Width>0</Width>
-    </PropertyDefn>
-    <PropertyDefn>
       <Name>poziomHierarchii</Name>
       <ElementPath>poziomHierarchii@title</ElementPath>
       <Type>String</Type>
@@ -84,13 +77,184 @@
       <Type>String</Type>
       <Width>255</Width>
     </PropertyDefn>
+    <PropertyDefn>
+      <Name>modyfikacja</Name>
+      <ElementPath>modyfikacja</ElementPath>
+      <Type>String</Type>
+      <Subtype>Boolean</Subtype>
+      <Width>0</Width>
+    </PropertyDefn>
+  </GMLFeatureClass>
+  <GMLFeatureClass>
+    <Name>DokumentFormalny</Name>
+    <ElementPath>DokumentFormalny</ElementPath>
+    <GeometryType>100</GeometryType>
+    <PropertyDefn>
+      <Name>przestrzenNazw</Name>
+      <ElementPath>idIIP|Identyfikator|przestrzenNazw</ElementPath>
+      <Type>String</Type>
+      <Width>50</Width>
+    </PropertyDefn>
+    <PropertyDefn>
+      <Name>lokalnyId</Name>
+      <ElementPath>idIIP|Identyfikator|lokalnyId</ElementPath>
+      <Type>String</Type>
+      <Width>25</Width>
+    </PropertyDefn>
+    <PropertyDefn>
+      <Name>tytul</Name>
+      <ElementPath>tytul</ElementPath>
+      <Type>String</Type>
+      <Width>255</Width>
+    </PropertyDefn>
+    <PropertyDefn>
+      <Name>nazwaSkrocona</Name>
+      <ElementPath>nazwaSkrocona</ElementPath>
+      <Type>String</Type>
+      <Width>255</Width>
+    </PropertyDefn>
+    <PropertyDefn>
+      <Name>numerIdentyfikacyjny</Name>
+      <ElementPath>numerIdentyfikacyjny</ElementPath>
+      <Type>String</Type>
+      <Width>255</Width>
+    </PropertyDefn>
+    <PropertyDefn>
+      <Name>organUstanawiajacy</Name>
+      <ElementPath>organUstanawiajacy</ElementPath>
+      <Type>String</Type>
+      <Width>255</Width>
+    </PropertyDefn>
+    <PropertyDefn>
+      <Name>Date</Name>
+      <ElementPath>data|CI_Date|date|Date</ElementPath>
+      <Type>String</Type>
+      <Width>10</Width>
+    </PropertyDefn>
+    <PropertyDefn>
+      <Name>CI_DateTypeCode</Name>
+      <ElementPath>data|CI_Date|dateType|CI_DateTypeCode</ElementPath>
+      <Type>String</Type>
+      <Width>10</Width>
+    </PropertyDefn>
+    <PropertyDefn>
+      <Name>dataWejsciaWZycie</Name>
+      <ElementPath>dataWejsciaWZycie</ElementPath>
+      <Type>String</Type>
+      <Width>10</Width>
+    </PropertyDefn>
+    <PropertyDefn>
+      <Name>dataUchylenia</Name>
+      <ElementPath>dataUchylenia</ElementPath>
+      <Type>String</Type>
+      <Width>10</Width>
+    </PropertyDefn>
+    <PropertyDefn>
+      <Name>szczegoloweOdniesienie</Name>
+      <ElementPath>szczegoloweOdniesienie</ElementPath>
+      <Type>String</Type>
+      <Width>255</Width>
+    </PropertyDefn>
+    <PropertyDefn>
+      <Name>dziennikUrzedowy</Name>
+      <ElementPath>dziennikUrzedowy@title</ElementPath>
+      <Type>String</Type>
+      <Width>255</Width>
+    </PropertyDefn>	
+    <PropertyDefn>
+      <Name>lacze</Name>
+      <ElementPath>lacze</ElementPath>
+      <Type>String</Type>
+      <Width>255</Width>
+    </PropertyDefn>
+  </GMLFeatureClass>
+  <GMLFeatureClass>
+    <Name>RysunekAktuPlanowaniaPrzestrzennego</Name>
+    <ElementPath>RysunekAktuPlanowaniaPrzestrzennego</ElementPath>
+    <GeometryType>100</GeometryType>
+    <PropertyDefn>
+      <Name>przestrzenNazw</Name>
+      <ElementPath>idIIP|Identyfikator|przestrzenNazw</ElementPath>
+      <Type>String</Type>
+      <Width>50</Width>
+    </PropertyDefn>
+    <PropertyDefn>
+      <Name>lokalnyId</Name>
+      <ElementPath>idIIP|Identyfikator|lokalnyId</ElementPath>
+      <Type>String</Type>
+      <Width>25</Width>
+    </PropertyDefn>
+    <PropertyDefn>
+      <Name>wersjaId</Name>
+      <ElementPath>idIIP|Identyfikator|wersjaId</ElementPath>
+      <Type>String</Type>
+      <Width>20</Width>
+    </PropertyDefn>
+    <PropertyDefn>
+      <Name>poczatekWersjiObiektu</Name>
+      <ElementPath>poczatekWersjiObiektu</ElementPath>
+      <Type>String</Type>
+      <Width>20</Width>
+    </PropertyDefn>
+    <PropertyDefn>
+      <Name>koniecWersjiObiektu</Name>
+      <ElementPath>koniecWersjiObiektu</ElementPath>
+      <Type>String</Type>
+      <Width>20</Width>
+    </PropertyDefn>
+    <PropertyDefn>
+      <Name>tytul</Name>
+      <ElementPath>tytul</ElementPath>
+      <Type>String</Type>
+      <Width>255</Width>
+    </PropertyDefn>
+    <PropertyDefn>
+      <Name>lacze</Name>
+      <ElementPath>lacze</ElementPath>
+      <Type>String</Type>
+      <Width>255</Width>
+    </PropertyDefn>
+    <PropertyDefn>
+      <Name>legenda</Name>
+      <ElementPath>legenda</ElementPath>
+      <Type>String</Type>
+      <Width>255</Width>
+    </PropertyDefn>
+    <PropertyDefn>
+      <Name>ukladOdniesieniaPrzestrzennego</Name>
+      <ElementPath>ukladOdniesieniaPrzestrzennego</ElementPath>
+      <Type>String</Type>
+      <Width>42</Width>
+    </PropertyDefn>
+    <PropertyDefn>
+      <Name>rozdzielczoscPrzestrzenna</Name>
+      <ElementPath>rozdzielczoscPrzestrzenna</ElementPath>
+      <Type>Integer</Type>
+    </PropertyDefn>
+    <PropertyDefn>
+      <Name>opis</Name>
+      <ElementPath>opis</ElementPath>
+      <Type>String</Type>
+      <Width>255</Width>
+    </PropertyDefn>
+    <PropertyDefn>
+      <Name>obowiazujeOd</Name>
+      <ElementPath>obowiazujeOd</ElementPath>
+      <Type>String</Type>
+      <Width>10</Width>
+    </PropertyDefn>
+    <PropertyDefn>
+      <Name>obowiazujeDo</Name>
+      <ElementPath>obowiazujeDo</ElementPath>
+      <Type>String</Type>
+      <Width>10</Width>
+    </PropertyDefn>
   </GMLFeatureClass>
   <GMLFeatureClass>
     <Name>StrefaPlanistyczna</Name>
     <ElementPath>StrefaPlanistyczna</ElementPath>
     <!--POLYGON-->
     <GeometryType>3</GeometryType>
-    <SRSName>http://www.opengis.net/def/crs/EPSG/0/2180</SRSName>
     <PropertyDefn>
       <Name>przestrzenNazw</Name>
       <ElementPath>idIIP|Identyfikator|przestrzenNazw</ElementPath>
@@ -122,10 +286,16 @@
       <Width>10</Width>
     </PropertyDefn>
     <PropertyDefn>
-      <Name>charakterUstalenia</Name>
-      <ElementPath>charakterUstalenia@title</ElementPath>
+      <Name>poczatekWersjiObiektu</Name>
+      <ElementPath>poczatekWersjiObiektu</ElementPath>
       <Type>String</Type>
-      <Width>255</Width>
+      <Width>20</Width>
+    </PropertyDefn>
+    <PropertyDefn>
+      <Name>koniecWersjiObiektu</Name>
+      <ElementPath>koniecWersjiObiektu</ElementPath>
+      <Type>String</Type>
+      <Width>20</Width>
     </PropertyDefn>
     <PropertyDefn>
       <Name>obowiazujeOd</Name>
@@ -146,16 +316,10 @@
       <Width>255</Width>
     </PropertyDefn>
     <PropertyDefn>
-      <Name>poczatekWersjiObiektu</Name>
-      <ElementPath>poczatekWersjiObiektu</ElementPath>
+      <Name>charakterUstalenia</Name>
+      <ElementPath>charakterUstalenia@title</ElementPath>
       <Type>String</Type>
-      <Width>20</Width>
-    </PropertyDefn>
-    <PropertyDefn>
-      <Name>koniecWersjiObiektu</Name>
-      <ElementPath>koniecWersjiObiektu</ElementPath>
-      <Type>String</Type>
-      <Width>20</Width>
+      <Width>255</Width>
     </PropertyDefn>
     <PropertyDefn>
       <Name>plan</Name>
@@ -213,7 +377,6 @@
     <ElementPath>ObszarZabudowySrodmiejskiej</ElementPath>
     <!--POLYGON-->
     <GeometryType>3</GeometryType>
-    <SRSName>http://www.opengis.net/def/crs/EPSG/0/2180</SRSName>
     <PropertyDefn>
       <Name>przestrzenNazw</Name>
       <ElementPath>idIIP|Identyfikator|przestrzenNazw</ElementPath>
@@ -251,10 +414,16 @@
       <Width>10</Width>
     </PropertyDefn>
     <PropertyDefn>
-      <Name>charakterUstalenia</Name>
-      <ElementPath>charakterUstalenia@title</ElementPath>
+      <Name>poczatekWersjiObiektu</Name>
+      <ElementPath>poczatekWersjiObiektu</ElementPath>
       <Type>String</Type>
-      <Width>255</Width>
+      <Width>20</Width>
+    </PropertyDefn>
+    <PropertyDefn>
+      <Name>koniecWersjiObiektu</Name>
+      <ElementPath>koniecWersjiObiektu</ElementPath>
+      <Type>String</Type>
+      <Width>20</Width>
     </PropertyDefn>
     <PropertyDefn>
       <Name>obowiazujeOd</Name>
@@ -275,16 +444,10 @@
       <Width>255</Width>
     </PropertyDefn>
     <PropertyDefn>
-      <Name>poczatekWersjiObiektu</Name>
-      <ElementPath>poczatekWersjiObiektu</ElementPath>
+      <Name>charakterUstalenia</Name>
+      <ElementPath>charakterUstalenia@title</ElementPath>
       <Type>String</Type>
-      <Width>20</Width>
-    </PropertyDefn>
-    <PropertyDefn>
-      <Name>koniecWersjiObiektu</Name>
-      <ElementPath>koniecWersjiObiektu</ElementPath>
-      <Type>String</Type>
-      <Width>20</Width>
+      <Width>255</Width>
     </PropertyDefn>
     <PropertyDefn>
       <Name>plan</Name>
@@ -298,7 +461,6 @@
     <ElementPath>ObszarUzupelnieniaZabudowy</ElementPath>
     <!--POLYGON-->
     <GeometryType>3</GeometryType>
-    <SRSName>http://www.opengis.net/def/crs/EPSG/0/2180</SRSName>
     <PropertyDefn>
       <Name>przestrzenNazw</Name>
       <ElementPath>idIIP|Identyfikator|przestrzenNazw</ElementPath>
@@ -336,10 +498,16 @@
       <Width>10</Width>
     </PropertyDefn>
     <PropertyDefn>
-      <Name>charakterUstalenia</Name>
-      <ElementPath>charakterUstalenia@title</ElementPath>
+      <Name>poczatekWersjiObiektu</Name>
+      <ElementPath>poczatekWersjiObiektu</ElementPath>
       <Type>String</Type>
-      <Width>255</Width>
+      <Width>20</Width>
+    </PropertyDefn>
+    <PropertyDefn>
+      <Name>koniecWersjiObiektu</Name>
+      <ElementPath>koniecWersjiObiektu</ElementPath>
+      <Type>String</Type>
+      <Width>20</Width>
     </PropertyDefn>
     <PropertyDefn>
       <Name>obowiazujeOd</Name>
@@ -358,18 +526,12 @@
       <ElementPath>status@title</ElementPath>
       <Type>String</Type>
       <Width>255</Width>
-    </PropertyDefn>
+    </PropertyDefn>	
     <PropertyDefn>
-      <Name>poczatekWersjiObiektu</Name>
-      <ElementPath>poczatekWersjiObiektu</ElementPath>
+      <Name>charakterUstalenia</Name>
+      <ElementPath>charakterUstalenia@title</ElementPath>
       <Type>String</Type>
-      <Width>20</Width>
-    </PropertyDefn>
-    <PropertyDefn>
-      <Name>koniecWersjiObiektu</Name>
-      <ElementPath>koniecWersjiObiektu</ElementPath>
-      <Type>String</Type>
-      <Width>20</Width>
+      <Width>255</Width>
     </PropertyDefn>
     <PropertyDefn>
       <Name>plan</Name>
@@ -383,14 +545,6 @@
     <ElementPath>ObszarStandardowDostepnosciInfrastrukturySpolecznej</ElementPath>
     <!--POLYGON-->
     <GeometryType>3</GeometryType>
-    <SRSName>http://www.opengis.net/def/crs/EPSG/0/2180</SRSName>
-    <DatasetSpecificInfo>
-      <FeatureCount>2</FeatureCount>
-      <ExtentXMin>406638.05643</ExtentXMin>
-      <ExtentXMax>410383.33694</ExtentXMax>
-      <ExtentYMin>380824.10489</ExtentYMin>
-      <ExtentYMax>383325.88131</ExtentYMax>
-    </DatasetSpecificInfo>
     <PropertyDefn>
       <Name>przestrzenNazw</Name>
       <ElementPath>idIIP|Identyfikator|przestrzenNazw</ElementPath>
@@ -428,10 +582,16 @@
       <Width>10</Width>
     </PropertyDefn>
     <PropertyDefn>
-      <Name>charakterUstalenia</Name>
-      <ElementPath>charakterUstalenia@title</ElementPath>
+      <Name>poczatekWersjiObiektu</Name>
+      <ElementPath>poczatekWersjiObiektu</ElementPath>
       <Type>String</Type>
-      <Width>255</Width>
+      <Width>20</Width>
+    </PropertyDefn>
+    <PropertyDefn>
+      <Name>koniecWersjiObiektu</Name>
+      <ElementPath>koniecWersjiObiektu</ElementPath>
+      <Type>String</Type>
+      <Width>20</Width>
     </PropertyDefn>
     <PropertyDefn>
       <Name>obowiazujeOd</Name>
@@ -450,18 +610,12 @@
       <ElementPath>status@title</ElementPath>
       <Type>String</Type>
       <Width>255</Width>
-    </PropertyDefn>
+    </PropertyDefn>	
     <PropertyDefn>
-      <Name>poczatekWersjiObiektu</Name>
-      <ElementPath>poczatekWersjiObiektu</ElementPath>
+      <Name>charakterUstalenia</Name>
+      <ElementPath>charakterUstalenia@title</ElementPath>
       <Type>String</Type>
-      <Width>20</Width>
-    </PropertyDefn>
-    <PropertyDefn>
-      <Name>koniecWersjiObiektu</Name>
-      <ElementPath>koniecWersjiObiektu</ElementPath>
-      <Type>String</Type>
-      <Width>20</Width>
+      <Width>255</Width>
     </PropertyDefn>
     <PropertyDefn>
       <Name>plan</Name>
