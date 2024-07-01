@@ -129,7 +129,7 @@ class WtyczkaAPP(AppModule, MetadataModule, ValidatorModule, TworzenieOUZ, Setti
 
     def initGui(self):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
-
+        
         self.toolButton = QToolButton()
         self.toolButton.setDefaultAction(QAction(
             icon=QIcon(':/plugins/wtyczka_app/img/logo.png'),
@@ -137,27 +137,27 @@ class WtyczkaAPP(AppModule, MetadataModule, ValidatorModule, TworzenieOUZ, Setti
             parent=self.iface.mainWindow()
         ))
         self.toolButton.clicked.connect(self.run_app)
-
+        
         self.toolButton.setMenu(QMenu())
         self.toolButton.setPopupMode(QToolButton.MenuButtonPopup)
         self.toolBtnAction = self.iface.addToolBarWidget(self.toolButton)
-
+        
         self.addAction(icon_path=':/plugins/wtyczka_app/img/praca_z_app.png',
                        text=u'Praca z APP / zbiorem APP',
                        callback=self.run_app)
-
+        
         self.addAction(icon_path=':/plugins/wtyczka_app/img/tworzenie.png',
-                       text=u'Tworzenie / aktualizacja metadanych',
+                       text=u'Tworzenie / aktualizacja metadanych dla zbioru APP',
                        callback=self.run_metadata)
-
+        
         self.addAction(icon_path=':/plugins/wtyczka_app/img/walidacja.png',
-                       text=u'Walidacja GML',
+                       text=u'Walidacja danych planistycznych',
                        callback=self.run_validator)
-
+        
         self.addAction(icon_path=':/plugins/wtyczka_app/img/tworzenieOUZ.png',
-                       text=u'Tworzenie OUZ',
+                       text=u'Wyznaczanie OUZ',
                        callback=self.run_OUZ)
-
+        
         self.addAction(icon_path=':/plugins/wtyczka_app/img/ustawienia.png',
                        text=u'Ustawienia',
                        callback=self.run_settings)
@@ -167,33 +167,42 @@ class WtyczkaAPP(AppModule, MetadataModule, ValidatorModule, TworzenieOUZ, Setti
                        callback=self.run_help)
 
 
-
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
         for action in self.actions:
             self.iface.removePluginMenu(u'&' + PLUGIN_NAME, action)
             self.iface.removeToolBarIcon(action)
-
+            
         self.iface.removeToolBarIcon(self.toolBtnAction)
+
 
     """Action handlers"""
     # region action handlers
     def run_app(self):
         self.openNewDialog(self.pytanieAppDialog)
 
+
     def run_metadata(self):
         self.openNewDialog(self.metadaneDialog)
         self.metadaneDialog.prev_btn.setEnabled(False)
 
+
     def run_settings(self):
         self.openNewDialog(self.ustawieniaDialog)
+
 
     def run_help(self):
         self.openNewDialog(self.pomocDialog)
 
+
     def run_validator(self):
         self.openNewDialog(self.walidacjaDialog)
 
+
     def run_OUZ(self):
-        self.openNewDialog(self.tworzenieOUZDialog)
+        ouz_dlg = self.tworzenieOUZDialog
+        self.openNewDialog(ouz_dlg)
+        ouz_dlg.wlaczenieKonektorow()
+        ouz_dlg.warstwa_POG()
+        ouz_dlg.warstwa_Budynki()
     # endregion

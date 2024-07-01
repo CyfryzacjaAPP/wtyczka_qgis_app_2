@@ -16,169 +16,172 @@ from datetime import date, datetime, timezone
 from qgis.core import QgsProject, NULL, QgsSettings
 from qgis.gui import QgsCheckableComboBox
 from PyQt5.QtCore import QDateTime, QDate, QTime
+from qgis.utils import iface
 import os
 
 
 def my_form_open(dialog, layer, feature):
-    global atrybuty, geometria, obj, dlg, warstwa, listaBledowAtrybutow, placeHolders, teryt_gminy, tytulAlternatywny_QLE
-    global zapisz, przestrzenNazw, koniecWersjiObiektu, lokalnyId, wersjaId, poczatekWersjiObiektu, listaTytulowAlternatywnych
-    global status, obowiazujeOd, obowiazujeDo, tytul, tytulAlternatywny, typPlanu, poziomHierarchii, tytulyAlternatywne, dodaj, usun
-    global rodzajZbioru, numerZbioru, jpt, idLokalnyAPP, obowiazujeOd_label, obowiazujeDo_label
-    global czyObiektZmieniony, modyfikacja, czyWersjaZmieniona
-    
-    atrybuty = feature.attributes()
-    geometria = feature.geometry()
-    obj = feature
-    dlg = dialog
-    if dlg.parent() == None:
-        return
-    
-    s = QgsSettings()
-    rodzajZbioru = s.value("qgis_app2/settings/rodzajZbioru", "")
-    numerZbioru = s.value("qgis_app2/settings/numerZbioru", "")
-    jpt = s.value("qgis_app2/settings/jpt", "")
-    idLokalnyAPP = s.value("qgis_app2/settings/idLokalnyAPP","")
-    
     try:
+        global obj, dlg, warstwa, listaBledowAtrybutow, placeHolders, teryt_gminy, tytulAlternatywny_QLE
+        global zapisz, przestrzenNazw, koniecWersjiObiektu, lokalnyId, wersjaId, poczatekWersjiObiektu, listaTytulowAlternatywnych
+        global status, obowiazujeOd, obowiazujeDo, tytul, tytulAlternatywny, typPlanu, poziomHierarchii, tytulyAlternatywne, dodaj, usun
+        global rodzajZbioru, numerZbioru, jpt, idLokalnyAPP, obowiazujeOd_label, obowiazujeDo_label
+        global czyObiektZmieniony, modyfikacja, czyWersjaZmieniona
+        global kontrolaAtrybutu
+        
+        atrybuty = feature.attributes()
+        geometria = feature.geometry()
+        obj = feature
+        dlg = dialog
+        if dlg.parent() == None:
+            return
+        
+        s = QgsSettings()
+        rodzajZbioru = s.value("qgis_app2/settings/rodzajZbioru", "")
+        numerZbioru = s.value("qgis_app2/settings/numerZbioru", "")
+        jpt = s.value("qgis_app2/settings/jpt", "")
+        idLokalnyAPP = s.value("qgis_app2/settings/idLokalnyAPP","")
+        
         dlg.parent().setWindowTitle("Atrybuty " + rodzajZbioru + ", nazwa warstwy: " + layer.name())
-        dlg.parent().setMaximumWidth(520)
+        dlg.parent().setMaximumWidth(550)
         dlg.parent().setMaximumHeight(520)
-    except:
-        pass
-    
-    warstwa = layer
-    warstwa.geometryOptions().setGeometryPrecision(0.01)
-    warstwa.startEditing()
-    qgis.utils.iface.setActiveLayer(warstwa)
-    
-    mainPath = Path(QgsApplication.qgisSettingsDirPath())/Path("python/plugins/wtyczka_qgis_app/")
-    teryt_gminy = ''
-    dataCzasTeraz = datetime.utcnow()
-    
-    placeHolders = {'przestrzenNazw':'np. PL.ZIPPZP.2393/246601-POG',
-                    'lokalnyId':'np. 1POG',
-                    'tytul':'np. Plan ogólny gminy …',
-                    'tytul2':'np. ' + rodzajZbioru,
-                    'tytulAlternatywny':'np. POG nazwa gminy'
-                    }
-    
-    pomoc = ['Przestrzeń nazw identyfikująca w sposób jednoznaczny źródło danych obiektu, o której mowa w § 5 ust. 1 pkt 1 rozporządzenia.\nWartość atrybutu przestrzeń nazw powinna jednoznacznie identyfikować zbiór danych przestrzennych, do którego należy instancja typu obiektu.',
-             'Identyfikator lokalny obiektu, o którym mowa w § 5 ust. 1 pkt 2 oraz § 5 ust. 1a rozporządzenia, przypisany przez dostawcę danych.\nUnikalność identyfikatora w przestrzeni nazw gwarantuje dostawca zbioru danych przestrzennych.',
-             'Identyfikator poszczególnej wersji obiektu przestrzennego, o którym mowa w § 5 ust. 1 pkt 3 rozporządzenia, przypisany przez dostawcę danych.\nW zestawie wszystkich wersji danego obiektu identyfikator wersji jest unikalny.',
-             'Data i godzina, w której wersja obiektu została wprowadzona do zbioru danych przestrzennych\n lub zmieniona w tym zbiorze danych przestrzennych.',
-             'Data i godzina, w której wersja obiektu została zastąpiona w zbiorze danych przestrzennych\n lub wycofana z tego zbioru danych przestrzennych.',
-             'Oficjalny tytuł aktu planowania przestrzennego lub jego projektu.',
-             'Alternatywny (nieoficjalny) tytuł aktu planowania przestrzennego lub jego projektu.',
-             'Formalna nazwa typu aktu planowania przestrzennego lub jego projektu.',
-             'Poziom aktu planowania przestrzennego w hierarchii terytorialnej. \n Dla poszczególnych typów aktu planowania przestrzennego atrybut przyjmuje następujące wartości: \n 1)	Plan zagospodarowania przestrzennego województwa – regionalny; \n 2)	Plan ogólny gminy – lokalny; \n 3)	Miejscowy plan zagospodarowania przestrzennego – sublokalny; \n 4)	Zintegrowany plan inwestycyjny – sublokalny; \n 5)	Miejscowy plan odbudowy – sublokalny; \n 6)	Miejscowy plan rewitalizacji – sublokalny',
-             'Data, od której dana wersja obiektu przestrzennego obowiązuje.',
-             'Data, do której dana wersja obiektu przestrzennego obowiązywała.',
-             'Ogólne wskazanie etapu procesu planowania, na którym znajduje się wersja aktu planowania przestrzennego lub jego projektu.',
-             'Informacja, czy dana wersja aktu planowania przestrzennego obowiązuje w części – nie obejmuje całego obszaru,\n który jest objęty aktem planowania przestrzennego lub jego projektem (np. w wyniku uchylenia, unieważnienia).']
-    
-    atrybuty.append('geometria')
-    listaBledowAtrybutow = [0 for i in range(len(atrybuty))]
-    listaTytulowAlternatywnych = []
-    
-    wersjaId = dialog.findChild(QDateTimeEdit,"wersjaId")
-    wersjaId.dateTimeChanged.connect(wersjaId_kontrola)
-    if obj.id() < 0: wersjaId.setDateTime(dataCzasTeraz)
-    
-    przestrzenNazw = dialog.findChild(QLineEdit,"przestrzenNazw")
-    przestrzenNazw.setToolTip('')
-    przestrzenNazw.setPlaceholderText(placeHolders['przestrzenNazw'])
-    przestrzenNazw.textChanged.connect(przestrzenNazw_kontrola)
-    
-    lokalnyId = dialog.findChild(QLineEdit,"lokalnyId")
-    lokalnyId.setToolTip('')
-    lokalnyId.setPlaceholderText(placeHolders['lokalnyId'])
-    lokalnyId.textChanged.connect(lokalnyId_kontrola)
-    if lokalnyId.text() == 'NULL': lokalnyId.setText(idLokalnyAPP)
-    
-    obowiazujeOd = dialog.findChild(QDateTimeEdit,"obowiazujeOd")
-    obowiazujeOd_label = dialog.findChild(QLabel,"obowiazujeOd_label")
-    obowiazujeOd.valueChanged.connect(poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola)
-    
-    obowiazujeDo = dialog.findChild(QDateTimeEdit,"obowiazujeDo")
-    obowiazujeDo_label = dialog.findChild(QLabel,"obowiazujeDo_label")
-    obowiazujeDo.valueChanged.connect(poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola)
-    
-    typPlanu = dialog.findChild(QComboBox,"typPlanu")
-    typPlanu.currentTextChanged.connect(typPlanu_kontrola)
-    
-    modyfikacja = dialog.findChild(QCheckBox,"modyfikacja")
-    modyfikacja.stateChanged.connect(modyfikacja_kontrola)
-    
-    poziomHierarchii = dialog.findChild(QComboBox,"poziomHierarchii")
-    poziomHierarchii.currentTextChanged.connect(poziomHierarchii_kontrola)
-    
-    status = dialog.findChild(QComboBox,"status")
-    status.currentTextChanged.connect(status_kontrola)
-    if obj.id() < 0: status_kontrola(status.currentText())
-    
-    poczatekWersjiObiektu = dialog.findChild(QDateTimeEdit,"poczatekWersjiObiektu")
-    poczatekWersjiObiektu.dateTimeChanged.connect(poczatekWersjiObiektu_kontrola)
-    if obj.id() < 0: poczatekWersjiObiektu.setDateTime(dataCzasTeraz)
-    
-    koniecWersjiObiektu = dialog.findChild(QDateTimeEdit,"koniecWersjiObiektu")
-    koniecWersjiObiektu.valueChanged.connect(poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola)
-    koniecWersjiObiektu.setMaximumDate(QDate.currentDate())
-    
-    tytul = dialog.findChild(QLineEdit,"tytul")
-    tytul.setPlaceholderText(placeHolders['tytul'])
-    tytul.textChanged.connect(tytul_kontrola)
-    if obj.id() < 0: tytul.setText('Plan ogólny ')
-    tytul_kontrola(tytul.text())
-    
-    tytulAlternatywny = dialog.findChild(QLineEdit,"tytulAlternatywny")
-    tytulAlternatywny_QLE = dialog.findChild(QLineEdit,"tytulAlternatywny_QLE")
-    tytulAlternatywny_QLE.setPlaceholderText(placeHolders['tytulAlternatywny'])
-    if tytulAlternatywny_QLE.text() == 'NULL': tytulAlternatywny_QLE.setText('')
-    
-    try:
+        
+        warstwa = layer
+        warstwa.geometryOptions().setGeometryPrecision(0.01)
+        warstwa.startEditing()
+        qgis.utils.iface.setActiveLayer(warstwa)
+        
+        mainPath = Path(QgsApplication.qgisSettingsDirPath())/Path("python/plugins/wtyczka_qgis_app/")
+        teryt_gminy = ''
+        dataCzasTeraz = datetime.now(timezone.utc)
+        
+        if warstwa.fields().indexFromName('edycja') == -1:
+            warstwa.addAttribute(QgsField('edycja', QVariant.Bool, ''))
+            warstwa.updateFields()
+            warstwa.commitChanges(False)
+            warstwa.startEditing()
+        
+        kontrolaAtrybutu = {'tytul':2,
+                            'obowiazujeOd':2,
+                            'obowiazujeDo':2}
+        
+        placeHolders = {'przestrzenNazw':'np. PL.ZIPPZP.2393/246601-POG',
+                        'lokalnyId':'np. 1POG',
+                        'tytul':'np. Plan ogólny gminy …',
+                        'tytul2':'np. ' + rodzajZbioru,
+                        'tytulAlternatywny':'np. POG nazwa gminy'
+                        }
+        
+        pomoc = ['Przestrzeń nazw identyfikująca w sposób jednoznaczny źródło danych obiektu, o której mowa w § 5 ust. 1 pkt 1 rozporządzenia.\nWartość atrybutu przestrzeń nazw powinna jednoznacznie identyfikować zbiór danych przestrzennych, do którego należy instancja typu obiektu.',
+                 'Identyfikator lokalny obiektu, o którym mowa w § 5 ust. 1 pkt 2 oraz § 5 ust. 1a rozporządzenia, przypisany przez dostawcę danych.\nUnikalność identyfikatora w przestrzeni nazw gwarantuje dostawca zbioru danych przestrzennych.',
+                 'Identyfikator poszczególnej wersji obiektu przestrzennego, o którym mowa w § 5 ust. 1 pkt 3 rozporządzenia, przypisany przez dostawcę danych.\nW zestawie wszystkich wersji danego obiektu identyfikator wersji jest unikalny.',
+                 'Data i godzina, w której wersja obiektu została wprowadzona do zbioru danych przestrzennych\n lub zmieniona w tym zbiorze danych przestrzennych.',
+                 'Data i godzina, w której wersja obiektu została zastąpiona w zbiorze danych przestrzennych\n lub wycofana z tego zbioru danych przestrzennych.',
+                 'Oficjalny tytuł aktu planowania przestrzennego lub jego projektu.',
+                 'Alternatywny (nieoficjalny) tytuł aktu planowania przestrzennego lub jego projektu.',
+                 'Formalna nazwa typu aktu planowania przestrzennego lub jego projektu.',
+                 'Poziom aktu planowania przestrzennego w hierarchii terytorialnej. \n Dla poszczególnych typów aktu planowania przestrzennego atrybut przyjmuje następujące wartości: \n 1)	Plan zagospodarowania przestrzennego województwa – regionalny; \n 2)	Plan ogólny gminy – lokalny; \n 3)	Miejscowy plan zagospodarowania przestrzennego – sublokalny; \n 4)	Zintegrowany plan inwestycyjny – sublokalny; \n 5)	Miejscowy plan odbudowy – sublokalny; \n 6)	Miejscowy plan rewitalizacji – sublokalny',
+                 'Data, od której dana wersja obiektu przestrzennego obowiązuje.',
+                 'Data, do której dana wersja obiektu przestrzennego obowiązywała.',
+                 'Ogólne wskazanie etapu procesu planowania, na którym znajduje się wersja aktu planowania przestrzennego lub jego projektu.',
+                 'Informacja, czy dana wersja aktu planowania przestrzennego obowiązuje w części – nie obejmuje całego obszaru,\n który jest objęty aktem planowania przestrzennego lub jego projektem (np. w wyniku uchylenia, unieważnienia).']
+        
+        atrybuty.append('geometria')
+        listaBledowAtrybutow = [0 for i in range(len(atrybuty))]
+        listaTytulowAlternatywnych = []
+        
+        wersjaId = dialog.findChild(QDateTimeEdit,"wersjaId")
+        wersjaId.dateTimeChanged.connect(wersjaId_kontrola)
+        if obj.id() < 0: wersjaId.setDateTime(dataCzasTeraz)
+        
+        przestrzenNazw = dialog.findChild(QLineEdit,"przestrzenNazw")
+        przestrzenNazw.setToolTip('')
+        przestrzenNazw.setPlaceholderText(placeHolders['przestrzenNazw'])
+        przestrzenNazw.textChanged.connect(przestrzenNazw_kontrola)
+        
+        lokalnyId = dialog.findChild(QLineEdit,"lokalnyId")
+        lokalnyId.setToolTip('')
+        lokalnyId.setPlaceholderText(placeHolders['lokalnyId'])
+        lokalnyId.textChanged.connect(lokalnyId_kontrola)
+        if lokalnyId.text() == 'NULL': lokalnyId.setText(idLokalnyAPP)
+        
+        obowiazujeOd = dialog.findChild(QDateTimeEdit,"obowiazujeOd")
+        obowiazujeOd_label = dialog.findChild(QLabel,"obowiazujeOd_label")
+        obowiazujeOd.valueChanged.connect(poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola)
+        
+        obowiazujeDo = dialog.findChild(QDateTimeEdit,"obowiazujeDo")
+        obowiazujeDo_label = dialog.findChild(QLabel,"obowiazujeDo_label")
+        obowiazujeDo.valueChanged.connect(poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola)
+        
+        typPlanu = dialog.findChild(QComboBox,"typPlanu")
+        typPlanu.currentTextChanged.connect(typPlanu_kontrola)
+        
+        modyfikacja = dialog.findChild(QCheckBox,"modyfikacja")
+        modyfikacja.stateChanged.connect(modyfikacja_kontrola)
+        
+        poziomHierarchii = dialog.findChild(QComboBox,"poziomHierarchii")
+        poziomHierarchii.currentTextChanged.connect(poziomHierarchii_kontrola)
+        
+        status = dialog.findChild(QComboBox,"status")
+        status.currentTextChanged.connect(status_kontrola)
+        if obj.id() < 0: status_kontrola(status.currentText())
+        
+        poczatekWersjiObiektu = dialog.findChild(QDateTimeEdit,"poczatekWersjiObiektu")
+        poczatekWersjiObiektu.dateTimeChanged.connect(poczatekWersjiObiektu_kontrola)
+        if obj.id() < 0: poczatekWersjiObiektu.setDateTime(dataCzasTeraz)
+        
+        koniecWersjiObiektu = dialog.findChild(QDateTimeEdit,"koniecWersjiObiektu")
+        koniecWersjiObiektu.valueChanged.connect(poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola)
+        koniecWersjiObiektu.setMaximumDate(QDate.currentDate())
+        
+        tytul = dialog.findChild(QLineEdit,"tytul")
+        tytul.setPlaceholderText(placeHolders['tytul'])
+        tytul.textChanged.connect(tytul_kontrola)
+        if obj.id() < 0: tytul.setText('Plan ogólny ')
+        tytul_kontrola(tytul.text())
+        
+        tytulAlternatywny = dialog.findChild(QLineEdit,"tytulAlternatywny")
+        tytulAlternatywny_QLE = dialog.findChild(QLineEdit,"tytulAlternatywny_QLE")
+        tytulAlternatywny_QLE.setPlaceholderText(placeHolders['tytulAlternatywny'])
+        if tytulAlternatywny_QLE.text() == 'NULL': tytulAlternatywny_QLE.setText('')
+        
         tytulyAlternatywne = dialog.findChild(QListWidget,"tytulyAlternatywne")
         read_tytulAlternatywny()
-        tytulyAlternatywne.itemClicked.connect(zaznacz_tytulyAlternatywne)
+        
+        dodaj = dialog.findChild(QPushButton,"dodaj")
+        dodaj.clicked.connect(dodaj_tytulAlternatywny)
+        
+        usun = dialog.findChild(QPushButton,"usun")
+        usun.clicked.connect(usun_tytulAlternatywny)
+        
+        geometria_kontrola()
+        poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola()
+        czyWersjaZmieniona = False
+        
+        zapisz = dialog.findChild(QPushButton,"zapisz")
+        zapisz.clicked.connect(zapis)
+        zapisz.setEnabled(False)
+        zapisz.setText("Zapisz")
+        
+        przestrzenNazw_kontrola()
+        
+        labels = [None for i in range(13)]
+        pixmap = QPixmap(':/plugins/wtyczka_app/img/info2.png')
+        for i in range(13):
+            labels[i] = dialog.findChild(QLabel,"label_" + str(i + 1))
+            labels[i].setPixmap(pixmap)
+            labels[i].setToolTip(pomoc[i])
+        
+        operacjeNaAtrybucie('tytul')
+        # operacjeNaAtrybucie('status')
+        operacjeNaAtrybucie('obowiazujeOd')
+        operacjeNaAtrybucie('obowiazujeDo')
+        # operacjeNaAtrybucie('poczatekWersjiObiektu')
+        # operacjeNaAtrybucie('koniecWersjiObiektu')
+        
+        dlg.parent().rejected.connect(dialogRejected)
     except:
         pass
-    
-    dodaj = dialog.findChild(QPushButton,"dodaj")
-    dodaj.clicked.connect(dodaj_tytulAlternatywny)
-    
-    usun = dialog.findChild(QPushButton,"usun")
-    usun.clicked.connect(usun_tytulAlternatywny)
-    
-    geometria_kontrola()
-    poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola()
-    czyWersjaZmieniona = False
-    
-    zapisz = dialog.findChild(QPushButton,"zapisz")
-    zapisz.clicked.connect(zapis)
-    zapisz.setEnabled(False)
-    zapisz.setText("Zapisz")
-    
-    przestrzenNazw_kontrola()
-    
-    labels = [None for i in range(13)]
-    pixmap = QPixmap(':/plugins/wtyczka_app/img/info2.png')
-    for i in range(13):
-        labels[i] = dialog.findChild(QLabel,"label_" + str(i + 1))
-        labels[i].setPixmap(pixmap)
-        labels[i].setToolTip(pomoc[i])
-    
-    
-    # qWidget = QWidget()
-    # wyborAkcji = QgsCheckableComboBox(qWidget)
-    # wyborAkcji.setMaximumWidth(18)
-    # wyborAkcji.view().setMinimumWidth(300)
-    # wyborAkcji.setStyleSheet("QComboBox::down-arrow"
-    #                                   "{"
-    #                                   "background-image : url(:/plugins/wtyczka_app/img/info6.png);"
-    #                                   "}")
-    # gridLayout = dlg.findChild(QGridLayout,"gridLayout_3")
-    # gridLayout.addWidget(wyborAkcji,1,4)
-    # wyborAkcji.addItems(['kontrola','hurtowa zmiana atrybutu w ramach klasy','hurtowa zmiana atrybutu w ramach wszystkich klas'])
-    
 
 
 def komunikowanieBledu(object, txt, nazwaAtrybutu):
@@ -229,6 +232,8 @@ def wylaczenieZapisu():
 
 def zapis():
     try:
+        obj.setAttribute(warstwa.fields().indexFromName('edycja'),True)
+        warstwa.updateFeature(obj)
         dlg.save()
         warstwa.commitChanges(False)
         zapisz.setEnabled(False)
@@ -247,15 +252,16 @@ def geometria_kontrola():
         errors = validator.validateGeometry(obj.geometry())
         msg = ''
         for error in errors:
-            msg = msg + error.what() + ' '
-        if len(errors) != 0:
+            if not error.what() in ["Poligon 1 leży wewnątrz poligonu 0","Polygon 1 lies inside polygon 2"]:
+                msg = msg + error.what() + ' '
+        if len(msg) != 0:
             dlg.displayWarning('Błędy w geometrii: ' + msg)
             listaBledowAtrybutow[obj.fieldNameIndex('geometria')] = 1
         else:
             listaBledowAtrybutow[obj.fieldNameIndex('geometria')] = 0
         
         for obiekty_bliskie in warstwa.getFeatures(geometria.boundingBox()): # wybiera obiekty w zasiegu opracowywanego obiektu
-            if obj.attribute("koniecWersjiObiektu") == NULL and obiekty_bliskie.attribute("koniecWersjiObiektu") == NULL:
+            if obj.attribute("koniecWersjiObiektu") == NULL and obiekty_bliskie.attribue("koniecWersjiObiektu") == NULL:
                 if geometria.intersects(obiekty_bliskie.geometry()) == True and \
                     not geometria.touches(obiekty_bliskie.geometry()) == True and \
                     (obj.id() != obiekty_bliskie.id() and (obiekty_bliskie.id() >= 0 or obiekty_bliskie.id()< -100000)):
@@ -344,13 +350,15 @@ def poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola():
         poczatekWersjiObiektuTxt = poczatekWersjiObiektu.dateTime().toString("H:mm")
         koniecWersjiObiektuTxt = koniecWersjiObiektu.dateTime().toString("H:mm")
         
-        if obowiazujeOdTxt not in ['0:00','23:59']:
+        if obowiazujeOdTxt not in ['0:00','23:59'] and kontrolaAtrybutu['obowiazujeOd'] == 2:
             komunikowanieBledu(obowiazujeOd, 'Należy wybrać datę dla "obowiązuje od"', 'obowiazujeOd')
         else:
-            if obowiazujeDoTxt in ['0:00','23:59'] and obowiazujeOd.dateTime() >= obowiazujeDo.dateTime():
+            if obowiazujeDoTxt in ['0:00','23:59'] and obowiazujeOd.dateTime() >= obowiazujeDo.dateTime() and kontrolaAtrybutu['obowiazujeOd'] == 2:
                 komunikowanieBledu(obowiazujeOd, 'Atrybut "obowiązuje od" nie może być większy lub równy od "obowiązuje do".', 'obowiazujeOd')
             else:
                 komunikowanieBledu(obowiazujeOd, '', 'obowiazujeOd')
+                if czyObiektZmieniony:
+                    uspojnienieDatyObowiazujeOd()
         if koniecWersjiObiektuTxt in ['0:00','23:59'] and koniecWersjiObiektu.dateTime().date().year() != 1 and poczatekWersjiObiektu.dateTime() >= koniecWersjiObiektu.dateTime():
             komunikowanieBledu(poczatekWersjiObiektu,'Koniec wersji obiektu musi być późniejszy niż początek wersji obiektu','poczatekWersjiObiektu')
             komunikowanieBledu(koniecWersjiObiektu,'Koniec wersji obiektu musi być późniejszy niż początek wersji obiektu','koniecWersjiObiektu')
@@ -359,13 +367,13 @@ def poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola():
             komunikowanieBledu(koniecWersjiObiektu,'','koniecWersjiObiektu')
             if koniecWersjiObiektu.dateTime().date().year() != 1 and koniecWersjiObiektu.dateTime().time().msec() == 0 or status.currentText() == 'nieaktualny':
                 obowiazujeDo_label.setText("obowiązuje do*")
-                if obowiazujeDoTxt not in ['0:00','23:59']:
+                if obowiazujeDoTxt not in ['0:00','23:59'] and kontrolaAtrybutu['obowiazujeDo'] == 2:
                     komunikowanieBledu(obowiazujeDo, 'Należy wybrać datę dla "obowiązuje do"', 'obowiazujeDo')
                 else:
                     komunikowanieBledu(obowiazujeDo, '', 'obowiazujeDo')
             else:
                 obowiazujeDo_label.setText("obowiązuje do")
-                if (obowiazujeOd.dateTime() >= obowiazujeDo.dateTime() and obowiazujeDo.dateTime().time().msec() == 0 and obowiazujeOd.dateTime().time().msec() == 0):
+                if obowiazujeOd.dateTime() >= obowiazujeDo.dateTime() and obowiazujeDo.dateTime().time().msec() == 0 and obowiazujeOd.dateTime().time().msec() == 0 and kontrolaAtrybutu['obowiazujeOd'] == 2:
                     komunikowanieBledu(obowiazujeOd, 'Atrybut "obowiązuje od" nie może być większy lub równy od "obowiązuje do".', 'obowiazujeOd')
                 else:
                     komunikowanieBledu(obowiazujeDo, '', 'obowiazujeDo')
@@ -375,10 +383,10 @@ def poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola():
 
 def tytul_kontrola(txt):
     try:
-        if re.match('^Plan ogólny [A-Z,a-z,ĄŚĘŁÓŻŹĆŃąśęłóżźćń ()-]{2,}$', txt) == None and rodzajZbioru == 'POG':
+        if re.match('^Plan ogólny [A-Z,a-z,ĄŚĘŁÓŻŹĆŃąśęłóżźćń ()-]{2,}$', txt) == None and rodzajZbioru == 'POG' and kontrolaAtrybutu['tytul'] == 2:
             tytul.setPlaceholderText(placeHolders['tytul'])
             komunikowanieBledu(tytul,'Tytuł jest polem obowiązkowym i musi zaczynać się od Plan ogólny','tytul')
-        elif txt == '':
+        elif txt == '' and kontrolaAtrybutu['tytul'] == 2:
             tytul.setPlaceholderText(placeHolders['tytul2'])
             komunikowanieBledu(tytul,'Tytuł jest polem obowiązkowym','tytul')
         else:
@@ -449,3 +457,210 @@ def typPlanu_kontrola():
         komunikowanieBledu(typPlanu,"Należy wybrać 'miejscowy plan zagospodarowania przestrzennego'",'typPlanu')
     else:
         komunikowanieBledu(typPlanu,'','typPlanu')
+
+
+def operacjeNaAtrybucie(nazwaAtrybutu):
+    global operacja
+    operacje = ['włączona kontrola wypełnienia','hurtowa zmiana atrybutu w ramach wszystkich warstw','uspójnienie daty dla obiektów nowych lub zmienionych']
+    atrybutOperacje = {'tytul':[0],
+                       # 'status':[1],
+                       'obowiazujeOd':[0], # 1,2
+                       'obowiazujeDo':[0] # 1
+                       # 'poczatekWersjiObiektu':[1],
+                       # 'koniecWersjiObiektu':[1]
+                       }
+    atrybutLayout = {'tytul':"gridLayout",
+                     'status':"gridLayout",
+                     'obowiazujeOd':"gridLayout",
+                     'obowiazujeDo':"gridLayout",
+                     'poczatekWersjiObiektu':"gridLayout_3",
+                     'koniecWersjiObiektu':"gridLayout_3"}
+    atrybutRowCol = {'tytul':[0,3],
+                     'status':[4,3],
+                     'obowiazujeOd':[5,3],
+                     'obowiazujeDo':[6,3],
+                     'poczatekWersjiObiektu':[3,3],
+                     'koniecWersjiObiektu':[4,3]}
+    atrybutKontrola = {'tytul':"tytul_kontrola",
+                       'obowiazujeOd':"poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola",
+                       'obowiazujeDo':"poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola"}
+    atrybutOperacje_tmp = []
+    for x in atrybutOperacje[nazwaAtrybutu]:
+        atrybutOperacje_tmp.append(operacje[x])
+    
+    qWidget = QWidget()
+    wyborAkcji = QgsCheckableComboBox(qWidget)
+    wyborAkcji.setMaximumWidth(18)
+    wyborAkcji.view().setMinimumWidth(250) #430
+    wyborAkcji.setStyleSheet("QComboBox::down-arrow{background-image :;}")
+    gridLayout = dlg.findChild(QGridLayout,atrybutLayout[nazwaAtrybutu])
+    gridLayout.addWidget(wyborAkcji,atrybutRowCol[nazwaAtrybutu][0],atrybutRowCol[nazwaAtrybutu][1])
+    wyborAkcji.addItems(atrybutOperacje_tmp)
+    if 0 in atrybutOperacje[nazwaAtrybutu]:
+        wyborAkcji.setItemCheckState(0, kontrolaAtrybutu[nazwaAtrybutu])
+    operacja = {'tytul':['włączona kontrola wypełnienia'],
+                'status':[],
+                'obowiazujeOd':['włączona kontrola wypełnienia'],
+                'obowiazujeDo':['włączona kontrola wypełnienia'],
+                'poczatekWersjiObiektu':[],
+                'koniecWersjiObiektu':[]}
+    
+    def wlaczenieLubWylaczenieKontroli(txt):
+        global kontrolaAtrybutu
+        if 'włączona kontrola wypełnienia' in txt:
+            kontrolaAtrybutu[nazwaAtrybutu] = 2
+        else:
+            kontrolaAtrybutu[nazwaAtrybutu] = 0
+        if atrybutKontrola[nazwaAtrybutu] == 'poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola':
+            globals().get(atrybutKontrola[nazwaAtrybutu])()
+        else:
+            globals().get(atrybutKontrola[nazwaAtrybutu])(tytul.text())
+    
+    def hurtowaZmianatArybutuWRamachWarstw():
+        for obj in globals():
+            if obj == nazwaAtrybutu:
+                if isinstance(globals().get(obj), QComboBox):
+                    atrybut = globals().get(obj).currentText()
+                elif isinstance(globals().get(obj), QDateTimeEdit):
+                    atrybut = globals().get(obj).dateTime()
+                    if atrybut.time().msec() != 0 and atrybut.time().second() != 0:
+                        atrybut = None
+                break
+        
+        if nazwaAtrybutu == "status" and status.currentText() == 'wybierz':
+            QMessageBox.warning(None,'Informacja','Hurtowa zmiana atrybutu {} w ramach wszystkich warstw nie może być wykonana dla wybranej wartości atrybutu.'.format(nazwaAtrybutu))
+            return
+        
+        odp = QMessageBox.question(None,'Operacje na danych',
+                                     "Czy rozpocząć hurtową zmianę atrybutu {} w ramach wszystkich warstw?".format(nazwaAtrybutu), QMessageBox.Yes |
+                                     QMessageBox.No, QMessageBox.No)
+        if odp == QMessageBox.No:
+            return
+        else:
+            liczbaObiektowDoZmiany = 0
+            for warstwa_id, warstwa in QgsProject.instance().mapLayers().items():
+                if not warstwa.name().startswith('AktPlanowaniaPrzestrzennego') \
+                   and ( warstwa.name().startswith('ObszarUzupelnieniaZabudowy') or
+                         warstwa.name().startswith('ObszarZabudowySrodmiejskiej') or
+                         warstwa.name().startswith('ObszarStandardowDostepnosciInfrastrukturySpolecznej') or
+                         warstwa.name().startswith('StrefaPlanistyczna')):
+                       liczbaObiektowDoZmiany += warstwa.featureCount()
+            
+            if liczbaObiektowDoZmiany > 0:
+                progressMessageBar = iface.messageBar().createMessage("Postęp wykonania hurtowej zmiany atrybut {} w ramach wszystkich warstw.".format(nazwaAtrybutu))
+                progress = QProgressBar()
+                progress.setMaximum(liczbaObiektowDoZmiany)
+                progressMessageBar.layout().addWidget(progress)
+                iface.messageBar().pushWidget(progressMessageBar, Qgis.Info)
+                y = 0
+                for warstwa_id, warstwa in QgsProject.instance().mapLayers().items():
+                    if not warstwa.name().startswith('AktPlanowaniaPrzestrzennego') \
+                       and ( warstwa.name().startswith('ObszarUzupelnieniaZabudowy') or
+                             warstwa.name().startswith('ObszarZabudowySrodmiejskiej') or
+                             warstwa.name().startswith('ObszarStandardowDostepnosciInfrastrukturySpolecznej') or
+                             warstwa.name().startswith('StrefaPlanistyczna')):
+                        warstwa.startEditing()
+                        for feature in warstwa.getFeatures():
+                            feature.setAttribute(warstwa.fields().indexFromName(nazwaAtrybutu), atrybut)
+                            feature.setAttribute(warstwa.fields().indexFromName('edycja'),True)
+                            warstwa.updateFeature(feature)
+                            y += 1
+                            progress.setValue(y)
+                        warstwa.commitChanges()
+                        warstwa.startEditing()
+                progressMessageBar.dismiss()
+            dlg.changeAttribute(nazwaAtrybutu, atrybut)
+            QMessageBox.information(None,'Informacja','Hurtowa zmiana atrybutu {} w ramach wszystkich warstw została zakończona.'.format(nazwaAtrybutu))
+    
+    def uspojnienieDatyObowiazujeOd():
+        odp = QMessageBox.question(None,'Operacje na danych',
+                                   'Czy uspójnić datę "obowiązuje od" dla obiektów nowych lub zmienionych w ramach wszystkich warstw?', QMessageBox.Yes |
+                                   QMessageBox.No, QMessageBox.No)
+        if odp == QMessageBox.No:
+            return
+        else:
+            liczbaObiektowDoZmiany = 0
+            for warstwa_id, warstwa in QgsProject.instance().mapLayers().items():
+                if warstwa.name().startswith('ObszarStandardowDostepnosciInfrastrukturySpolecznej') or \
+                   warstwa.name().startswith('ObszarUzupelnieniaZabudowy') or \
+                   warstwa.name().startswith('ObszarZabudowySrodmiejskiej') or \
+                   warstwa.name().startswith('AktPlanowaniaPrzestrzennego') or \
+                   warstwa.name().startswith('StrefaPlanistyczna'):
+                       for obj in warstwa.getFeatures():
+                           if obj['edycja']:
+                               liczbaObiektowDoZmiany += 1
+            
+            if liczbaObiektowDoZmiany > 1:
+                progressMessageBar = iface.messageBar().createMessage('Postęp wykonania uspójnienia daty "obowiązuje od" w ramach wszystkich warstw.')
+                progress = QProgressBar()
+                progress.setMaximum(liczbaObiektowDoZmiany)
+                progressMessageBar.layout().addWidget(progress)
+                iface.messageBar().pushWidget(progressMessageBar, Qgis.Info)
+                y = 0
+                for warstwa_id, warstwa in QgsProject.instance().mapLayers().items():
+                    idx_obowiazujeOd = warstwa.fields().indexFromName('obowiazujeOd')
+                    idx_edycja = warstwa.fields().indexFromName('edycja')
+                    if warstwa.name().startswith('ObszarStandardowDostepnosciInfrastrukturySpolecznej') or \
+                       warstwa.name().startswith('ObszarUzupelnieniaZabudowy') or \
+                       warstwa.name().startswith('ObszarZabudowySrodmiejskiej') or \
+                       warstwa.name().startswith('AktPlanowaniaPrzestrzennego') or \
+                       warstwa.name().startswith('StrefaPlanistyczna'):
+                        warstwa.startEditing()
+                        for feature in warstwa.getFeatures():
+                            if feature['edycja']:
+                                feature.setAttribute(idx_obowiazujeOd, obowiazujeOd.dateTime())
+                            warstwa.updateFeature(feature)
+                            y += 1
+                            progress.setValue(y)
+                        warstwa.commitChanges()
+                        warstwa.startEditing()
+                progressMessageBar.dismiss()
+            dlg.changeAttribute('obowiazujeOd', obowiazujeOd.dateTime())
+            QMessageBox.information(None,'Informacja','Uspójnienie daty "obowiązuje od" w ramach wszystkich warstw zostało zakończone.')
+    
+    def wskazanieNaOperacje(txt):
+        global operacja
+        if len(txt) > len(operacja[nazwaAtrybutu]):
+            difference = list(set(txt) - set(operacja[nazwaAtrybutu]))
+        elif len(txt) < len(operacja[nazwaAtrybutu]):
+            difference = list(set(operacja[nazwaAtrybutu]) - set(txt))
+        else:
+            difference = operacja[nazwaAtrybutu]
+        if difference[0] == 'włączona kontrola wypełnienia':
+            wlaczenieLubWylaczenieKontroli(txt)
+        elif difference[0] == 'hurtowa zmiana atrybutu w ramach wszystkich warstw' and txt != []:
+            hurtowaZmianatArybutuWRamachWarstw()
+            i = 0
+            for x in atrybutOperacje[nazwaAtrybutu]:
+                if operacje[x] == 'hurtowa zmiana atrybutu w ramach wszystkich warstw' and wyborAkcji.itemCheckState(i) == 2:
+                    wyborAkcji.setItemCheckState(i, 0)
+                    txt.remove('hurtowa zmiana atrybutu w ramach wszystkich warstw')
+                i += 1
+        elif difference[0] == 'uspójnienie daty dla obiektów nowych lub zmienionych' and txt != []:
+            uspojnienieDatyObowiazujeOd()
+            i = 0
+            for x in atrybutOperacje[nazwaAtrybutu]:
+                if operacje[x] == 'uspójnienie daty dla obiektów nowych lub zmienionych' and wyborAkcji.itemCheckState(i) == 2:
+                    wyborAkcji.setItemCheckState(i, 0)
+                    txt.remove('uspójnienie daty dla obiektów nowych lub zmienionych')
+                i += 1
+        operacja[nazwaAtrybutu] = txt
+    
+    wyborAkcji.checkedItemsChanged.connect(wskazanieNaOperacje)
+
+
+def dialogRejected():
+    try:
+        global obj, dlg, warstwa, listaBledowAtrybutow, placeHolders, teryt_gminy, tytulAlternatywny_QLE
+        global zapisz, przestrzenNazw, koniecWersjiObiektu, lokalnyId, wersjaId, poczatekWersjiObiektu, listaTytulowAlternatywnych
+        global status, obowiazujeOd, obowiazujeDo, tytul, tytulAlternatywny, typPlanu, poziomHierarchii, tytulyAlternatywne, dodaj, usun
+        global rodzajZbioru, numerZbioru, jpt, idLokalnyAPP, obowiazujeOd_label, obowiazujeDo_label
+        global czyObiektZmieniony, modyfikacja, czyWersjaZmieniona, kontrolaAtrybutu
+        
+        del obj, dlg, warstwa, listaBledowAtrybutow, placeHolders, teryt_gminy, tytulAlternatywny_QLE
+        del zapisz, przestrzenNazw, koniecWersjiObiektu, lokalnyId, wersjaId, poczatekWersjiObiektu, listaTytulowAlternatywnych
+        del status, obowiazujeOd, obowiazujeDo, tytul, tytulAlternatywny, typPlanu, poziomHierarchii, tytulyAlternatywne, dodaj, usun
+        del rodzajZbioru, numerZbioru, jpt, idLokalnyAPP, obowiazujeOd_label, obowiazujeDo_label
+        del czyObiektZmieniony, modyfikacja, czyWersjaZmieniona, kontrolaAtrybutu
+    except:
+        pass
