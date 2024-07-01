@@ -28,7 +28,7 @@
         </font>
        </property>
        <property name="text">
-        <string>Formularz atrybutów dla dokumentów formalnych</string>
+        <string>Przygotowanie formularza atrybutów dla dokumentów formalnych</string>
        </property>
        <property name="margin">
         <number>7</number>
@@ -52,7 +52,7 @@
           <x>0</x>
           <y>0</y>
           <width>461</width>
-          <height>355</height>
+          <height>643</height>
          </rect>
         </property>
         <layout class="QGridLayout" name="gridLayout">
@@ -64,21 +64,7 @@
             </font>
            </property>
            <property name="text">
-            <string>&lt;p&gt;Formularz atrybutów dla &lt;strong&gt;dokumentów formalnych&lt;/strong&gt; należy wypełnić zgodnie z informacjami zawartymi w podpowiedzi do każdego atrybutu (ikony znaku zapytania po prawej stronie).&amp;nbsp; Uzupełnienie pól oznaczonych gwiazdką oraz czerwoną ramką jest obowiązkowe.&lt;/p&gt;
-&lt;p&gt;Po wypełnieniu formularza należy wybrać opcję Zapisz aktualny formularz, który utworzy plik XML.&lt;/p&gt;
-&lt;p&gt;Jeżeli z danym APP powiązanych jest kilka dokumentów formalnych niezbędne będzie wypełnienie poniższego formularza dla każdego dokumentu formalnego powiązanego z APP. Aby wypełnić formularz dla kolejnego dokumentu formalnego można:&lt;/p&gt;
-&lt;ol&gt;
-  &lt;li&gt;
-    &lt;p&gt;zmodyfikować wpisane w formularzu dane tak, aby odnosiły się one do kolejnego dokumentu, a następnie ponownie kliknąć &lt;strong&gt;Z&lt;/strong&gt;&lt;strong&gt;apis&lt;/strong&gt;&lt;strong&gt;z&lt;/strong&gt; &lt;strong&gt;aktualny formularz&lt;/strong&gt;,&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;rozpocząć uzupełnianie formularza na nowo, wybierając opcję &lt;strong&gt;Wyczyść formularz&lt;/strong&gt; (wszystkie obecne dane zostaną usunięte);&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;skorzystać z wcześniej wypełnionego i zapisanego formularza, wybierając opcję &lt;strong&gt;Pobierz wartości z istniejącego formularza&lt;/strong&gt;, który odczyta plik XML i uzupełni w formularzu wartości atrybutów. Następnie należy sprawdzić lub zmodyfikować wpisane w formularzu dane tak, aby odnosiły się one do kolejnego dokumentu formalnego oraz ponownie zapisać aktualny formularz.&lt;/p&gt;
-  &lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;Należy pamiętać, że w końcowym kroku tego narzędzia, czyli w oknie Praca z APP (krok 7 z 7) Generowanie GML dla APP, należy wgrać wszystkie (co najmniej jeden) formularze dla dokumentów formalnych.&lt;/p&gt;</string>
+            <string>&lt;p&gt;Dane przestrzenne tworzone dla POG &lt;b&gt;obejmują&lt;/b&gt; m.in. &lt;b&gt;dane o dokumentach powiązanych z aktem&lt;/b&gt;. Jeżeli z aktem powiązanych jest&lt;b&gt; kilka dokument&amp;oacute;w formalnych&lt;/b&gt; to niezbędne będzie &lt;b&gt;wypełnienie poniższego formularza dla każdego z nich&lt;/b&gt;.&lt;/p&gt;&lt;hr /&gt;&lt;p&gt;W zależności od aktualnego stanu prac, wybierz jedną z opcji:&lt;/p&gt;&lt;ol&gt;&lt;li&gt;&lt;p&gt;W przypadku uzupełniania formularza atrybut&amp;oacute;w dla pierwszego dokumentu formalnego:&lt;/p&gt;&lt;ol style=&quot;list-style-type: lower-alpha;&quot;&gt;&lt;li&gt;wypełnij atrybuty o dokumencie formalnym poprzez edycję formularza,&lt;br&gt;&lt;table style=&quot;border-collapse: collapse; width: 100%;&quot; border=&quot;1&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td style=&quot;width: 100%;&quot;&gt;&lt;p&gt;&lt;span style=&quot;color: #ff0000;&quot;&gt;UWAGA:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Wypełnij formularz atrybut&amp;oacute;w zgodnie z informacjami zawartymi w podpowiedzi do każdego atrybutu (ikona znaku zapytania po prawej stronie).&amp;nbsp;Uzupełnienie p&amp;oacute;l oznaczonych gwiazdką jest obowiązkowe. Dodatkowo pola wymagane do wypełnienia zaznaczane są czerwoną ramką.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt;po wypełnieniu formularza kliknij przycisk&lt;b&gt; Zapisz aktualny formularz&lt;/b&gt;, żeby zapisać plik na dysku.&lt;/li&gt;&lt;/ol&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;W przypadku uzupełniania formularza atrybut&amp;oacute;w dla kolejnego dokumentu formalnego, wybierz jedną z opcji:&lt;/p&gt;&lt;ol style=&quot;list-style-type: lower-alpha;&quot;&gt;&lt;li&gt;zmień wpisane w formularzu dane tak, aby odnosiły się one do kolejnego dokumentu, a następnie ponownie kliknij przycisk &lt;b&gt;Zapisz aktualny formularz&lt;/b&gt;,&lt;br&gt;&lt;/li&gt;&lt;li&gt;wypełnij formularz na nowo, klikając przycisk &lt;b&gt;Wyczyść formularz&lt;/b&gt; &amp;ndash; wszystkie wprowadzone wcześniej dane zostaną usunięte,&lt;br&gt;&lt;/li&gt;&lt;li&gt;skorzystaj z wcześniej wypełnionego i zapisanego formularza, klikając przycisk &lt;b&gt;Pobierz wartości z istniejącego formularza&lt;/b&gt; &amp;ndash; wtyczka odczyta plik GML i uzupełni w formularzu wartości atrybut&amp;oacute;w. Sprawdź i w razie potrzeby zmień wpisane w formularzu dane tak, aby odnosiły się one do kolejnego dokumentu formalnego. Potem kliknij przycisk &lt;b&gt;Zapisz aktualny formularz&lt;/b&gt;, żeby zapisać plik na dysku.&lt;br&gt;&lt;/li&gt;&lt;/ol&gt;&lt;/li&gt;&lt;/ol&gt;&lt;table style=&quot;border-collapse: collapse; width: 100%;&quot; border=&quot;1&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td style=&quot;width: 100%;&quot;&gt;&lt;p&gt;&lt;span style=&quot;color: #000080;&quot;&gt;INFORMACJA:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Podczas kroku 7 z 7 &amp;ndash; Generowanie GML dla APP wgraj wszystkie (&lt;b&gt;co najmniej jeden&lt;/b&gt;) formularze dla dokument&amp;oacute;w formalnych.&lt;/p&gt;Możesz pominąć krok 6. W tym celu kliknij przycisk &lt;b&gt;Pomiń.&lt;/b&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignJustify|Qt::AlignVCenter</set>

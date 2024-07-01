@@ -58,7 +58,7 @@
           <x>0</x>
           <y>0</y>
           <width>763</width>
-          <height>294</height>
+          <height>407</height>
          </rect>
         </property>
         <property name="sizePolicy">
@@ -76,14 +76,7 @@
             </font>
            </property>
            <property name="text">
-            <string>&lt;p&gt;W tym oknie zostanie wygenerowany &lt;strong&gt;końcowy plik GML dla pojedynczego APP&lt;/strong&gt; &lt;strong&gt;- planu ogólnego gminy&lt;/strong&gt;&lt;strong&gt;.&lt;/strong&gt; Składa się on ze wszystkich formularzy wygenerowanych w poprzednich krokach, to znaczy:&lt;/p&gt;
-&lt;p&gt;- z dokładnie jednego pliku GML dla obszaru objętego&amp;nbsp;POG,&lt;/p&gt;
-&lt;p&gt;- pliku GML dla stref planistycznych,&lt;/p&gt;
-&lt;p&gt;- pliku GML dla obszarów uzupełnienia zabudowy,&lt;/p&gt;
-&lt;p&gt;- pliku GML dla obszarów zabudowy śródmiejskiej,&lt;/p&gt;
-&lt;p&gt;- pliku GML dla obszarów standardów dostępności infrastruktury społecznej,&lt;/p&gt;
-&lt;p&gt;- co najmniej jednego pliku XML dla dokumentu formalnego.&lt;/p&gt;
-&lt;p&gt;W tabeli poniżej muszą znaleźć się wszystkie pliki składające się na dany APP, aby został wygenerowany poprawny plik GML. Dla każdego pliku odczytanego jako Dokument formalny, użytkownik musi wybrać odpowiednią relację jaka wiąże ten dokument z APP. Następnie należy wybrać przycisk Generuj, który uruchomi wstępną walidację i umożliwi zapisanie pliku GML dla APP na dysku. Po poprawnym wygenerowaniu użytkownik może zdecydować czy będzie tworzył kolejne dane dla pojedynczych APP, czy przejdzie do tworzenia zbioru.&lt;/p&gt;</string>
+            <string>&lt;p&gt;W tym oknie wygenerujesz &lt;b&gt;plik GML z danymi przestrzennymi dla pojedynczego APP&lt;/b&gt; &amp;ndash; &lt;b&gt;planu og&amp;oacute;lnego gminy&lt;/b&gt;.&lt;br&gt;&lt;/p&gt;&lt;table style=&quot;border-collapse: collapse; width: 100%;&quot; border=&quot;1&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td style=&quot;width: 100%;&quot;&gt;&lt;p&gt;&lt;span style=&quot;color: #ff0000;&quot;&gt;UWAGA: &lt;/span&gt;&lt;/p&gt;&lt;p&gt;Zawartość pliku GML z danymi przestrzennymi dla POG zależy od tego, na jakim etapie procedury planistycznej go utworzysz. Szczeg&amp;oacute;łowe informacje na ten temat znajdziesz na &lt;a href=&quot;https://www.gov.pl/web/zagospodarowanieprzestrzenne/specyfikacja-danych&quot;&gt;dedykowanej stronie internetowej&lt;/a&gt;.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;hr /&gt;&lt;p&gt;Plik GML składa się z formularzy wygenerowanych w poprzednich krokach, to znaczy z:&lt;/p&gt;&lt;ul&gt;&lt;li&gt;jednego pliku GML z obszarem objętym planem og&amp;oacute;lnym gminy (obligatoryjnie),&lt;br&gt;&lt;/li&gt;&lt;li&gt;jednego pliku GML ze strefami planistycznymi (obligatoryjnie, z wyjątkiem APP o statusie &amp;bdquo;w opracowaniu&amp;rdquo;),&lt;br&gt;&lt;/li&gt;&lt;li&gt;jednego pliku GML z obszarami uzupełnienia zabudowy (fakultatywnie),&lt;br&gt;&lt;/li&gt;&lt;li&gt;jednego pliku GML z obszarami zabudowy śr&amp;oacute;dmiejskiej (fakultatywnie),&lt;br&gt;&lt;/li&gt;&lt;li&gt;jednego pliku GML z obszarami standard&amp;oacute;w dostępności infrastruktury społecznej (fakultatywnie),&lt;br&gt;&lt;/li&gt;&lt;li&gt;co najmniej jednego pliku GML dla dokumentu formalnego (obligatoryjnie).&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;Aby wygenerować plik GML z danymi przestrzennymi dla POG:&lt;/p&gt;&lt;ol&gt;&lt;li&gt;Wczytaj do tabeli za pomocą przycisk&amp;oacute;w &lt;b&gt;&amp;bdquo;+&amp;rdquo;&lt;/b&gt; i &lt;b&gt;&amp;bdquo;&amp;ndash;&amp;rdquo; &lt;/b&gt;wszystkie pliki składające się na plik GML dla pojedynczego APP.&lt;br&gt;&lt;/li&gt;&lt;li&gt;Wybierz odpowiednią relację dla każdego pliku odczytanego jako &lt;b&gt;Dokument formalny&lt;/b&gt;, jaka wiąże ten dokument z aktem.&lt;br&gt;&lt;/li&gt;&lt;li&gt;Kliknij przycisk &lt;b&gt;Generuj&lt;/b&gt;, kt&amp;oacute;ry uruchomi wstępną walidację i umożliwi zapisanie gotowego pliku GML dla POG na dysku.&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;Po poprawnym wygenerowaniu pliku GML dla pojedynczego APP zdecyduj czy będziesz tworzył kolejne dane przestrzenne dla pojedynczego APP, przejdziesz do tworzenia zbioru APP czy zakończysz pracę.&lt;/p&gt;</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignJustify|Qt::AlignVCenter</set>

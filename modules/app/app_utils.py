@@ -30,10 +30,10 @@ def isLayerInPoland(obrysLayer):
         'OUTPUT': 'memory:'
     })
     
-    #kasowanie obiektów wychodzących poza POG o powierzchni < 1m2
+    #kasowanie obiektów wychodzących poza POG o powierzchni < 1 m2
     pojedynczeObjekty['OUTPUT'].startEditing()
     for obj in pojedynczeObjekty['OUTPUT'].getFeatures():
-        if obj.geometry().area() < 1:
+        if obj.geometry().area() < 1: # 1 m2
             pojedynczeObjekty['OUTPUT'].deleteFeature(obj.id())
     pojedynczeObjekty['OUTPUT'].commitChanges(False)
     

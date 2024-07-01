@@ -61,7 +61,7 @@
             <x>0</x>
             <y>0</y>
             <width>676</width>
-            <height>580</height>
+            <height>581</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -348,24 +348,6 @@
             </widget>
            </item>
            <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_3">
-             <item>
-              <widget class="QPushButton" name="smtp_btn">
-               <property name="text">
-                <string>Ustawienia serwera SMTP</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="csw_btn">
-               <property name="text">
-                <string>Ustawienia serwera CSW</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item>
             <spacer name="verticalSpacer">
              <property name="orientation">
               <enum>Qt::Vertical</enum>
@@ -458,8 +440,6 @@
   <tabstop>verticalGroupBox</tabstop>
   <tabstop>adminName_lineEdit</tabstop>
   <tabstop>adminMail_lineEdit</tabstop>
-  <tabstop>smtp_btn</tabstop>
-  <tabstop>csw_btn</tabstop>
   <tabstop>save_btn</tabstop>
   <tabstop>exit_btn</tabstop>
  </tabstops>

@@ -23,8 +23,6 @@ class SettingsModule(BaseModule):
         # region okno moduł settings
         self.ustawieniaDialog = ustawieniaDialog
         # endregion
-        self.settingsSmtpDialog = SmtpDialog(self.iface)
-        self.settingsCswDialog = CswDialog(self.iface)
         # region okno moduł help
         self.pomocDialog = PomocDialog()
         
@@ -41,8 +39,6 @@ class SettingsModule(BaseModule):
             self.ustawieniaDialog.jpt_lineEdit.setValidator(QRegExpValidator(QRegExp("[0-3][0|2|4|6|8][0-9]{4}")))
         self.ustawieniaDialog.folder_btn.clicked.connect(self.folder_btn_clicked)
         self.ustawieniaDialog.save_btn.clicked.connect(self.save_btn_clicked)
-        self.ustawieniaDialog.smtp_btn.clicked.connect(self.smtp_btn_clicked)
-        self.ustawieniaDialog.csw_btn.clicked.connect(self.csw_btn_clicked)
         self.ustawieniaDialog.numerZbioru_lineEdit.setPlaceholderText('np. 2393')
         self.ustawieniaDialog.jpt_lineEdit.setPlaceholderText('np. 246601')
         self.ustawieniaDialog.edycjaILAPP.setPlaceholderText('np. 1POG')
@@ -94,13 +90,13 @@ class SettingsModule(BaseModule):
     def validate_settings(self):
         bledy = []
         if not (self.ustawieniaDialog.przestrzenNazw_lineEdit.text() == '' or validate_IIP(self.ustawieniaDialog.przestrzenNazw_lineEdit.text())):  # walidacja idIPP
-            bledy.append('- Błędna wartość dla pola przestrzenNazw.')
+            bledy.append('- Błędna wartość dla pola Przestrzeń nazw APP.')
         if not (self.ustawieniaDialog.contactMail_lineEdit.text() == '' or validateEmailAddress(self.ustawieniaDialog.contactMail_lineEdit.text())):
             bledy.append('- Błędna wartość dla adresu email domyślnego punktu kontaktowego.')
         if not (self.ustawieniaDialog.adminMail_lineEdit.text() == '' or validateEmailAddress(self.ustawieniaDialog.adminMail_lineEdit.text())):
             bledy.append('- Błędna wartość dla adresu email administratora danych.')
         if self.ustawieniaDialog.rodzajZbioru_comboBox.currentText() == 'POG' and self.getEPSGukladPL2000() == 0:
-            bledy.append('- Błędna wartość dla teryt powiatu w jpt.')
+            bledy.append('- Błędna wartość dla pola JPT.')
         if self.ustawieniaDialog.rodzajZbioru_comboBox.currentText() == 'POG' and validate_ILAPP(self.ustawieniaDialog.edycjaILAPP.text()):
             bledy.append('- Błędna wartość dla identyfikatora lokalnego APP.')
         if bledy:
@@ -189,16 +185,6 @@ class SettingsModule(BaseModule):
             self.ustawieniaDialog.edycjaILAPP.show()
             self.ustawieniaDialog.label.show()
             self.ustawieniaDialog.label_5.show()
-
-
-    def smtp_btn_clicked(self):
-        self.settingsSmtpDialog.show()
-        self.settingsSmtpDialog.send_btn.setVisible(False)
-
-
-    def csw_btn_clicked(self):
-        self.settingsCswDialog.show()
-        self.settingsCswDialog.send_btn.setVisible(False)
 
 
     def readSettings(self):

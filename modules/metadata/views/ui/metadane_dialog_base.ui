@@ -45,7 +45,7 @@
      <item>
       <widget class="QLabel" name="label">
        <property name="text">
-        <string>Uwaga! Przed wczytaniem poniższych plików upewnij się, że są one poprawne. Możesz to zrobić np. za pomocą walidatora wtyczki APP. Wczytanie niezwalidowanego pliku może powodować niepoprawe wygenerowanie pliku XML metadanych.</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;table border=&quot;1&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; border-collapse:collapse;&quot; cellspacing=&quot;2&quot; cellpadding=&quot;0&quot;&gt;&lt;tr&gt;&lt;td&gt;&lt;p&gt;&lt;span style=&quot; color:#ff0000;&quot;&gt;UWAGA:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Upewnij się, że wczytywane poniżej pliki są poprawne. Możesz to zrobić, korzystając z wbudowanej funkcji Wtyczki APP 2. W tym celu rozwiń menu wtyczki na pasku narzędzi QGIS, a następnie wybierz&lt;span style=&quot; font-weight:600;&quot;&gt; Walidacja danych planistycznych &lt;/span&gt;i postępuj zgodnie ze wskazówkami na ekranie. Wczytanie niepoprawnego pliku może powodować błędy przy generowaniu pliku XML metadanych.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p/&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
        <property name="textFormat">
         <enum>Qt::RichText</enum>
@@ -2711,7 +2711,7 @@ Wartość elementu musi być równa identyfikatorowi UUID.
        <item>
         <widget class="QPushButton" name="validateAndSave_btn">
          <property name="text">
-          <string>Zapisz</string>
+          <string>Generuj</string>
          </property>
         </widget>
        </item>

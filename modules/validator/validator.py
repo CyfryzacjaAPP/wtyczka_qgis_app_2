@@ -42,6 +42,7 @@ class ValidatorLxml:
         """Walidacja XML w zakresie składni i zgodności ze schematem """
         try:
             xml_root = lxml.etree.parse(xmlPath)
+            
         except lxml.etree.XMLSyntaxError as e:  # błąd w składni XML
             return False, "Błąd w składni XML:\n" + str(e)
         except OSError as e:  # błąd odczytu pliku
@@ -72,6 +73,7 @@ class ValidatorLxml:
 
     def validateAppXml(self, xmlPath):
         """Walidacja XML z APP"""
+        
         valResult = self.validateXml(xmlPath)
         if valResult[0]:
             layer = QgsVectorLayer(xmlPath + "|layername=AktPlanowaniaPrzestrzennego|option:FORCE_SRS_DETECTION=YES|option:CONSIDER_EPSG_AS_URN=YES", "gml", 'ogr')

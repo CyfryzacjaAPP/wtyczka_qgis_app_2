@@ -21,7 +21,7 @@ from qgis.gui import QgisInterface, QgsFilterLineEdit
 
 
 
-title_metadata = 'Tworzenie / aktualizacja metadanych'
+title_metadata = 'Tworzenie / aktualizacja metadanych dla zbioru APP'
 icon_metadata = ':/plugins/wtyczka_app/img/tworzenie.png'
 
 # This loads your .ui file so that PyQt can populate your plugin with the elements from Qt Designer

@@ -115,6 +115,7 @@ class BaseModule:
         self.activeDlg = dlg
         self.activeDlg.show()
 
+
     def showPopupYesNo(self, title, text, functionIfYes):
         msg = QMessageBox()
         msg.setIcon(QMessageBox.Question)
@@ -129,6 +130,7 @@ class BaseModule:
         msg.deleteLater()
         if msg.clickedButton() is yes:
             functionIfYes()
+
 
     def showPopupValidationErrors(self, title, text, icon=QMessageBox.Warning):
 

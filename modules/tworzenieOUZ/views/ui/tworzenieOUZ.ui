@@ -6,13 +6,13 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>550</width>
+    <width>600</width>
     <height>450</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>550</width>
+    <width>600</width>
     <height>450</height>
    </size>
   </property>
@@ -45,7 +45,7 @@
           </font>
          </property>
          <property name="text">
-          <string>Tworzenie Obszaru Uzupełnienia Zabudowy - Prototyp</string>
+          <string>Wyznaczanie obszarów uzupełnienia zabudowy (OUZ)</string>
          </property>
          <property name="margin">
           <number>7</number>
@@ -63,10 +63,13 @@
         </size>
        </property>
        <property name="frameShape">
-        <enum>QFrame::Box</enum>
+        <enum>QFrame::StyledPanel</enum>
+       </property>
+       <property name="frameShadow">
+        <enum>QFrame::Plain</enum>
        </property>
        <property name="text">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;justify&quot;&gt;&lt;span style=&quot; font-family:'Calibri'; font-size:10pt; color:#000000;&quot;&gt;W celu automatycznego wyznaczeniu Obszaru Uzupełnienia Zabudowy zgodnie z §2 pkt 1 projektu Rozporządzenia w sprawie sposobu wyznaczania granic obszaru uzupełnienia zabudowy w planie ogólnym gminy należy w poniższych listach rozwijalnych wybrać warstwę prezentującą budynki oraz warstwę prezentującą granicę POG. Po wskazaniu warstw należy wybrać przycisk &lt;/span&gt;&lt;span style=&quot; font-family:'Calibri'; font-size:10pt; font-style:italic; color:#000000;&quot;&gt;Generuj&lt;/span&gt;&lt;span style=&quot; font-family:'Calibri'; font-size:10pt; color:#000000;&quot;&gt;, który spowoduje wygenerowanie Obszaru Uzupełnienia Zabudowy. Utworzony OUZ można zmieniać zgodnie z przepisami wyżej wymienionego projektu Rozporządzenia.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;W tym oknie wyznaczysz &lt;span style=&quot; font-weight:600;&quot;&gt;obszary uzupełnienia zabudowy&lt;/span&gt; zgodnie z §1 ust. 1 &lt;span style=&quot; font-weight:600;&quot;&gt;Rozporządzenia Ministra Rozwoju i Technologii z dnia 2 maja 2024 r. w sprawie sposobu wyznaczania obszaru uzupełnienia zabudowy w planie ogólnym gminy&lt;/span&gt;.&lt;/p&gt;&lt;hr/&gt;&lt;p&gt;Żeby wygenerować plik z OUZ:&lt;/p&gt;&lt;ol style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;&quot;&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Wybierz z listy rozwijalnej warstwę z budynkami.&lt;br/&gt;&lt;/li&gt;&lt;li style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Wybierz z listy rozwijalnej warstwę z obszarem objętym POG.&lt;br/&gt;&lt;/li&gt;&lt;li style=&quot; margin-top:0px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Kliknij przycisk &lt;span style=&quot; font-weight:600;&quot;&gt;Generuj&lt;/span&gt;, który umożliwi zapisanie pliku GML na dysku.&lt;br/&gt;&lt;/li&gt;&lt;/ol&gt;&lt;table border=&quot;1&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:40px; margin-right:0px; border-collapse:collapse;&quot; cellspacing=&quot;2&quot; cellpadding=&quot;0&quot;&gt;&lt;tr&gt;&lt;td&gt;&lt;p&gt;&lt;span style=&quot; color:#ff0000;&quot;&gt;UWAGA:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Pamiętaj, że wyznaczone automatycznie OUZ możesz zmieniać zgodnie z przepisami wyżej wymienionego Rozporządzenia.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
        <property name="textFormat">
         <enum>Qt::RichText</enum>
@@ -111,7 +114,7 @@
          </property>
          <property name="maximumSize">
           <size>
-           <width>150</width>
+           <width>16777215</width>
            <height>16777215</height>
           </size>
          </property>
@@ -136,7 +139,7 @@
          </property>
          <property name="sizeHint" stdset="0">
           <size>
-           <width>40</width>
+           <width>30</width>
            <height>20</height>
           </size>
          </property>
@@ -152,7 +155,7 @@
          </property>
          <property name="sizeHint" stdset="0">
           <size>
-           <width>40</width>
+           <width>30</width>
            <height>20</height>
           </size>
          </property>
@@ -168,7 +171,7 @@
          </property>
          <property name="sizeHint" stdset="0">
           <size>
-           <width>40</width>
+           <width>30</width>
            <height>20</height>
           </size>
          </property>
@@ -194,12 +197,12 @@
          </property>
          <property name="maximumSize">
           <size>
-           <width>150</width>
+           <width>16777215</width>
            <height>16777215</height>
           </size>
          </property>
          <property name="text">
-          <string>Postęp tworzenia:</string>
+          <string>Generowanie:</string>
          </property>
         </widget>
        </item>
@@ -210,6 +213,9 @@
            <width>288</width>
            <height>0</height>
           </size>
+         </property>
+         <property name="showCrs">
+          <bool>false</bool>
          </property>
         </widget>
        </item>
@@ -233,7 +239,7 @@
        <item>
         <widget class="QPushButton" name="tworzenie_btn">
          <property name="text">
-          <string>Twórz</string>
+          <string>Generuj</string>
          </property>
         </widget>
        </item>

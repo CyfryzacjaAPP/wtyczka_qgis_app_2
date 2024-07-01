@@ -14,7 +14,7 @@ from qgis.PyQt import uic, QtGui
 from qgis.PyQt import QtWidgets
 from ..base_dialogs import CloseMessageDialog, ButtonsDialog
 
-title_validator = 'Walidacja GML'
+title_validator = 'Walidacja danych planistycznych'
 icon_validator = ':/plugins/wtyczka_app/img/walidacja.png'
 
 # This loads your .ui file so that PyQt can populate your plugin with the elements from Qt Designer

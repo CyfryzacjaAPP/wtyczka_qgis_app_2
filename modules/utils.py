@@ -231,6 +231,19 @@ def getNamespace(element):
     return m.group(0) if m else ''
 
 
+def createEditField():
+    formElements = []
+    
+    formElement = FormElement(
+        name = 'edycja',
+        type = 'boolean',
+        form = 'edycja'
+    )
+    
+    formElements.append(formElement)
+    return formElements
+
+
 def createFormElements(attribute):
     """Tworzy listę obiektów klasy 'FormElement'
     na podstawie pliku xsd"""
@@ -246,10 +259,10 @@ def createFormElements(attribute):
           'gml': "http://www.opengis.net/gml/3.2",
           'gmlexr': "http://www.opengis.net/gml/3.3/exr"}
     formElements = []
-
+    
     tree = ET.parse(xsd)
     root = tree.getroot()
-
+    
     complexType = root.find("glowny:complexType[@name='" + attribute + "']", ns)
     sequence = complexType[0][0][0]  # sekwencja z listą pól
     for element in sequence:
@@ -266,9 +279,9 @@ def createFormElements(attribute):
             continue
             
         formElement = FormElement(
-            name=elementName,
-            type=elementType,
-            form=attribute
+            name = elementName,
+            type = elementType,
+            form = attribute
         )
         
         if 'minOccurs' in element.attrib:
@@ -300,9 +313,9 @@ def createFormElements(attribute):
                 elementName = complexElement.attrib['name']
                 
                 innerFormElement = FormElement(
-                    name=elementName,
-                    type=_formType,
-                    form=attribute
+                    name = elementName,
+                    type = _formType,
+                    form = attribute
                 )
                 
                 if elementName == 'wersjaId' and (
@@ -1474,7 +1487,7 @@ def mergeDocsToAPP(docList):  # docList z getTableContent
             pomijane['AktPlanowaniaPrzestrzennego']['rysunek'].append(relLink)
             pomijane[docType]['plan'].append(root)
             # Dodaje atrybut do rysunku
-            newItem(root=root[0][0], name='plan', link=APPrelLink, ns=ns)
+            newItem(root=root[0][0], name='plan', link=APPrelLink_z_wersja, ns=ns)
         if docType == 'StrefaPlanistyczna' or docType == 'ObszarUzupelnieniaZabudowy' or docType == 'ObszarZabudowySrodmiejskiej' or docType == 'ObszarStandardowDostepnosciInfrastrukturySpolecznej':
             
             all_gmlid_elem = root.findall('.//app:' + docType + '[@gml:id]', namespaces=namespace_map)
@@ -1588,6 +1601,8 @@ def mergeDocsToAPP(docList):  # docList z getTableContent
     ET.indent(fin, space="    ", level=0)
     fin = '<?xml version="1.0" encoding="utf-8"?>' + ET.tostring(fin, encoding='unicode')
     fin = fin.replace("app/1.0","app/2.0")
+    fin = fin.replace(' xmlns:ns5="https://www.gov.pl/static/zagospodarowanieprzestrzenne/schemas/app/2.0"','')
+    fin = fin.replace("ns5:","app:")
     return fin
 
 
@@ -2026,9 +2041,14 @@ def validatePrzestrzenNazwAppSet(files):
         except:
             root = ET.parse(doc.path).getroot()
         for elem in root:
+            
+            if elem.tag.split('}')[1] == 'Signature':
+                continue
+            
             przestrzenNazw = '_'.join(getDocIIP(elem, IIP='').split('_')[0:2])
             if przestrzenNazw not in przestrzenNazw_list:
                 przestrzenNazw_list.append(przestrzenNazw)
+    
     if len(przestrzenNazw_list) != 1:
         return False
     return True
@@ -2059,13 +2079,25 @@ def validateDokumentFormalnyDate(files):
 
 def checkIfAPP(file):
     ns = dictionaries.nameSpaces
+    ns2 = dictionaries.nameSpaces2
     try:
         root = ET.parse(file).getroot()
     except Exception as error:
         showPopup('Błąd parsowania GML',"Błąd parsowania pliku '" + str(file) + "', opis błędu: " + str(error))
         return
-    appPath = 'wfs:member/app:AktPlanowaniaPrzestrzennego'
-    appList = root.findall(appPath, ns)
-    if len(appList) == 0: # zmiana z if len(appList) != 1:
+    appPath1 = 'wfs:member/app:AktPlanowaniaPrzestrzennego'
+    appPath2 = 'gml:featureMember/app:AktPlanowaniaPrzestrzennego'
+    
+    appList1_2 = root.findall(appPath1, ns)
+    appList2_2 = root.findall(appPath2, ns)
+    
+    appList1_1 = root.findall(appPath1, ns2)
+    appList2_1 = root.findall(appPath2, ns2)
+    
+    if len(appList1_2) == 0 and len(appList2_2) == 0:
+        
+        if len(appList1_1) != 0 or len(appList2_1) != 0:
+             return True
+        
         return False
     return True

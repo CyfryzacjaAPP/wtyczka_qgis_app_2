@@ -29,6 +29,7 @@ import copy
 from osgeo import ogr
 from qgis import processing
 from PyQt5.QtCore import QSettings
+from ..tworzenieOUZ.dialogs import TworzenieOUZDialog
 
 
 class AppModule(BaseModule):
@@ -87,9 +88,9 @@ class AppModule(BaseModule):
     # region rasterInstrukcjaDialog
         self.rasterInstrukcjaDialog.next_btn.clicked.connect(self.rasterInstrukcjaDialog_next_btn_clicked)
         self.rasterInstrukcjaDialog.prev_btn.clicked.connect(self.rasterInstrukcjaDialog_prev_btn_clicked)
+        
     # endregion
     # region rasterFormularzDialog
-    
         self.rasterFormularzDialog.prev_btn.clicked.connect(self.rasterFormularzDialog_prev_btn_clicked)
         self.rasterFormularzDialog.next_btn.clicked.connect(self.checkSaveForms)
         self.rasterFormularzDialog.saveForm_btn.clicked.connect(self.showPopupSaveForm)
@@ -269,7 +270,6 @@ class AppModule(BaseModule):
 
     # region pytanieAppDialog
 
-
     def pytanieAppDialog_app_btn_clicked(self):
         if defaultPath == '' or rodzajZbioru == '' or numerZbioru == '' or jpt == '':
             utils.showPopup("Ustawienia wtyczki APP","Proszę uzupełnić ustawienia wtyczki APP.")
@@ -292,7 +292,6 @@ class AppModule(BaseModule):
 
     # endregion
 
-
     # region rasterInstrukcjaDialog
     def rasterInstrukcjaDialog_next_btn_clicked(self):
         self.openNewDialog(self.rasterFormularzDialog)
@@ -313,6 +312,7 @@ class AppModule(BaseModule):
         self.openNewDialog(self.wektorInstrukcjaDialog)
         self.listaOkienek.append(self.rasterFormularzDialog)
 
+
     def rasterFormularzDialog_clear_btn_clicked(self):
         self.rasterFormularzDialog.clearForm(self.rasterFormularzDialog.form_scrollArea)
         self.rasterFormularzDialog.setDefaultValues()
@@ -322,19 +322,18 @@ class AppModule(BaseModule):
     # region wektorInstrukcjaDialog
 
     def wektorInstrukcjaDialog_next_btn_clicked(self):
-
         if rodzajZbioru == 'POG':
             self.obrysLayer = self.wektorInstrukcjaDialogPOG.layers_comboBox.currentLayer()
         else:
             self.obrysLayer = self.wektorInstrukcjaDialog.layers_comboBox.currentLayer()
-
+        
         if not self.kontrolaWarstwy(self.obrysLayer):
             return False
         elif rodzajZbioru == 'POG' and self.POG_GML_saved == False:
             showPopup("Błąd warstwy obrysu",
                       "Warstwa nie została zapisana do GML.")
         else:   # wszystko OK z warstwą
-
+        
             if rodzajZbioru == 'POG':
                 self.openNewDialog(self.wektorInstrukcjaDialogSPL)
                 self.update_layer_list(self.wektorInstrukcjaDialogSPL)
@@ -352,10 +351,10 @@ class AppModule(BaseModule):
                 attrs = obrys.attributes()
                 fields = self.obrysLayer.fields()
                 field_names = []
-    
+                
                 for field in fields:
                     field_names.append(field.name())
-    
+                
                 for formElement in formElements:
                     if formElement.name in field_names:
                         idx = field_names.index(formElement.name)
@@ -401,7 +400,6 @@ class AppModule(BaseModule):
 
 
     def wektorInstrukcjaDialogSPL_next_btn_clicked(self):
-
         self.obrysLayer = self.wektorInstrukcjaDialogSPL.layers_comboBox.currentLayer()
         if not self.obrysLayer:   # brak wybranej warstwy
             showPopup("Błąd warstwy obrysu", "Nie wskazano warstwy z SPL.")
@@ -419,7 +417,6 @@ class AppModule(BaseModule):
 
 
     def wektorInstrukcjaDialogOUZ_next_btn_clicked(self):
-
         self.obrysLayer = self.wektorInstrukcjaDialogOUZ.layers_comboBox.currentLayer()
         if not self.obrysLayer:   # brak wybranej warstwy
             showPopup("Błąd warstwy obrysu", "Nie wskazano warstwy z ObszarUzupelnieniaZabudowy.")
@@ -437,7 +434,6 @@ class AppModule(BaseModule):
 
 
     def wektorInstrukcjaDialogOZS_next_btn_clicked(self):
-
         self.obrysLayer = self.wektorInstrukcjaDialogOZS.layers_comboBox.currentLayer()
         if not self.obrysLayer:   # brak wybranej warstwy
             showPopup("Błąd warstwy obrysu", "Nie wskazano warstwy z ObszarZabudowySrodmiejskiej.")
@@ -455,7 +451,6 @@ class AppModule(BaseModule):
 
 
     def wektorInstrukcjaDialogOSD_next_btn_clicked(self):
-
         self.obrysLayer = self.wektorInstrukcjaDialogOSD.layers_comboBox.currentLayer()
         if not self.obrysLayer:   # brak wybranej warstwy
             showPopup("Błąd warstwy obrysu", "Nie wskazano warstwy z ObszarStandardowDostepnosciInfrastrukturySpolecznej.")
@@ -527,12 +522,14 @@ class AppModule(BaseModule):
     def wektorFormularzDialog_prev_btn_clicked(self):
         self.openNewDialog(self.listaOkienek.pop())
 
+
     def wektorFormularzDialog_next_btn_clicked(self):
         if rodzajZbioru == 'POG':
             self.openNewDialog(self.generowanieGMLDialog)
         else:
             self.openNewDialog(self.dokumentyFormularzDialog)
         self.listaOkienek.append(self.wektorFormularzDialog)
+
 
     def wektorFormularzDialog_clear_btn_clicked(self):
         self.wektorFormularzDialog.clearForm(
@@ -545,9 +542,11 @@ class AppModule(BaseModule):
     def dokumentyFormularzDialog_prev_btn_clicked(self):
         self.openNewDialog(self.listaOkienek.pop())
 
+
     def dokumentyFormularzDialog_next_btn_clicked(self):
         self.openNewDialog(self.generowanieGMLDialog)
         self.listaOkienek.append(self.dokumentyFormularzDialog)
+
 
     def dokumentyFormularzDialog_clear_btn_clicked(self):
         self.dokumentyFormularzDialog.clearForm(self.dokumentyFormularzDialog.form_scrollArea)
@@ -559,9 +558,11 @@ class AppModule(BaseModule):
     def generowanieGMLDialog_prev_btn_clicked(self):
         self.openNewDialog(self.listaOkienek.pop())
 
+
     def generowanieGMLDialog_next_btn_clicked(self):
         self.openNewDialog(self.zbiorPrzygotowanieDialog)
         self.listaOkienek.append(self.generowanieGMLDialog)
+
 
     def makeAnotherApp_radioBtn_toggled(self, setYes):
         if setYes:  # tak - utworzenie kolejnego APP
@@ -577,6 +578,7 @@ class AppModule(BaseModule):
             self.generowanieGMLDialog.noMakeSet_radioBtn.setEnabled(True)
             if self.generowanieGMLDialog.noMakeSet_radioBtn.isChecked():
                 self.generowanieGMLDialog.next_btn.setText("Zakończ")
+
 
     def makeSet_radioBtn_toggled(self, setYes):
         if setYes:  # finalne tworzenie zbioru app
@@ -614,16 +616,16 @@ class AppModule(BaseModule):
             xmlDate = appTable_widget.item(rowId, 2).text()
             files.append(AppTableModel(rowId, xmlPath, xmlDate))
             gmlPaths.append(xmlPath)
-
+        
         if not utils.validatePrzestrzenNazwAppSet(files=files):
-            utils.showPopup('Błąd przestrzeni nazw',
-                            'Obiekty posiadają różne przestrzenie nazw w idIIP.')
+            utils.showPopup('Błąd przestrzeni nazw','Obiekty posiadają różne przestrzenie nazw w idIIP.')
         elif len(xmlIip_list) != appTable_widget.rowCount():
             utils.showPopup('Błąd liczności obiektów',
                             'W zbiorze mogą występować tylko obiekty AktPlanowaniaPrzestrzennego o unikalnym idIIP.')
         else:
             # Sprawdzenie poprawności każdego z plików składowych
             for file in files:
+                file.path = self.changeNamespaceInFile(file.path)
                 # nie zwalidowano poprawnie
                 if not self.validateFile(path=file.path, validator=self.dataValidator, type='app', muted=True):
                     return False
@@ -648,9 +650,33 @@ class AppModule(BaseModule):
                     self.generated = True
         return True
 
+    def changeNamespaceInFile(self, file_path):
+        with open(file_path, 'rb') as file:
+            content = file.read().decode('utf-8')
+        
+        old_namespace = b'https://www.gov.pl/static/zagospodarowanieprzestrzenne/schemas/app/1.0'
+        new_namespace = b'https://www.gov.pl/static/zagospodarowanieprzestrzenne/schemas/app/2.0'
+        
+        if old_namespace.decode('utf-8') in content:
+            # Zamiana przestrzeni nazw
+            updated_content = content.replace(old_namespace.decode('utf-8'), new_namespace.decode('utf-8'))
+        
+            # Zapisz zmienioną zawartość do nowego pliku
+            dir_name, base_name = os.path.split(file_path)
+            base_name = "tmp_" + base_name
+            new_file_path = os.path.join(dir_name, base_name)
+        
+            with open(new_file_path, 'w', encoding='utf-8') as file:
+                file.write(updated_content)
+        else:
+            new_file_path = file_path
+        
+        return new_file_path
+
     # endregion
 
     """Helper methods"""
+
 
     def getFormValues(self):
         plik = str(QFileDialog.getOpenFileName(filter="pliki XML/GML (*.xml *.gml)")[0])
@@ -878,6 +904,7 @@ class AppModule(BaseModule):
         # dodanie do tabeli
         self.zbiorPrzygotowanieDialog.appTable_widget.setItem(rows, 2, item)
 
+
     def tableContentSet(self, file, rows):
         """Dodanie APP do tabeli zbioru"""
         def path_leaf(file):
@@ -886,7 +913,7 @@ class AppModule(BaseModule):
         file2 = path_leaf(file)
         flags = Qt.ItemFlags(32)
         self.zbiorPrzygotowanieDialog.appTable_widget.setRowCount(rows + 1)
-
+        
         # pierwsza kolumna
         idIIP = utils.getIPPapp(file)
         itemIIP = QTableWidgetItem(idIIP)
@@ -906,6 +933,7 @@ class AppModule(BaseModule):
         # dodanie do tabeli
         self.zbiorPrzygotowanieDialog.appTable_widget.setItem(rows, 2, item)
 
+
     def deleteTableContentSet(self):
         row_num = self.zbiorPrzygotowanieDialog.appTable_widget.rowCount()
         if row_num > 0:
@@ -917,13 +945,16 @@ class AppModule(BaseModule):
         else:
             pass
 
+
     def fieldsDefinition(self, fields):
         if rodzajZbioru == 'POG':
             pomijane = ['zmiana', 'mapaPodkladowa', 'data', 'referencja', 'lacze',
                         'dokument', 'dokumentPrzystepujacy', 'dokumentUchwalajacy', 'dokumentZmieniajacy', 'dokumentUchylajacy', 'dokumentUniewazniajacy']
         else:
-            pomijane = ['tytulAlternatywny', 'typPlanu', 'poziomHierarchii', 'status', 'zmiana', 'mapaPodkladowa', 'data', 'referencja', 'lacze',
+            pomijane = ['zmiana', 'mapaPodkladowa', 'data', 'referencja', 'lacze',
                         'dokument', 'dokumentPrzystepujacy', 'dokumentUchwalajacy', 'dokumentZmieniajacy', 'dokumentUchylajacy', 'dokumentUniewazniajacy','wydzielenie']
+            # pomijane = ['tytulAlternatywny', 'typPlanu', 'poziomHierarchii', 'status', 'zmiana', 'mapaPodkladowa', 'data', 'referencja', 'lacze',
+            #             'dokument', 'dokumentPrzystepujacy', 'dokumentUchwalajacy', 'dokumentZmieniajacy', 'dokumentUchylajacy', 'dokumentUniewazniajacy','wydzielenie']
         fieldDef = ''
         for field in fields:
             if field.name in pomijane:
@@ -949,6 +980,7 @@ class AppModule(BaseModule):
                     fieldDef += '&field=%s:%s' % (field.name, field.type.replace('gml:AreaType', 'real'))
         return(fieldDef)
 
+
     def newEmptyLayer(self):
         s = QgsSettings()
         epsg = s.value("qgis_app2/settings/strefaPL2000", "")
@@ -962,13 +994,16 @@ class AppModule(BaseModule):
         epsg = str(s.value("qgis_app2/settings/strefaPL2000", ""))
         geomTypeEPSG = 'polygon?crs=epsg:' + epsg
         
+        QgsProject.instance().setCrs(QgsCoordinateReferenceSystem(int(epsg)))
+        
         defaultPath = s.value("qgis_app2/settings/defaultPath", "/")
         if not os.access(defaultPath, os.W_OK):
             showPopup("Wygeneruj warstwę","Brak uprawnień do zapisu w katalogu "+defaultPath+". W ustawieniach wtyczki wskaż domyślną ścieżkę zapisu plików z uprawnieniami do zapisu.")
             return
         
+        field_edycja = utils.createEditField()
         if self.activeDlg == self.wektorInstrukcjaDialog or self.activeDlg == self.wektorInstrukcjaDialogPOG:
-            fields = utils.createFormElements('AktPlanowaniaPrzestrzennegoType')
+            fields = utils.createFormElements('AktPlanowaniaPrzestrzennegoType') + field_edycja
             if rodzajZbioru == 'POG':
                 layerName = 'AktPlanowaniaPrzestrzennego'
                 qml = 'AktPlanowaniaPrzestrzennego'
@@ -980,21 +1015,21 @@ class AppModule(BaseModule):
         elif self.activeDlg == self.wektorInstrukcjaDialogSPL:
             fieldsWP = utils.createFormElements('WydzieleniePlanistyczneType')
             fieldsSPL = utils.createFormElements('StrefaPlanistycznaType')
-            fields = fieldsWP + fieldsSPL
+            fields = fieldsWP + fieldsSPL + field_edycja
             layerName ='StrefaPlanistyczna'
             popup_txt = 'stref planistycznych'
         elif self.activeDlg == self.wektorInstrukcjaDialogOUZ:
-            fields = utils.createFormElements('RegulacjaType')
+            fields = utils.createFormElements('RegulacjaType') + field_edycja
             layerName ='ObszarUzupelnieniaZabudowy'
             popup_txt = 'granic obszarów uzupełnienia zabudowy'
         elif self.activeDlg == self.wektorInstrukcjaDialogOZS:
-            fields = utils.createFormElements('RegulacjaType')
+            fields = utils.createFormElements('RegulacjaType') + field_edycja
             layerName ='ObszarZabudowySrodmiejskiej'
             popup_txt = 'granic obszarów zabudowy śródmiejskiej'
         elif self.activeDlg == self.wektorInstrukcjaDialogOSD:
-            fieldsRegulacja = utils.createFormElements('RegulacjaType') 
+            fieldsRegulacja = utils.createFormElements('RegulacjaType')
             fieldsOSD = utils.createFormElements('ObszarStandardowDostepnosciInfrastrukturySpolecznejType')
-            fields = fieldsRegulacja + fieldsOSD
+            fields = fieldsRegulacja + fieldsOSD + field_edycja
             layerName ='ObszarStandardowDostepnosciInfrastrukturySpolecznej'
             popup_txt = 'granic obszarów standardów dostępności infrastruktury społecznej'
         
@@ -1051,6 +1086,7 @@ class AppModule(BaseModule):
 
     """Popup windows"""
 
+
     def showPopupSaveForm(self):
         if utils.isFormFilled(self.activeDlg) and utils.validate_form_dates(self.activeDlg.formElements) and utils.validate_status(self.activeDlg.formElements) and utils.validate_typPlanu(self.activeDlg.formElements):
             s = QgsSettings()
@@ -1087,6 +1123,7 @@ class AppModule(BaseModule):
                               "Poprawnie zapisano formularz. W razie potrzeby wygenerowania kolejnego formularza, należy zmodyfikować dane oraz zapisać formularz ponownie.")
         return self.saved
 
+
     def showPopupAggregate(self, title, text, layer):
         msg = QMessageBox()
         msg.setIcon(QtWidgets.QMessageBox.Question)
@@ -1102,6 +1139,7 @@ class AppModule(BaseModule):
         if msg.clickedButton() is yes:
             self.aggregateLayer(layer)
 
+
     def aggregateLayer(self, layer):
         # Aggregate
         alg_params = {
@@ -1115,13 +1153,14 @@ class AppModule(BaseModule):
         aggregated['OUTPUT'].setName('granice_app_zagregowane')
         QgsProject.instance().addMapLayer(aggregated['OUTPUT'])
 
+
     def showPopupApp(self):
         # Popup generowanie APP
         msg = QMessageBox()
         msg.setIcon(QtWidgets.QMessageBox.Question)
-        msg.setWindowTitle('Czy chcesz utworzyć kolejny APP?')
+        msg.setWindowTitle('Czy chcesz utworzyć kolejne dane dla APP?')
         msg.setText(
-            'Wygenerowano plik GML dla APP. Czy chcesz stworzyć kolejny APP?')
+            'Wygenerowano plik GML dla APP. Czy chcesz utworzyć kolejne dane dla APP?')
         yes = msg.addButton(
             'Tak', QtWidgets.QMessageBox.AcceptRole)
         no = msg.addButton(
@@ -1140,6 +1179,7 @@ class AppModule(BaseModule):
         elif msg.clickedButton() is no:
             self.showPopupSet()
 
+
     def showPopupSet(self):
         msg = QMessageBox()
         msg.setIcon(QtWidgets.QMessageBox.Question)
@@ -1152,7 +1192,7 @@ class AppModule(BaseModule):
             'Anuluj', QtWidgets.QMessageBox.RejectRole)
         quit = msg.addButton(
             'Zakończ', QtWidgets.QMessageBox.AcceptRole)
-
+        
         msg.setDefaultButton(set)
         msg.exec_()
         msg.deleteLater()
@@ -1161,6 +1201,7 @@ class AppModule(BaseModule):
             self.listaOkienek.append(self.generowanieGMLDialog)
         elif msg.clickedButton() is quit:
             self.generowanieGMLDialog.close()
+
 
     def wektorInstrukcjaDialogSPLcheckSaveForms(self):
         def findElement(formElements, name):
@@ -1171,6 +1212,7 @@ class AppModule(BaseModule):
                     if inner.name == name:
                         return inner
             return None
+
 
     def checkSaveForms(self):
         def findElement(formElements, name):
@@ -1222,13 +1264,13 @@ class AppModule(BaseModule):
             self.saved = False
         else:
             self.showPopupSaveForms()
-
+        
         # Przenoszenie wartości między formularzami.
         setValue(findElement(self.rasterFormularzDialog.formElements, 'przestrzenNazw'),
                  findElement(self.wektorFormularzDialog.formElements, 'przestrzenNazw'))
         setValue(findElement(self.rasterFormularzDialog.formElements, 'przestrzenNazw'),
                  findElement(self.dokumentyFormularzDialog.formElements, 'przestrzenNazw'))
-
+        
         setValue(findElement(self.rasterFormularzDialog.formElements, 'poczatekWersjiObiektu'),
                  findElement(self.wektorFormularzDialog.formElements, 'poczatekWersjiObiektu'))
         setValue(findElement(self.rasterFormularzDialog.formElements, 'koniecWersjiObiektu'),
@@ -1238,6 +1280,7 @@ class AppModule(BaseModule):
         setValue(findElement(self.rasterFormularzDialog.formElements, 'obowiazujeDo'),
                  findElement(self.wektorFormularzDialog.formElements, 'obowiazujeDo'))
         return self.saved
+
 
     def showPopupSaveForms(self):
         msg = QMessageBox()
@@ -1269,6 +1312,7 @@ class AppModule(BaseModule):
                 self.openNewDialog(self.wektorFormularzDialogOUZ)
                 self.listaOkienek.append(self.wektorInstrukcjaDialogOUZ)
 
+
     def checkSaveSet(self):
         if self.generated:
             self.openNewDialog(self.metadaneDialog)
@@ -1277,6 +1321,7 @@ class AppModule(BaseModule):
         else:
             self.showPopupSaveSet()
         return False
+
 
     def showPopupSaveSet(self):
         msg = QMessageBox()
@@ -1294,6 +1339,7 @@ class AppModule(BaseModule):
         if msg.clickedButton() is yes:
             self.openNewDialog(self.metadaneDialog)
             self.listaOkienek.append(self.zbiorPrzygotowanieDialog)
+
 
     def prepareIdIPP(self, formularz):
         """definuje autouzupełnianie idIPP na podstawie zagnieżdzonych pól"""
@@ -1332,7 +1378,7 @@ class AppModule(BaseModule):
             layout=formularz,
             searchObjectType=QgsFilterLineEdit,
             name="wersjaId_lineEdit")
-
+        
         # definicja Eventów dynamicznych obiektów UI
         lokalnyId_lineEdit.textChanged.connect(lambda: updateIdIPP())
         przestrzenNazw_lineEdit.textChanged.connect(lambda: updateIdIPP())
@@ -1346,23 +1392,17 @@ class AppModule(BaseModule):
         rodzajZbioru = s.value("qgis_app2/settings/rodzajZbioru", "/")
         
         if not os.access(defaultPath, os.W_OK):
-            showPopup("Wczytaj warstwę","Brak uprawnień do zapisu w katalogu "+defaultPath+". W ustawieniach wtyczki wskaż domyślną ścieżkę zapisu plików z uprawnieniami do zapisu.")
+            showPopup("Wczytaj warstwę","Brak uprawnień do zapisu w katalogu " + defaultPath + ". W ustawieniach wtyczki wskaż domyślną ścieżkę zapisu plików z uprawnieniami do zapisu.")
             return
         
         file, format = QFileDialog.getOpenFileName(directory=defaultPath,filter="pliki GML (*.gml);; pliki GeoPackage (*.gpkg);")
         file = str(file)
-        if format == 'pliki GML (*.gml)':
-            pathGML = file.upper()
-            gfsPath = pathGML.replace('GML','gfs')
-            if os.path.exists(gfsPath):
-                os.remove(gfsPath)
         
         ds = ogr.Open(file)
         if ds == None:
             return
         
         warstwy = [x.GetName() for x in ds]
-        
         activeDlgname = self.activeDlg.name
         if activeDlgname not in warstwy and activeDlgname != 'PytanieAppDialog':
             showPopup("Wczytaj warstwę","Proszę wskazać plik gml zawierający: " + activeDlgname)
@@ -1373,7 +1413,7 @@ class AppModule(BaseModule):
             ilosc_pol = definicja_warstwy.GetFieldCount()
             
             if ilosc_pol == 0:
-                showPopup("Wczytaj warstwę","Warstwa nie zawiera pól")
+                showPopup("Wczytaj warstwę","Warstwa nie zawiera pól.")
                 return
                 
             for i in range(ilosc_pol):
@@ -1401,36 +1441,39 @@ class AppModule(BaseModule):
         dozwoloneWarstwy = ['AktPlanowaniaPrzestrzennego','StrefaPlanistyczna','ObszarUzupelnieniaZabudowy','ObszarZabudowySrodmiejskiej','ObszarStandardowDostepnosciInfrastrukturySpolecznej','DokumentFormalny','RysunekAktuPlanowaniaPrzestrzennego']
         
         for layerName in warstwy:
+            for dozwolonaWarstwa in dozwoloneWarstwy:
+                if layerName.startswith(dozwolonaWarstwa):
+                    layerName = dozwolonaWarstwa
             if rodzajZbioru != 'POG' and layerName == 'AktPlanowaniaPrzestrzennego':
                 layer_QML_Name = 'granice_app'
             else:
                 layer_QML_Name = layerName
-            
             geomTypeEPSG = 'polygon?crs=epsg:' + epsg_code
             geomType = 'Polygon'
             if file and layerName in dozwoloneWarstwy and activeDlgname in [layerName, 'PytanieAppDialog']:
+                field_edycja = utils.createEditField()
                 if layerName == 'AktPlanowaniaPrzestrzennego':
-                    fields = utils.createFormElements('AktPlanowaniaPrzestrzennegoType')
+                    fields = utils.createFormElements('AktPlanowaniaPrzestrzennegoType') + field_edycja
                     geomType = 'MultiPolygon'
                     geomTypeEPSG = 'multipolygon?crs=epsg:' + epsg_code
                 if layerName == 'DokumentFormalny':
-                    fields = utils.createFormElements('DokumentFormalnyType')
+                    fields = utils.createFormElements('DokumentFormalnyType') + field_edycja
                     geomType = 'NoGeometry'
                 if layerName == 'RysunekAktuPlanowaniaPrzestrzennego':
-                    fields = utils.createFormElements('RysunekAktuPlanowaniaPrzestrzennegoType')
+                    fields = utils.createFormElements('RysunekAktuPlanowaniaPrzestrzennegoType') + field_edycja
                     geomType = 'NoGeometry'
                 if layerName== 'StrefaPlanistyczna':
                     fieldsWP = utils.createFormElements('WydzieleniePlanistyczneType')
                     fieldsSPL = utils.createFormElements('StrefaPlanistycznaType')
-                    fields = fieldsWP + fieldsSPL
+                    fields = fieldsWP + fieldsSPL + field_edycja
                 elif layerName == 'ObszarUzupelnieniaZabudowy':
-                    fields = utils.createFormElements('RegulacjaType')
+                    fields = utils.createFormElements('RegulacjaType') + field_edycja
                 elif layerName == 'ObszarZabudowySrodmiejskiej':
-                    fields = utils.createFormElements('RegulacjaType')
+                    fields = utils.createFormElements('RegulacjaType') + field_edycja
                 elif layerName == 'ObszarStandardowDostepnosciInfrastrukturySpolecznej':
                     fieldsRegulacja = utils.createFormElements('RegulacjaType')
                     fieldsOSD = utils.createFormElements('ObszarStandardowDostepnosciInfrastrukturySpolecznejType')
-                    fields = fieldsRegulacja + fieldsOSD
+                    fields = fieldsRegulacja + fieldsOSD + field_edycja
                 
                 layers = QgsProject.instance().mapLayers()
                 i = 0
@@ -1445,7 +1488,7 @@ class AppModule(BaseModule):
                 pathQML = pathlib.Path(QgsApplication.qgisSettingsDirPath())/pathlib.Path("python/plugins/wtyczka_qgis_app/QML/" + layer_QML_Name + ".qml")
                 if format == 'pliki GML (*.gml)':
                     pathGFS = pathlib.Path(QgsApplication.qgisSettingsDirPath())/pathlib.Path("python/plugins/wtyczka_qgis_app/GFS/")
-                    copyfile(pathGFS/pathlib.Path("template.gfs"), file.replace(".xml",".gfs").replace(".gml",".gfs"))
+                    copyfile(pathGFS/pathlib.Path("template.gfs"), file.replace(".xml",".gfs").replace(".XML",".gfs").replace(".gml",".gfs").replace(".GML",".gfs"))
                     layer = QgsVectorLayer(file + "|layername=" + layerName + "|option:FORCE_SRS_DETECTION=YES|option:CONSIDER_EPSG_AS_URN=YES|geometrytype=" + geomType, layerName + numerWarstwy, 'ogr')
                 
                 if format == 'pliki GeoPackage (*.gpkg);':
@@ -1454,7 +1497,10 @@ class AppModule(BaseModule):
                         layer = processing.run("native:multiparttosingleparts", {'INPUT': layer, 'OUTPUT': 'memory:'})['OUTPUT']
                 
                 if geomType != 'NoGeometry':
-                    newEPSG = layer.crs().authid().split(":")[1]
+                    try:
+                        newEPSG = layer.crs().authid().split(":")[1]
+                    except:
+                        return
                     if epsg_code != newEPSG:
                         odp = QMessageBox.question(None,'Wczytanie warstwy do edycji',
                                                      "Układ współrzędnych wczytywanej warstwy jest inny od układu współrzędnych przyjętego na podstawie ustawień wtyczki APP.\nCzy chcesz mimo to wczytać warstwę?", QMessageBox.Yes |
@@ -1470,7 +1516,7 @@ class AppModule(BaseModule):
                 for feature in layer.getFeatures():
                     new_feat = QgsFeature(destlayer.fields())
                     for index, field in enumerate(destlayer.fields()):
-                        if field.name() in ('profilPodstawowy','profilDodatkowy') and feature.attribute(field.name()) != NULL:
+                        if field.name() in ('profilPodstawowy','profilDodatkowy','tytulAlternatywny') and feature.attribute(field.name()) != NULL:
                             new_feat.setAttribute(index, QVariant(",".join(feature.attribute(field.name()))))
                         else:
                             try:
@@ -1532,7 +1578,7 @@ class AppModule(BaseModule):
         s = QgsSettings()
         defaultPath = s.value("qgis_app2/settings/defaultPath", "/")
         
-        namespace_map = {'wfs': 'http://www.opengis.net/wfs/2.0', 
+        namespace_map = {'wfs': 'http://www.opengis.net/wfs/2.0',
                          'app': 'https://www.gov.pl/static/zagospodarowanieprzestrzenne/schemas/app/2.0',
                          'gml': 'http://www.opengis.net/gml/3.2',
                          'xlink':'http://www.w3.org/1999/xlink'}
@@ -1547,28 +1593,36 @@ class AppModule(BaseModule):
             self.obrysLayer = self.wektorInstrukcjaDialogOZS.layers_comboBox.currentLayer()
         elif self.activeDlg == self.wektorInstrukcjaDialogOSD:
             self.obrysLayer = self.wektorInstrukcjaDialogOSD.layers_comboBox.currentLayer()
+        elif isinstance(self.activeDlg, TworzenieOUZDialog):
+            self.obrysLayer = layer_OUZ
         
         if self.obrysLayer == None:
             showPopup("Błąd warstwy obrysu", "Nie wskazano warstwy do zapisu.")
             return
         layerName = self.obrysLayer.name().split('_')[0]
         
-        showPopup("Zapisz warstwę","Zostaną teraz przeprowadzone kontrole warstwy " + layerName + ". Może to potrwać do kilku minut.")
-        czyWynikKontroliPozytywny = True
-        if not self.kontrolaWarstwy(self.obrysLayer):
-            czyWynikKontroliPozytywny = False
-        if self.activeDlg != self.wektorInstrukcjaDialogPOG and not self.czyObiektyUnikalne(self.obrysLayer,'oznaczenie'):
-            czyWynikKontroliPozytywny = False
-        if self.activeDlg != self.wektorInstrukcjaDialogPOG and not self.czyObiektyUnikalne(self.obrysLayer,'status'):
-            czyWynikKontroliPozytywny = False
-        if self.activeDlg != self.wektorInstrukcjaDialogPOG and not self.kontrolaGeometriiWarstwy(self.obrysLayer):
-            czyWynikKontroliPozytywny = False
+        if not isinstance(self.activeDlg, TworzenieOUZDialog):
+            showPopup("Zapisz warstwę","Zostaną teraz przeprowadzone kontrole warstwy " + layerName + ". Może to potrwać do kilku minut.")
+            czyWynikKontroliPozytywny = True
+            if not self.kontrolaWarstwy(self.obrysLayer):
+                czyWynikKontroliPozytywny = False
+            if self.activeDlg != self.wektorInstrukcjaDialogPOG and not self.czyObiektyUnikalne(self.obrysLayer,'oznaczenie'):
+                czyWynikKontroliPozytywny = False
+            if self.activeDlg != self.wektorInstrukcjaDialogPOG and not self.czyObiektyUnikalne(self.obrysLayer,'status'):
+                czyWynikKontroliPozytywny = False
+            if self.activeDlg != self.wektorInstrukcjaDialogPOG and not self.kontrolaGeometriiWarstwy(self.obrysLayer):
+                czyWynikKontroliPozytywny = False
+            if self.activeDlg == self.wektorInstrukcjaDialogOUZ and self.OUZpowyzej125procent(self.obrysLayer):
+                czyWynikKontroliPozytywny = False
+            
+            if not czyWynikKontroliPozytywny:
+                return
         
-        if not czyWynikKontroliPozytywny:
-            return
-        
-        self.fn = QFileDialog.getSaveFileName(directory=defaultPath, filter="pliki GML (*.gml)")[0]
-        plikGML = str(self.fn)
+        if isinstance(self.activeDlg, TworzenieOUZDialog):
+            plikGML = defaultPath + "/Dokumentacja/ObszarUzupelnieniaZabudowy-wyjsciowy.gml"
+        else:
+            self.fn = QFileDialog.getSaveFileName(directory=defaultPath, filter="pliki GML (*.gml)")[0]
+            plikGML = str(self.fn)
         
         if plikGML:
             templateXML = QgsApplication.qgisSettingsDirPath() + "/python/plugins/wtyczka_qgis_app/modules/templates/" + layerName + ".xml"
@@ -1608,7 +1662,6 @@ class AppModule(BaseModule):
                 'OUTPUT': 'memory:'
             })
             
-            # for obj in obrysLayerTMP.getFeatures():
             for obj in swapXY['OUTPUT'].getFeatures():
                 member = ET.fromstring(templateXML)
                 przestrzenNazw = ''
@@ -1750,9 +1803,16 @@ class AppModule(BaseModule):
                 self.OZS_GML_saved = True
             elif self.activeDlg == self.wektorInstrukcjaDialogOSD:
                 self.OSD_GML_saved = True
-                
-            self.iface.messageBar().pushSuccess("Zapisanie warstwy:","Zapisano warstwę do formatu GML.")
-            showPopup("Zapisz warstwę","Poprawnie zapisano warstwę " + layerName + " do formatu GML.")
+            
+            if not isinstance(self.activeDlg, TworzenieOUZDialog):
+                self.iface.messageBar().pushSuccess("Zapisanie warstwy:","Zapisano warstwę do formatu GML.")
+                showPopup("Zapisz warstwę","Poprawnie zapisano warstwę " + layerName + " do formatu GML.")
+
+
+    def saveLayerToGML_OUZ(self, layer):
+        global layer_OUZ
+        layer_OUZ = layer
+        self.saveLayerToGML()
 
 
     def update_layer_list(self, obj):
@@ -1820,10 +1880,12 @@ class AppModule(BaseModule):
                 czyGeometrieSaPoprawne = False
             
             # geometria wychodzi poza POG
-            try:
-                warstwaPOG = self.wektorInstrukcjaDialogPOG.layers_comboBox.currentLayer()
-            except:
-                pass
+            warstwaPOG = self.wektorInstrukcjaDialogPOG.layers_comboBox.currentLayer()
+            if warstwaPOG == None:
+                for layer in QgsProject.instance().mapLayers().values():
+                    if layer.type() == QgsMapLayer.VectorLayer and layer.name().startswith('AktPlanowaniaPrzestrzennego'):
+                        warstwaPOG = layer
+            
             if warstwaPOG != None:
                 przyciecie = processing.run("qgis:difference", {
                     'INPUT': obrysLayer,
@@ -1837,10 +1899,10 @@ class AppModule(BaseModule):
                     'OUTPUT': 'memory:'
                 })
                 
-                #kasowanie obiektów wychodzących poza POG o powierzchni < 1m2
+                #kasowanie obiektów wychodzących poza POG o powierzchni < 1 m2
                 pojedynczeObjekty['OUTPUT'].startEditing()
                 for obj in pojedynczeObjekty['OUTPUT'].getFeatures():
-                    if obj.geometry().area() < 1:
+                    if obj.geometry().area() < 1: # 1 m2
                         pojedynczeObjekty['OUTPUT'].deleteFeature(obj.id())
                 pojedynczeObjekty['OUTPUT'].commitChanges(False)
                 
@@ -1871,10 +1933,10 @@ class AppModule(BaseModule):
                     'DELETED': 'memory:'
                 })
                 
-                #kasowanie obiektów nakładających się o powierzchni < 1m2
+                #kasowanie obiektów nakładających się o powierzchni < 1 m2
                 wynik['DELETED'].startEditing()
                 for obj in wynik['DELETED'].getFeatures():
-                    if obj.geometry().area() < 1:
+                    if obj.geometry().area() < 1: # 1 m2
                         wynik['DELETED'].deleteFeature(obj.id())
                 wynik['DELETED'].commitChanges(False)
                 
@@ -1886,6 +1948,7 @@ class AppModule(BaseModule):
             
             # sprawdzenie czy wystepują dziury pomiędzy stykającymi się strefami i braki w dopełnieniu do POG
             if obrysLayer.name().startswith('StrefaPlanistyczna') and warstwaPOG != None:
+                
                 bufor0 = processing.run("native:buffer", {
                     'INPUT': obrysLayer,
                     'DISTANCE':0,
@@ -1905,10 +1968,10 @@ class AppModule(BaseModule):
                     'OUTPUT': 'memory:'
                 })
                 
-                #kasowanie dziur o powierzchni < 1m2
+                #kasowanie dziur o powierzchni < 1 m2
                 pojedynczeObjekty['OUTPUT'].startEditing()
                 for obj in pojedynczeObjekty['OUTPUT'].getFeatures():
-                    if obj.geometry().area() < 1:
+                    if obj.geometry().area() < 1: # 1 m2
                         pojedynczeObjekty['OUTPUT'].deleteFeature(obj.id())
                 pojedynczeObjekty['OUTPUT'].commitChanges(False)
                 
@@ -1933,13 +1996,13 @@ class AppModule(BaseModule):
             'INPUT':obrysLayer,
             'EXPRESSION':'koniecWersjiObiektu is NULL',
             'OUTPUT':'memory:'})
-        self.obrysLayer = warstwaBezKoniecWersjiObiektu['OUTPUT']
+        obrysLayer_tmp = warstwaBezKoniecWersjiObiektu['OUTPUT']
         
-        liczbaObiektowWarstwy = self.obrysLayer.featureCount()
+        liczbaObiektowWarstwy = obrysLayer_tmp.featureCount()
         liczbaObiektowWarstwyUnikalnych = liczbaObiektowWarstwy
         if liczbaObiektowWarstwy > 0:
             unikalnosc = processing.run("native:removeduplicatesbyattribute", {
-                'INPUT': obrysLayer,
+                'INPUT': obrysLayer_tmp,
                 'FIELDS':[atrybutDoSprawdzeniaUnikalnosci],
                 'OUTPUT':'memory:',
                 'DUPLICATES':'memory:'
@@ -1949,12 +2012,12 @@ class AppModule(BaseModule):
             
             jestOk = True
             if procent < 100 and atrybutDoSprawdzeniaUnikalnosci == 'oznaczenie':
-                showPopup("Błąd warstwy obrysu","Występują duplikaty w atrybucie " + atrybutDoSprawdzeniaUnikalnosci + " warstwy " + obrysLayer.sourceName())
-                unikalnosc['DUPLICATES'].setName("Obiekty " + obrysLayer.sourceName() + " - duplikaty w atrybucie " + atrybutDoSprawdzeniaUnikalnosci)
+                showPopup("Błąd warstwy obrysu","Występują duplikaty w atrybucie " + atrybutDoSprawdzeniaUnikalnosci + " warstwy " + obrysLayer_tmp.sourceName())
+                unikalnosc['DUPLICATES'].setName("Obiekty " + obrysLayer_tmp.sourceName() + " - duplikaty w atrybucie " + atrybutDoSprawdzeniaUnikalnosci)
                 QgsProject.instance().addMapLayer(unikalnosc['DUPLICATES'])
                 jestOk = False
             if liczbaObiektowWarstwyUnikalnych != 1 and atrybutDoSprawdzeniaUnikalnosci == 'status':
-                showPopup("Błąd warstwy obrysu","Występują różne wartości w atrybucie " + atrybutDoSprawdzeniaUnikalnosci + " warstwy " + obrysLayer.sourceName())
+                showPopup("Błąd warstwy obrysu","Występują różne wartości w atrybucie " + atrybutDoSprawdzeniaUnikalnosci + " warstwy " + obrysLayer_tmp.sourceName())
                 jestOk = False
         return jestOk
 
@@ -2011,3 +2074,98 @@ class AppModule(BaseModule):
             return False
         else:
             return True
+
+
+    def OUZpowyzej125procent(self, obrysLayer):
+        
+        pathOUZ_wyjsciowy = os.path.join(defaultPath,"Dokumentacja/ObszarUzupelnieniaZabudowy-wyjsciowy.gml")
+        powierzchnie_OUZ = os.path.join(defaultPath,"Dane pomocnicze/Powierzchnie.xml")
+        
+        if os.path.exists(pathOUZ_wyjsciowy) and os.path.exists(powierzchnie_OUZ):
+            
+            root = ET.parse(powierzchnie_OUZ).getroot()
+            powierzchnia_Pp = float(root[3][2].text)
+            # powierzchnia_Pu = float(root[3][0].text)
+            jpt_xml = int(root[0].text)
+            
+            if jpt_xml != int(jpt):
+                showPopup("Informacja", "JPT w pliku Powierzchnie.xml jest różne od JPT ustawieniach wtyczki.")
+            
+        else:
+            odp = QMessageBox.question(None,'Kontrola warstwy OUZ',
+                                         "Wtyczka umożliwia sprawdzenie poprawności wybranej warstwy z wymaganiem, o którym mowa w § 1. ust 5 rozporządzenia.\nDo tej weryfikacji potrzebna jest wyjściowa warstwa OUZ powstała w komponencie „Tworzenie OUZ”, czy chcesz ją teraz wykonać?", QMessageBox.Yes |
+                                         QMessageBox.No, QMessageBox.No)
+            if odp == QMessageBox.No:
+                return False
+            else:
+                if self.activeDlg:
+                    self.activeDlg.close()
+                ouz_dlg = self.tworzenieOUZDialog
+                self.activeDlg = ouz_dlg
+                ouz_dlg.wlaczenieKonektorow()
+                ouz_dlg.show()
+                ouz_dlg.warstwa_POG()
+                ouz_dlg.warstwa_Budynki()
+                return True
+        
+        pathOUZ_wyjsciowy_layer = QgsVectorLayer(pathOUZ_wyjsciowy + "|layername=ObszarUzupelnieniaZabudowy|option:FORCE_SRS_DETECTION=YES|option:CONSIDER_EPSG_AS_URN=YES|geometrytype=Polygon", "ObszarUzupelnieniaZabudowy", 'ogr')
+        pojedynczeBufory = processing.run("native:multiparttosingleparts", {
+            'INPUT': pathOUZ_wyjsciowy_layer,
+            'OUTPUT': 'memory:'
+        })
+        
+        # różnica powierzchnii
+        roznica = processing.run("qgis:difference", {
+            'INPUT': obrysLayer,
+            'OVERLAY': pojedynczeBufory['OUTPUT'],
+            'OUTPUT': 'memory:'
+        })
+        
+        # zmiana multipoligonów na poligony
+        pojedynczeBufory2 = processing.run("native:multiparttosingleparts", {
+            'INPUT': roznica['OUTPUT'],
+            'OUTPUT': 'memory:'
+        })
+        
+        # usunięcie bardzo małych powierzchnii
+        pojedynczeBufory2['OUTPUT'].startEditing()
+        for tmpObj in pojedynczeBufory2['OUTPUT'].getFeatures():
+            if tmpObj.geometry().area() < 0.05:
+                pojedynczeBufory2['OUTPUT'].deleteFeature(tmpObj.id())
+        pojedynczeBufory2['OUTPUT'].commitChanges(False)
+        
+        # odseparowanie obiektów, które się nie przecinają
+        obiektyBledne = processing.run("qgis:extractbylocation", {
+            'INPUT': pojedynczeBufory2['OUTPUT'],
+            'PREDICATE': 2,
+            'INTERSECT': pojedynczeBufory['OUTPUT'],
+            'OUTPUT': 'memory:'
+        })
+        
+        # przekazanie komunikatu i obiektów błędnych
+        if obiektyBledne['OUTPUT'].featureCount() > 0:
+            obiektyBledne['OUTPUT'].setName("Nowe obiekty OUZ")
+            QgsProject.instance().addMapLayer(obiektyBledne['OUTPUT'])
+            showPopup("Błąd warstwy obrysu","Warstwa ObszarUzupelnieniaZabudowy zawiera nowe obiekty.")
+            return True
+        
+        def powierzchniaNaElipsoidzie(feature):
+            d = QgsDistanceArea()
+            d.setEllipsoid('WGS84')
+            geom = feature.geometry()
+            geom.transform(QgsCoordinateTransform(obrysLayer.crs(), QgsCoordinateReferenceSystem('EPSG:4326'), QgsProject.instance().transformContext()))
+            area = d.measureArea(geom)
+            return area
+        
+        powierzchniaPowiekszeniaOUZ = 0
+        for tmp_obj in pojedynczeBufory2['OUTPUT'].getFeatures():
+            powierzchniaPowiekszeniaOUZ += powierzchniaNaElipsoidzie(tmp_obj)
+        
+        if powierzchniaPowiekszeniaOUZ > powierzchnia_Pp:
+            showPopup("Błąd warstwy obrysu",
+                      "Powierzchnia warstwy została powiększona o więcej niż maksymalną powierzchnię powiększenia obszarów uzupełnienia zabudowy wyznaczonych w sposób, o którym mowa w ust. 1 Rozporządzenia.")
+            return True
+        else:
+            showPopup("Informacja",
+                      "Kontrola maksymalnej powierzchnii powiększenia została przeprowadzona i powiększenie jest dopuszczalne.")
+            return False
