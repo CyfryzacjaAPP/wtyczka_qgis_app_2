@@ -251,7 +251,7 @@ def createFormElements(attribute):
     s = QgsSettings()
     rodzajZbioru = s.value("qgis_app2/settings/rodzajZbioru", "/")
     
-    xsd = os.path.join(os.path.dirname(__file__),'validator', 'planowaniePrzestrzenne.xsd')
+    xsd = os.path.join(os.path.dirname(__file__),'validator', 'planowaniePrzestrzenne_2_0.xsd')
     
     ns = {'glowny': "http://www.w3.org/2001/XMLSchema",
           'app': "https://www.gov.pl/static/zagospodarowanieprzestrzenne/schemas/app/2.0",

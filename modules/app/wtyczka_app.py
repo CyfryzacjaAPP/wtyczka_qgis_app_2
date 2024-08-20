@@ -1444,6 +1444,11 @@ class AppModule(BaseModule):
             for dozwolonaWarstwa in dozwoloneWarstwy:
                 if layerName.startswith(dozwolonaWarstwa):
                     layerName = dozwolonaWarstwa
+            if layerName not in dozwoloneWarstwy:
+                showPopup("Wczytaj warstwę",f"Wskazany plik zawiera warstwę \"{layerName}\", która nie występuje w modelu planowania przestrzennego.")
+                break
+            
+            
             if rodzajZbioru != 'POG' and layerName == 'AktPlanowaniaPrzestrzennego':
                 layer_QML_Name = 'granice_app'
             else:
@@ -1475,14 +1480,18 @@ class AppModule(BaseModule):
                     fieldsOSD = utils.createFormElements('ObszarStandardowDostepnosciInfrastrukturySpolecznejType')
                     fields = fieldsRegulacja + fieldsOSD + field_edycja
                 
-                layers = QgsProject.instance().mapLayers()
+                def czyIstniejeWarstwaIPlik(layerName):
+                    for layer in QgsProject.instance().mapLayers().values():
+                        if layer.name() == layerName:
+                            return True
+                    if os.path.exists(os.path.join(defaultPath, layerName + '.gpkg')):
+                        return True
+                    return False
+                    
                 i = 0
-                for layer in layers.values():
-                    if layer.name().startswith(layerName):
-                        i += 1
-                
                 numerWarstwy = ''
-                if i > 0:
+                while czyIstniejeWarstwaIPlik(layerName + numerWarstwy):
+                    i += 1
                     numerWarstwy = '_' + str(i)
                 
                 pathQML = pathlib.Path(QgsApplication.qgisSettingsDirPath())/pathlib.Path("python/plugins/wtyczka_qgis_app/QML/" + layer_QML_Name + ".qml")
@@ -1490,6 +1499,8 @@ class AppModule(BaseModule):
                     pathGFS = pathlib.Path(QgsApplication.qgisSettingsDirPath())/pathlib.Path("python/plugins/wtyczka_qgis_app/GFS/")
                     copyfile(pathGFS/pathlib.Path("template.gfs"), file.replace(".xml",".gfs").replace(".XML",".gfs").replace(".gml",".gfs").replace(".GML",".gfs"))
                     layer = QgsVectorLayer(file + "|layername=" + layerName + "|option:FORCE_SRS_DETECTION=YES|option:CONSIDER_EPSG_AS_URN=YES|geometrytype=" + geomType, layerName + numerWarstwy, 'ogr')
+                    if layer.featureCount() == 0:
+                        continue
                 
                 if format == 'pliki GeoPackage (*.gpkg);':
                     layer = QgsVectorLayer(file, layerName + numerWarstwy, 'ogr')
@@ -1516,7 +1527,7 @@ class AppModule(BaseModule):
                 for feature in layer.getFeatures():
                     new_feat = QgsFeature(destlayer.fields())
                     for index, field in enumerate(destlayer.fields()):
-                        if field.name() in ('profilPodstawowy','profilDodatkowy','tytulAlternatywny') and feature.attribute(field.name()) != NULL:
+                        if field.name() in ('profilPodstawowy','profilDodatkowy','tytulAlternatywny') and feature.attribute(field.name()) != NULL and format != 'pliki GeoPackage (*.gpkg);':
                             new_feat.setAttribute(index, QVariant(",".join(feature.attribute(field.name()))))
                         else:
                             try:
@@ -2000,6 +2011,7 @@ class AppModule(BaseModule):
         
         liczbaObiektowWarstwy = obrysLayer_tmp.featureCount()
         liczbaObiektowWarstwyUnikalnych = liczbaObiektowWarstwy
+        jestOk = True
         if liczbaObiektowWarstwy > 0:
             unikalnosc = processing.run("native:removeduplicatesbyattribute", {
                 'INPUT': obrysLayer_tmp,
@@ -2010,14 +2022,13 @@ class AppModule(BaseModule):
             liczbaObiektowWarstwyUnikalnych = unikalnosc['OUTPUT'].featureCount()
             procent = (liczbaObiektowWarstwyUnikalnych / liczbaObiektowWarstwy) * 100
             
-            jestOk = True
             if procent < 100 and atrybutDoSprawdzeniaUnikalnosci == 'oznaczenie':
-                showPopup("Błąd warstwy obrysu","Występują duplikaty w atrybucie " + atrybutDoSprawdzeniaUnikalnosci + " warstwy " + obrysLayer_tmp.sourceName())
-                unikalnosc['DUPLICATES'].setName("Obiekty " + obrysLayer_tmp.sourceName() + " - duplikaty w atrybucie " + atrybutDoSprawdzeniaUnikalnosci)
+                showPopup("Błąd warstwy obrysu","Występują duplikaty w atrybucie \'oznaczenie\' warstwy " + obrysLayer.sourceName())
+                unikalnosc['DUPLICATES'].setName("Obiekty " + obrysLayer.sourceName() + " - duplikaty w atrybucie \'oznaczenie\'")
                 QgsProject.instance().addMapLayer(unikalnosc['DUPLICATES'])
                 jestOk = False
             if liczbaObiektowWarstwyUnikalnych != 1 and atrybutDoSprawdzeniaUnikalnosci == 'status':
-                showPopup("Błąd warstwy obrysu","Występują różne wartości w atrybucie " + atrybutDoSprawdzeniaUnikalnosci + " warstwy " + obrysLayer_tmp.sourceName())
+                showPopup("Błąd warstwy obrysu","Występują różne wartości w atrybucie \'status\' warstwy " + obrysLayer.sourceName())
                 jestOk = False
         return jestOk
 

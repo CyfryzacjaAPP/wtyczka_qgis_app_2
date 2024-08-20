@@ -8,18 +8,21 @@ from PyQt5.QtCore import QVariant
 
 def isLayerInPoland(obrysLayer):
     """sprawdza czy geometria obrysu jest poprawna"""
-    # definicja transformacji układu
-    layerCrs = obrysLayer.sourceCrs()  # z warstwy
-    crs4258 = QgsCoordinateReferenceSystem("EPSG:4258")  # ETRS89
-    transform = QgsCoordinateTransform(crs4258, layerCrs, QgsProject.instance())
+    crs2180 = QgsCoordinateReferenceSystem("EPSG:2180")
     czyGeometrieSaPoprawne = True
-    granicaPolskiSHP = QgsApplication.qgisSettingsDirPath() + "/python/plugins/wtyczka_qgis_app/modules/app/A00_Granice_panstwa/A00_Granice_panstwa_bufor_5cm.shp"
+    granicaPolskiSHP = QgsApplication.qgisSettingsDirPath() + "/python/plugins/wtyczka_qgis_app/modules/app/A00_Granice_panstwa/A00_Granice_panstwa_bufor_300m.shp"
     warstwaGranicaPolski = QgsVectorLayer(granicaPolskiSHP, 'A00_Granice_panstwa', 'ogr')
-    geom_poland = next(warstwaGranicaPolski.getFeatures()).geometry().transform(transform)
+    
+    # transformacja do układu granic Państwa
+    reprojectlayer = processing.run("native:reprojectlayer", {
+        'INPUT': obrysLayer,
+        'TARGET_CRS': crs2180,
+        'OUTPUT': 'memory:'
+    })
     
     # geometria wychodzi poza granicę Polski
     przyciecie = processing.run("qgis:difference", {
-        'INPUT': obrysLayer,
+        'INPUT': reprojectlayer['OUTPUT'],
         'OVERLAY': warstwaGranicaPolski,
         'OUTPUT': 'memory:'
     })
@@ -29,13 +32,6 @@ def isLayerInPoland(obrysLayer):
         'INPUT': przyciecie['OUTPUT'],
         'OUTPUT': 'memory:'
     })
-    
-    #kasowanie obiektów wychodzących poza POG o powierzchni < 1 m2
-    pojedynczeObjekty['OUTPUT'].startEditing()
-    for obj in pojedynczeObjekty['OUTPUT'].getFeatures():
-        if obj.geometry().area() < 1: # 1 m2
-            pojedynczeObjekty['OUTPUT'].deleteFeature(obj.id())
-    pojedynczeObjekty['OUTPUT'].commitChanges(False)
     
     if pojedynczeObjekty['OUTPUT'].featureCount() > 0:
         pojedynczeObjekty['OUTPUT'].setName("Geometrie wychodzace poza granice Polski")
