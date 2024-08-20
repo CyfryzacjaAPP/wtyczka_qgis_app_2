@@ -92,7 +92,7 @@ class WtyczkaAPP(AppModule, MetadataModule, ValidatorModule, TworzenieOUZ, Setti
     def createValidator(self):
         self.iface.messageBar().pushSuccess("Informacja:","Schemat jest importowany. Proszę nie podejmować żadnych akcji w programie QGIS.")
         QCoreApplication.processEvents()
-        self.dataValidator = validator.ValidatorLxml(schema_path=os.path.join(os.path.dirname(__file__), 'modules/validator', 'planowaniePrzestrzenne.xsd'))
+        self.dataValidator = validator.ValidatorLxml(schema_path=os.path.join(os.path.dirname(__file__), 'modules/validator', 'schematTechniczny.xsd'))
         QCoreApplication.processEvents()
         showPopup("Informacja", "Schemat został zaimportowany.")
 

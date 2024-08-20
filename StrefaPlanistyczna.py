@@ -38,6 +38,7 @@ def my_form_open(dialog, layer, feature):
         os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '1'
         atrybuty = feature.attributes()
         geometria = feature.geometry()
+        
         obj = feature
         dlg = dialog
         if dlg.parent() == None:
@@ -50,6 +51,7 @@ def my_form_open(dialog, layer, feature):
         warstwa = layer
         warstwa.geometryOptions().setGeometryPrecision(0.01)
         warstwa.startEditing()
+        
         qgis.utils.iface.setActiveLayer(warstwa)
         
         mainPath = Path(QgsApplication.qgisSettingsDirPath())/Path("python/plugins/wtyczka_qgis_app/")
@@ -370,11 +372,10 @@ def my_form_open(dialog, layer, feature):
         operacjeNaAtrybucie('maksWysokoscZabudowy')
         operacjeNaAtrybucie('maksUdzialPowierzchniZabudowy')
         operacjeNaAtrybucie('minUdzialPowierzchniBiologicznieCzynnej')
-        # operacjeNaAtrybucie('status')
+        operacjeNaAtrybucie('status')
         operacjeNaAtrybucie('obowiazujeOd')
         operacjeNaAtrybucie('obowiazujeDo')
-        # operacjeNaAtrybucie('poczatekWersjiObiektu')
-        # operacjeNaAtrybucie('koniecWersjiObiektu')
+        operacjeNaAtrybucie('koniecWersjiObiektu')
         
         dlg.parent().rejected.connect(dialogRejected)
     except:
@@ -854,11 +855,10 @@ def operacjeNaAtrybucie(nazwaAtrybutu):
                        'maksWysokoscZabudowy':[0],
                        'maksUdzialPowierzchniZabudowy':[0],
                        'minUdzialPowierzchniBiologicznieCzynnej':[0],
-                       # 'status':[1,2],
-                       'obowiazujeOd':[0], # 1,2,3
-                       'obowiazujeDo':[0] # 1,2
-                       # 'poczatekWersjiObiektu':[1,2],
-                       # 'koniecWersjiObiektu':[1,2]
+                       'status':[1,2],
+                       'obowiazujeOd':[0,1,2,3],
+                       'obowiazujeDo':[0,1,2],
+                       'koniecWersjiObiektu':[1,2]
                        }
     atrybutLayout = {'oznaczenie':"gridLayout",
                      'maksNadziemnaIntensywnoscZabudowy':"gridLayout",
@@ -868,7 +868,6 @@ def operacjeNaAtrybucie(nazwaAtrybutu):
                      'status':"gridLayout",
                      'obowiazujeOd':"gridLayout",
                      'obowiazujeDo':"gridLayout",
-                     'poczatekWersjiObiektu':"gridLayout",
                      'koniecWersjiObiektu':"gridLayout"}
     atrybutRowCol = {'oznaczenie':[2,3],
                      'maksNadziemnaIntensywnoscZabudowy':[5,3],
@@ -878,7 +877,6 @@ def operacjeNaAtrybucie(nazwaAtrybutu):
                      'status':[11,3],
                      'obowiazujeOd':[14,3],
                      'obowiazujeDo':[15,3],
-                     'poczatekWersjiObiektu':[21,3],
                      'koniecWersjiObiektu':[22,3]}
     atrybutKontrola = {'oznaczenie':"oznaczenie_kontrola",
                        'maksNadziemnaIntensywnoscZabudowy':"maksNadziemnaIntensywnoscZabudowy_kontrola",
@@ -894,7 +892,7 @@ def operacjeNaAtrybucie(nazwaAtrybutu):
     qWidget = QWidget()
     wyborAkcji = QgsCheckableComboBox(qWidget)
     wyborAkcji.setMaximumWidth(18)
-    wyborAkcji.view().setMinimumWidth(250) #430
+    wyborAkcji.view().setMinimumWidth(430)
     wyborAkcji.setStyleSheet("QComboBox::down-arrow{background-image :;}")
     gridLayout = dlg.findChild(QGridLayout,atrybutLayout[nazwaAtrybutu])
     gridLayout.addWidget(wyborAkcji,atrybutRowCol[nazwaAtrybutu][0],atrybutRowCol[nazwaAtrybutu][1])
@@ -909,7 +907,6 @@ def operacjeNaAtrybucie(nazwaAtrybutu):
                 'status':[],
                 'obowiazujeOd':['włączona kontrola wypełnienia'],
                 'obowiazujeDo':['włączona kontrola wypełnienia'],
-                'poczatekWersjiObiektu':[],
                 'koniecWersjiObiektu':[]}
     
     def wlaczenieLubWylaczenieKontroli(txt):
@@ -969,6 +966,7 @@ def operacjeNaAtrybucie(nazwaAtrybutu):
                 progressMessageBar.layout().addWidget(progress)
                 iface.messageBar().pushWidget(progressMessageBar, Qgis.Info)
                 y = 0
+                dataCzasTeraz = datetime.now(timezone.utc)
                 for warstwa_id, warstwa in QgsProject.instance().mapLayers().items():
                     if warstwa.name().startswith('ObszarStandardowDostepnosciInfrastrukturySpolecznej') or \
                        warstwa.name().startswith('ObszarUzupelnieniaZabudowy') or \
@@ -976,9 +974,15 @@ def operacjeNaAtrybucie(nazwaAtrybutu):
                        warstwa.name().startswith('AktPlanowaniaPrzestrzennego') or \
                        warstwa.name().startswith('StrefaPlanistyczna'):
                         warstwa.startEditing()
+                        idx_Atrybut = warstwa.fields().indexFromName(nazwaAtrybutu)
+                        idx_edycja = warstwa.fields().indexFromName('edycja')
+                        idx_wersjaId = warstwa.fields().indexFromName('wersjaId')
+                        idx_poczatekWersjiObiektu = warstwa.fields().indexFromName('poczatekWersjiObiektu')
                         for feature in warstwa.getFeatures():
-                            feature.setAttribute(warstwa.fields().indexFromName(nazwaAtrybutu), atrybut)
-                            feature.setAttribute(warstwa.fields().indexFromName('edycja'),True)
+                            feature.setAttribute(idx_Atrybut, atrybut)
+                            feature.setAttribute(idx_edycja, True)
+                            feature.setAttribute(idx_wersjaId, dataCzasTeraz.strftime("%Y%m%dT%H%M%S"))
+                            feature.setAttribute(idx_poczatekWersjiObiektu, dataCzasTeraz.isoformat())
                             warstwa.updateFeature(feature)
                             y += 1
                             progress.setValue(y)
@@ -1021,12 +1025,19 @@ def operacjeNaAtrybucie(nazwaAtrybutu):
                 progressMessageBar.layout().addWidget(progress)
                 iface.messageBar().pushWidget(progressMessageBar, Qgis.Info)
                 y = 0
+                dataCzasTeraz = datetime.now(timezone.utc)
                 for warstwa_id, warstwa in QgsProject.instance().mapLayers().items():
                     if warstwa.name().startswith('StrefaPlanistyczna'):
                         warstwa.startEditing()
+                        idx_Atrybut = warstwa.fields().indexFromName(nazwaAtrybutu)
+                        idx_edycja = warstwa.fields().indexFromName('edycja')
+                        idx_wersjaId = warstwa.fields().indexFromName('wersjaId')
+                        idx_poczatekWersjiObiektu = warstwa.fields().indexFromName('poczatekWersjiObiektu')
                         for feature in warstwa.getFeatures():
-                            feature.setAttribute(warstwa.fields().indexFromName(nazwaAtrybutu), atrybut)
-                            feature.setAttribute(warstwa.fields().indexFromName('edycja'),True)
+                            feature.setAttribute(idx_Atrybut, atrybut)
+                            feature.setAttribute(idx_edycja, True)
+                            feature.setAttribute(idx_wersjaId, dataCzasTeraz.strftime("%Y%m%dT%H%M%S"))
+                            feature.setAttribute(idx_poczatekWersjiObiektu, dataCzasTeraz.isoformat())
                             warstwa.updateFeature(feature)
                             y += 1
                             progress.setValue(y)
@@ -1062,18 +1073,22 @@ def operacjeNaAtrybucie(nazwaAtrybutu):
                 progressMessageBar.layout().addWidget(progress)
                 iface.messageBar().pushWidget(progressMessageBar, Qgis.Info)
                 y = 0
+                dataCzasTeraz = datetime.now(timezone.utc)
                 for warstwa_id, warstwa in QgsProject.instance().mapLayers().items():
-                    idx_obowiazujeOd = warstwa.fields().indexFromName('obowiazujeOd')
-                    idx_edycja = warstwa.fields().indexFromName('edycja')
                     if warstwa.name().startswith('ObszarStandardowDostepnosciInfrastrukturySpolecznej') or \
                        warstwa.name().startswith('ObszarUzupelnieniaZabudowy') or \
                        warstwa.name().startswith('ObszarZabudowySrodmiejskiej') or \
                        warstwa.name().startswith('AktPlanowaniaPrzestrzennego') or \
                        warstwa.name().startswith('StrefaPlanistyczna'):
                         warstwa.startEditing()
+                        idx_obowiazujeOd = warstwa.fields().indexFromName('obowiazujeOd')
+                        idx_wersjaId = warstwa.fields().indexFromName('wersjaId')
+                        idx_poczatekWersjiObiektu = warstwa.fields().indexFromName('poczatekWersjiObiektu')
                         for feature in warstwa.getFeatures():
                             if feature['edycja']:
                                 feature.setAttribute(idx_obowiazujeOd, obowiazujeOd.dateTime())
+                                feature.setAttribute(idx_wersjaId, dataCzasTeraz.strftime("%Y%m%dT%H%M%S"))
+                                feature.setAttribute(idx_poczatekWersjiObiektu, dataCzasTeraz.isoformat())
                             warstwa.updateFeature(feature)
                             y += 1
                             progress.setValue(y)
