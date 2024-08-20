@@ -565,7 +565,7 @@
     </PropertyDefn>
     <PropertyDefn>
       <Name>nazwa</Name>
-      <ElementPath>nazwa@title</ElementPath>
+      <ElementPath>nazwa</ElementPath>
       <Type>String</Type>
       <Width>255</Width>
     </PropertyDefn>
