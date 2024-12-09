@@ -277,7 +277,7 @@ def createFormElements(attribute):
         
         if rodzajZbioru != 'POG' and elementName == 'modyfikacja':
             continue
-            
+        
         formElement = FormElement(
             name = elementName,
             type = elementType,
