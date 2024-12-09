@@ -78,7 +78,7 @@ class ValidatorLxml:
         if valResult[0]:
             layer = QgsVectorLayer(xmlPath + "|layername=AktPlanowaniaPrzestrzennego|option:FORCE_SRS_DETECTION=YES|option:CONSIDER_EPSG_AS_URN=YES", "gml", 'ogr')
             if layer and layer.isValid():
-                if not isLayerInPoland(layer):
+                if not isLayerInPoland(layer, 'AktPlanowaniaPrzestrzennego'):
                     return [False,
                             'Błąd geometrii APP: Obrysy leżą poza granicami Polski. Sprawdź czy w pliku GML jest prawidłowa definicja układu zgodnie ze standardem INSPIRE np: srsName="http://www.opengis.net/def/crs/EPSG/0/2177"']
             else:
