@@ -356,7 +356,7 @@
           <bool>true</bool>
          </property>
          <property name="timeSpec">
-          <enum>Qt::LocalTime</enum>
+          <enum>Qt::UTC</enum>
          </property>
         </widget>
        </item>
@@ -648,6 +648,9 @@
          </property>
          <property name="displayFormat">
           <string>yyyy-MM-ddTHH:mm:ss</string>
+         </property>
+         <property name="timeSpec">
+          <enum>Qt::LocalTime</enum>
          </property>
         </widget>
        </item>

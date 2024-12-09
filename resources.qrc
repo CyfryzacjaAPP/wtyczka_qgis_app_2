@@ -13,5 +13,9 @@
 		<file>img/info6.png</file>
 		<file>img/baner_wtyczka.png</file>
 		<file>img/tworzenieOUZ.png</file>
+		<file>img/rectangle.png</file>
+		<file>img/hurtowa_zmiana_atrybutu_ikona.png</file>
+		<file>img/hurtowa_zmiana_atrybutu_warstwa_ikona.png</file>
+		<file>img/uspojnienie_daty_ikona.png</file>
     </qresource>
 </RCC>

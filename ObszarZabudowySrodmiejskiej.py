@@ -40,13 +40,12 @@ def my_form_open(dialog, layer, feature):
         dlg.parent().setMaximumHeight(380)
         
         warstwa = layer
-        warstwa.geometryOptions().setGeometryPrecision(0.01)
         warstwa.startEditing()
         qgis.utils.iface.setActiveLayer(warstwa)
         
         mainPath = Path(QgsApplication.qgisSettingsDirPath())/Path("python/plugins/wtyczka_qgis_app/")
         teryt_gminy = ''
-        dataCzasTeraz = datetime.now(timezone.utc)
+        dataCzasTeraz = QDateTime.currentDateTimeUtc()
         
         if warstwa.fields().indexFromName('edycja') == -1:
             warstwa.addAttribute(QgsField('edycja', QVariant.Bool, ''))
@@ -101,7 +100,6 @@ def my_form_open(dialog, layer, feature):
         przestrzenNazw = dialog.findChild(QLineEdit,"przestrzenNazw")
         przestrzenNazw.setToolTip('')
         przestrzenNazw.setPlaceholderText(placeHolders['przestrzenNazw'])
-        przestrzenNazw.textChanged.connect(przestrzenNazw_kontrola)
         
         lokalnyId = dialog.findChild(QLineEdit,"lokalnyId")
         lokalnyId.setToolTip('')
@@ -154,8 +152,6 @@ def my_form_open(dialog, layer, feature):
         zapisz.setEnabled(False)
         zapisz.setText("Zapisz")
         
-        przestrzenNazw_kontrola()
-        
         labels = [None for i in range(12)]
         pixmap = QPixmap(':/plugins/wtyczka_app/img/info2.png')
         for i in range(12):
@@ -196,6 +192,7 @@ def zmianaWersjiIPoczatkuWersji():
         poczatekWersjiObiektu.disconnect()
         poczatekWersjiObiektu.setDateTime(dataCzasTeraz)
         poczatekWersjiObiektu.dateTimeChanged.connect(poczatekWersjiObiektu_kontrola)
+        przestrzenNazw_kontrola()
 
 
 def wlaczenieZapisu():
@@ -447,39 +444,62 @@ def operacjeNaAtrybucie(nazwaAtrybutu):
         atrybutOperacje_tmp.append(operacje[x])
     
     qWidget = QWidget()
-    wyborAkcji = QgsCheckableComboBox(qWidget)
-    wyborAkcji.setMaximumWidth(18)
-    wyborAkcji.view().setMinimumWidth(430)
-    wyborAkcji.setStyleSheet("QComboBox::down-arrow{background-image :;}")
+    wyborAkcji = QToolButton(qWidget)
+    wyborAkcji.setFixedSize(18, 18)
+    wyborAkcji.setIcon(QIcon(":/plugins/wtyczka_app/img/rectangle.png"))
+    wyborAkcji.setPopupMode(QToolButton.InstantPopup)
+    wyborAkcji.setStyleSheet("QToolButton::menu-indicator { image: none; }")
+    menu = QMenu(wyborAkcji)
+    
+    for item in atrybutOperacje_tmp:
+        action = QAction(item, wyborAkcji)
+        if item == 'włączona kontrola wypełnienia':
+            action.setCheckable(True)
+            if 0 in atrybutOperacje[nazwaAtrybutu]:
+                action.setChecked(kontrolaAtrybutu[nazwaAtrybutu])
+            action.triggered.connect(lambda checked, text=item: wlaczenieLubWylaczenieKontroli(nazwaAtrybutu,checked))
+        else:
+            if item == 'hurtowa zmiana atrybutu w ramach wszystkich warstw':
+                action.setIcon(QIcon(":/plugins/wtyczka_app/img/hurtowa_zmiana_atrybutu_ikona.png"))
+            elif item == 'hurtowa zmiana atrybutu w ramach warstwy':
+                action.setIcon(QIcon(":/plugins/wtyczka_app/img/hurtowa_zmiana_atrybutu_warstwa_ikona.png"))
+            elif item == 'uspójnienie daty dla obiektów nowych lub zmienionych':
+                action.setIcon(QIcon(":/plugins/wtyczka_app/img/uspojnienie_daty_ikona.png"))
+            action.triggered.connect(lambda checked, text=item: wskazanieNaOperacje(nazwaAtrybutu,text))
+        menu.addAction(action)
+    wyborAkcji.setMenu(menu)
     gridLayout = dlg.findChild(QGridLayout,atrybutLayout[nazwaAtrybutu])
     gridLayout.addWidget(wyborAkcji,atrybutRowCol[nazwaAtrybutu][0],atrybutRowCol[nazwaAtrybutu][1])
-    wyborAkcji.addItems(atrybutOperacje_tmp)
-    if 0 in atrybutOperacje[nazwaAtrybutu]:
-        wyborAkcji.setItemCheckState(0, kontrolaAtrybutu[nazwaAtrybutu])
+    
     operacja = {'oznaczenie':['włączona kontrola wypełnienia'],
                 'status':[],
                 'obowiazujeOd':['włączona kontrola wypełnienia'],
                 'obowiazujeDo':['włączona kontrola wypełnienia'],
                 'koniecWersjiObiektu':[]}
-    
-    def wlaczenieLubWylaczenieKontroli(txt):
+
+    def wlaczenieLubWylaczenieKontroli(atrybut,isChecked):
         global kontrolaAtrybutu
-        if 'włączona kontrola wypełnienia' in txt:
-            kontrolaAtrybutu[nazwaAtrybutu] = 2
+        if isChecked:
+            kontrolaAtrybutu[atrybut] = 2
         else:
-            kontrolaAtrybutu[nazwaAtrybutu] = 0
-        if atrybutKontrola[nazwaAtrybutu] == 'poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola':
-            globals().get(atrybutKontrola[nazwaAtrybutu])()
+            kontrolaAtrybutu[atrybut] = 0
+        if atrybutKontrola[atrybut] == 'poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola':
+            globals().get(atrybutKontrola[atrybut])()
         else:
-            globals().get(atrybutKontrola[nazwaAtrybutu])(oznaczenie.text())
+            if atrybut == 'oznaczenie':
+                globals().get(atrybutKontrola[atrybut])(oznaczenie.text())
     
-    def hurtowaZmianatArybutuWRamachWarstw():
-        for obj in globals():
-            if obj == nazwaAtrybutu:
-                if isinstance(globals().get(obj), QComboBox):
-                    atrybut = globals().get(obj).currentText()
-                elif isinstance(globals().get(obj), QDateTimeEdit):
-                    atrybut = globals().get(obj).dateTime()
+    def hurtowaZmianaArybutuWRamachWarstw():
+        if obj.id() < 0:
+            QMessageBox.warning(None,'Informacja','Hurtowa zmiana atrybutu {} w ramach wszystkich warstw nie może być wykonana dla obiektu, który nie został zapisany.'.format(nazwaAtrybutu))
+            return
+        
+        for o in globals():
+            if o == nazwaAtrybutu:
+                if isinstance(globals().get(o), QComboBox):
+                    atrybut = globals().get(o).currentText()
+                elif isinstance(globals().get(o), QDateTimeEdit):
+                    atrybut = globals().get(o).dateTime()
                     if atrybut.time().msec() != 0 and atrybut.time().second() != 0:
                         atrybut = None
                 break
@@ -510,7 +530,7 @@ def operacjeNaAtrybucie(nazwaAtrybutu):
                 progressMessageBar.layout().addWidget(progress)
                 iface.messageBar().pushWidget(progressMessageBar, Qgis.Info)
                 y = 0
-                dataCzasTeraz = datetime.now(timezone.utc)
+                dataCzasTeraz = QDateTime.currentDateTimeUtc()
                 for warstwa_id, warstwa in QgsProject.instance().mapLayers().items():
                     if warstwa.name().startswith('ObszarStandardowDostepnosciInfrastrukturySpolecznej') or \
                        warstwa.name().startswith('ObszarUzupelnieniaZabudowy') or \
@@ -525,8 +545,8 @@ def operacjeNaAtrybucie(nazwaAtrybutu):
                         for feature in warstwa.getFeatures():
                             feature.setAttribute(idx_Atrybut, atrybut)
                             feature.setAttribute(idx_edycja, True)
-                            feature.setAttribute(idx_wersjaId, dataCzasTeraz.strftime("%Y%m%dT%H%M%S"))
-                            feature.setAttribute(idx_poczatekWersjiObiektu, dataCzasTeraz.isoformat())
+                            feature.setAttribute(idx_wersjaId, dataCzasTeraz.toString("yyyyMMddThhmmss"))
+                            feature.setAttribute(idx_poczatekWersjiObiektu, dataCzasTeraz)
                             warstwa.updateFeature(feature)
                             y += 1
                             progress.setValue(y)
@@ -534,15 +554,21 @@ def operacjeNaAtrybucie(nazwaAtrybutu):
                         warstwa.startEditing()
                 progressMessageBar.dismiss()
             dlg.changeAttribute(nazwaAtrybutu, atrybut)
+            dlg.changeAttribute('wersjaId', dataCzasTeraz)
+            zapis()
             QMessageBox.information(None,'Informacja','Hurtowa zmiana atrybutu {} w ramach wszystkich warstw została zakończona.'.format(nazwaAtrybutu))
     
-    def hurtowaZmianatArybutuWRamachWarstwy():
-        for obj in globals():
-            if obj == nazwaAtrybutu:
-                if isinstance(globals().get(obj), QComboBox):
-                    atrybut = globals().get(obj).currentText()
-                elif isinstance(globals().get(obj), QDateTimeEdit):
-                    atrybut = globals().get(obj).dateTime()
+    def hurtowaZmianaArybutuWRamachWarstwy():
+        if obj.id() < 0:
+            QMessageBox.warning(None,'Informacja','Hurtowa zmiana atrybutu {} w ramach warstwy nie może być wykonana dla obiektu, który nie został zapisany.'.format(nazwaAtrybutu))
+            return
+        
+        for o in globals():
+            if o == nazwaAtrybutu:
+                if isinstance(globals().get(o), QComboBox):
+                    atrybut = globals().get(o).currentText()
+                elif isinstance(globals().get(o), QDateTimeEdit):
+                    atrybut = globals().get(o).dateTime()
                     if atrybut.time().msec() != 0 and atrybut.time().second() != 0:
                         atrybut = None
                 break
@@ -569,15 +595,19 @@ def operacjeNaAtrybucie(nazwaAtrybutu):
                 progressMessageBar.layout().addWidget(progress)
                 iface.messageBar().pushWidget(progressMessageBar, Qgis.Info)
                 y = 0
-                dataCzasTeraz = datetime.now(timezone.utc)
+                dataCzasTeraz = QDateTime.currentDateTimeUtc()
                 for warstwa_id, warstwa in QgsProject.instance().mapLayers().items():
                     if warstwa.name().startswith('ObszarZabudowySrodmiejskiej'):
                         warstwa.startEditing()
+                        idx_Atrybut = warstwa.fields().indexFromName(nazwaAtrybutu)
+                        idx_edycja = warstwa.fields().indexFromName('edycja')
+                        idx_wersjaId = warstwa.fields().indexFromName('wersjaId')
+                        idx_poczatekWersjiObiektu = warstwa.fields().indexFromName('poczatekWersjiObiektu')
                         for feature in warstwa.getFeatures():
                             feature.setAttribute(idx_Atrybut, atrybut)
                             feature.setAttribute(idx_edycja, True)
-                            feature.setAttribute(idx_wersjaId, dataCzasTeraz.strftime("%Y%m%dT%H%M%S"))
-                            feature.setAttribute(idx_poczatekWersjiObiektu, dataCzasTeraz.isoformat())
+                            feature.setAttribute(idx_wersjaId, dataCzasTeraz.toString("yyyyMMddThhmmss"))
+                            feature.setAttribute(idx_poczatekWersjiObiektu, dataCzasTeraz)
                             warstwa.updateFeature(feature)
                             y += 1
                             progress.setValue(y)
@@ -586,25 +616,36 @@ def operacjeNaAtrybucie(nazwaAtrybutu):
                         break
                 progressMessageBar.dismiss()
             dlg.changeAttribute(nazwaAtrybutu, atrybut)
+            dlg.changeAttribute('wersjaId', dataCzasTeraz)
+            zapis()
             QMessageBox.information(None,'Informacja','Hurtowa zmiana atrybutu {} w ramach warstwy została zakończona.'.format(nazwaAtrybutu))
     
     def uspojnienieDatyObowiazujeOd():
-        odp = QMessageBox.question(None,'Operacje na danych',
-                                   'Czy uspójnić datę "obowiązuje od" dla obiektów nowych lub zmienionych w ramach wszystkich warstw?', QMessageBox.Yes |
+        if obj.id() < 0:
+            QMessageBox.warning(None,'Informacja','Uspójnienie daty "obowiązuje od" nie może być wykonane dla obiektu, który nie został zapisany.')
+            return
+        
+        odp = QMessageBox.question(None,'Operacje na danych', 'UWAGA: Jeśli w trakcie edycji danych użyta została wcześniej funkcja hurtowej zmiany atrybutu, \
+wówczas funkcja uspójnienia zostanie zastosowana we wszystkich obiektach, w których zaszła zmiana hurtowa.\n\
+Czy uspójnić "obowiązuje od" dla obiektów nowych lub zmienionych w ramach wszystkich warstw?', QMessageBox.Yes |
                                    QMessageBox.No, QMessageBox.No)
         if odp == QMessageBox.No:
             return
         else:
             liczbaObiektowDoZmiany = 0
-            for warstwa_id, warstwa in QgsProject.instance().mapLayers().items():
-                if warstwa.name().startswith('ObszarStandardowDostepnosciInfrastrukturySpolecznej') or \
-                   warstwa.name().startswith('ObszarUzupelnieniaZabudowy') or \
-                   warstwa.name().startswith('ObszarZabudowySrodmiejskiej') or \
-                   warstwa.name().startswith('AktPlanowaniaPrzestrzennego') or \
-                   warstwa.name().startswith('StrefaPlanistyczna'):
-                       for obj in warstwa.getFeatures():
-                           if obj['edycja']:
+            for warstwa_id, lyr in QgsProject.instance().mapLayers().items():
+                if lyr.name().startswith('ObszarStandardowDostepnosciInfrastrukturySpolecznej') or \
+                   lyr.name().startswith('ObszarUzupelnieniaZabudowy') or \
+                   lyr.name().startswith('ObszarZabudowySrodmiejskiej') or \
+                   lyr.name().startswith('StrefaPlanistyczna'):
+                       for f in lyr.getFeatures():
+                           if f['edycja']:
                                liczbaObiektowDoZmiany += 1
+            
+            if liczbaObiektowDoZmiany > 0:
+                for warstwa_id, lyr in QgsProject.instance().mapLayers().items():
+                    if lyr.name().startswith('AktPlanowaniaPrzestrzennego'):
+                        liczbaObiektowDoZmiany += 1
             
             if liczbaObiektowDoZmiany > 1:
                 progressMessageBar = iface.messageBar().createMessage('Postęp wykonania uspójnienia daty "obowiązuje od" w ramach wszystkich warstw.')
@@ -613,68 +654,41 @@ def operacjeNaAtrybucie(nazwaAtrybutu):
                 progressMessageBar.layout().addWidget(progress)
                 iface.messageBar().pushWidget(progressMessageBar, Qgis.Info)
                 y = 0
-                dataCzasTeraz = datetime.now(timezone.utc)
-                for warstwa_id, warstwa in QgsProject.instance().mapLayers().items():
-                    if warstwa.name().startswith('ObszarStandardowDostepnosciInfrastrukturySpolecznej') or \
-                       warstwa.name().startswith('ObszarUzupelnieniaZabudowy') or \
-                       warstwa.name().startswith('ObszarZabudowySrodmiejskiej') or \
-                       warstwa.name().startswith('AktPlanowaniaPrzestrzennego') or \
-                       warstwa.name().startswith('StrefaPlanistyczna'):
-                        warstwa.startEditing()
-                        idx_obowiazujeOd = warstwa.fields().indexFromName('obowiazujeOd')
-                        idx_wersjaId = warstwa.fields().indexFromName('wersjaId')
-                        idx_poczatekWersjiObiektu = warstwa.fields().indexFromName('poczatekWersjiObiektu')
-                        for feature in warstwa.getFeatures():
-                            if feature['edycja']:
+                dataCzasTeraz = QDateTime.currentDateTimeUtc()
+                for warstwa_id, lyr in QgsProject.instance().mapLayers().items():
+                    if lyr.name().startswith('ObszarStandardowDostepnosciInfrastrukturySpolecznej') or \
+                       lyr.name().startswith('ObszarUzupelnieniaZabudowy') or \
+                       lyr.name().startswith('ObszarZabudowySrodmiejskiej') or \
+                       lyr.name().startswith('AktPlanowaniaPrzestrzennego') or \
+                       lyr.name().startswith('StrefaPlanistyczna'):
+                        lyr.startEditing()
+                        idx_obowiazujeOd = lyr.fields().indexFromName('obowiazujeOd')
+                        idx_wersjaId = lyr.fields().indexFromName('wersjaId')
+                        idx_poczatekWersjiObiektu = lyr.fields().indexFromName('poczatekWersjiObiektu')
+                        for feature in lyr.getFeatures():
+                            if feature['edycja'] or lyr.name().startswith('AktPlanowaniaPrzestrzennego'):
                                 feature.setAttribute(idx_obowiazujeOd, obowiazujeOd.dateTime())
-                                feature.setAttribute(idx_wersjaId, dataCzasTeraz.strftime("%Y%m%dT%H%M%S"))
-                                feature.setAttribute(idx_poczatekWersjiObiektu, dataCzasTeraz.isoformat())
-                            warstwa.updateFeature(feature)
+                                feature.setAttribute(idx_wersjaId, dataCzasTeraz.toString("yyyyMMddThhmmss"))
+                                feature.setAttribute(idx_poczatekWersjiObiektu, dataCzasTeraz)
+                            lyr.updateFeature(feature)
                             y += 1
                             progress.setValue(y)
-                        warstwa.commitChanges()
-                        warstwa.startEditing()
+                        lyr.commitChanges()
+                        lyr.startEditing()
                 progressMessageBar.dismiss()
             dlg.changeAttribute('obowiazujeOd', obowiazujeOd.dateTime())
+            dlg.changeAttribute('wersjaId', dataCzasTeraz)
+            zapis()
             QMessageBox.information(None,'Informacja','Uspójnienie daty "obowiązuje od" w ramach wszystkich warstw zostało zakończone.')
     
-    def wskazanieNaOperacje(txt):
-        global operacja
-        if len(txt) > len(operacja[nazwaAtrybutu]):
-            difference = list(set(txt) - set(operacja[nazwaAtrybutu]))
-        elif len(txt) < len(operacja[nazwaAtrybutu]):
-            difference = list(set(operacja[nazwaAtrybutu]) - set(txt))
-        else:
-            difference = operacja[nazwaAtrybutu]
-        if difference[0] == 'włączona kontrola wypełnienia':
-            wlaczenieLubWylaczenieKontroli(txt)
-        elif difference[0] == 'hurtowa zmiana atrybutu w ramach wszystkich warstw' and txt != []:
-            hurtowaZmianatArybutuWRamachWarstw()
-            i = 0
-            for x in atrybutOperacje[nazwaAtrybutu]:
-                if operacje[x] == 'hurtowa zmiana atrybutu w ramach wszystkich warstw' and wyborAkcji.itemCheckState(i) == 2:
-                    wyborAkcji.setItemCheckState(i, 0)
-                    txt.remove('hurtowa zmiana atrybutu w ramach wszystkich warstw')
-                i += 1
-        elif difference[0] == 'hurtowa zmiana atrybutu w ramach warstwy' and txt != []:
-            hurtowaZmianatArybutuWRamachWarstwy()
-            i = 0
-            for x in atrybutOperacje[nazwaAtrybutu]:
-                if operacje[x] == 'hurtowa zmiana atrybutu w ramach warstwy' and wyborAkcji.itemCheckState(i) == 2:
-                    wyborAkcji.setItemCheckState(i, 0)
-                    txt.remove('hurtowa zmiana atrybutu w ramach warstwy')
-                i += 1
-        elif difference[0] == 'uspójnienie daty dla obiektów nowych lub zmienionych' and txt != []:
+    def wskazanieNaOperacje(atrybut,txt):
+        nazwaAtrybutu = atrybut
+        if txt == 'hurtowa zmiana atrybutu w ramach wszystkich warstw':
+            hurtowaZmianaArybutuWRamachWarstw()
+        elif txt == 'hurtowa zmiana atrybutu w ramach warstwy':
+            hurtowaZmianaArybutuWRamachWarstwy()
+        elif txt == 'uspójnienie daty dla obiektów nowych lub zmienionych':
             uspojnienieDatyObowiazujeOd()
-            i = 0
-            for x in atrybutOperacje[nazwaAtrybutu]:
-                if operacje[x] == 'uspójnienie daty dla obiektów nowych lub zmienionych' and wyborAkcji.itemCheckState(i) == 2:
-                    wyborAkcji.setItemCheckState(i, 0)
-                    txt.remove('uspójnienie daty dla obiektów nowych lub zmienionych')
-                i += 1
-        operacja[nazwaAtrybutu] = txt
-    
-    wyborAkcji.checkedItemsChanged.connect(wskazanieNaOperacje)
 
 
 def dialogRejected():
