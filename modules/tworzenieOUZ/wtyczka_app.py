@@ -79,16 +79,70 @@ class TworzenieOUZ(BaseModule):
             })
             warstwaZBudynkami = warstwaZBudynkami['OUTPUT']
         
+        self.tworzenieOUZDialog.progressBar.setValue(10)
+        QCoreApplication.processEvents()
+        
+        spatial_index = QgsSpatialIndex(warstwaZBudynkami.getFeatures())
+        def znajdz_grupe(feature, odwiedzone):
+            sasiedzi_grupy = set()
+            stack = [feature]
+            while stack:
+                current_feature = stack.pop()
+                current_geom = current_feature.geometry()
+                sasiedzi_ids = spatial_index.intersects(current_geom.buffer(105, 5).boundingBox())
+                for sasiedzi_id in sasiedzi_ids:
+                    if sasiedzi_id == current_feature.id() or sasiedzi_id in odwiedzone:
+                        continue
+                    sasiedni_feature = warstwaZBudynkami.getFeature(sasiedzi_id)
+                    d = current_geom.distance(sasiedni_feature.geometry())
+                    if d <= 100:
+                        odwiedzone.add(sasiedzi_id)
+                        sasiedzi_grupy.add(sasiedni_feature)
+                        stack.append(sasiedni_feature)
+            return sasiedzi_grupy
+        
+        self.tworzenieOUZDialog.progressBar.setValue(20)
+        QCoreApplication.processEvents()
+        
+        grupy = []
+        odwiedzone = set()
+        
+        # Iterowanie przez każdy budynek w warstwie
+        for feature in warstwaZBudynkami.getFeatures():
+            if feature.id() in odwiedzone:
+                continue
+            
+            grupa = znajdz_grupe(feature, odwiedzone)
+            
+            if len(grupa) >= 5:
+                grupy.append(grupa)
+        
+        # Tworzenie nowej warstwy do wyświetlenia zgrupowanych budynków
+        warstwa_output = QgsVectorLayer("Polygon?crs=" + warstwaZBudynkami.crs().authid(), "Grupowane_Poligony", "memory")
+        warstwa_output_data = warstwa_output.dataProvider()
+        
+        # Dodajemy obiekty z grup do nowej warstwy
+        for grupa in grupy:
+            for feature in grupa:
+                warstwa_output_data.addFeature(feature)
+        
+        if warstwa_output.featureCount() == 0:
+            showPopup("Wyznaczanie OUZ","Brak budynków spełniających kryteria. Tworzenie OUZ zatrzymane.")
+            self.tworzenieOUZDialog.progressBar.reset()
+            self.tworzenieOUZDialog.progressBar.setValue(0)
+            self.tworzenieOUZDialog.tworzenie_btn.setEnabled(True)
+            return
+        
         # bufor wokół budynków z rozpuszczeniem granic
         bufory = processing.run("native:buffer", {
-            'INPUT': warstwaZBudynkami,
+            'INPUT': warstwa_output,
             'DISTANCE':50,
-            'SEGMENTS':5,
+            'SEGMENTS':60,
             'DISSOLVE': True,
             'MITER_LIMIT': 2,
             'OUTPUT': 'memory:'
         })
-        self.tworzenieOUZDialog.progressBar.setValue(10)
+        self.tworzenieOUZDialog.progressBar.setValue(30)
         QCoreApplication.processEvents()
         
         # rozbicie multipoligonu na poligony
@@ -96,28 +150,6 @@ class TworzenieOUZ(BaseModule):
             'INPUT': bufory['OUTPUT'],
             'OUTPUT': 'memory:'
         })
-        self.tworzenieOUZDialog.progressBar.setValue(30)
-        QCoreApplication.processEvents()
-        
-        # usunięcie buforów, na których znajduje się mnieij niż 5 budynków
-        pojedynczeBufory['OUTPUT'].startEditing()
-        for bufor in pojedynczeBufory['OUTPUT'].getFeatures():
-            budynki = []
-            for budynek in warstwaZBudynkami.getFeatures(bufor.geometry().boundingBox()):
-                if (bufor.geometry()).contains(budynek.geometry()):
-                    budynki.append(budynek)
-            if len(budynki) < 5:
-                pojedynczeBufory['OUTPUT'].deleteFeature(bufor.id())
-        pojedynczeBufory['OUTPUT'].commitChanges()
-        self.tworzenieOUZDialog.progressBar.setValue(50)
-        QCoreApplication.processEvents()
-        
-        if pojedynczeBufory['OUTPUT'].featureCount() == 0:
-            showPopup("Wyznaczanie OUZ","Brak budynków spełniających kryteria. Tworzenie OUZ zatrzymane.")
-            self.tworzenieOUZDialog.progressBar.reset()
-            self.tworzenieOUZDialog.progressBar.setValue(0)
-            self.tworzenieOUZDialog.tworzenie_btn.setEnabled(True)
-            return
         
         # usunięcie dziur o powierzchni poniżej 5 000 m2
         buforyBezDziur = processing.run("native:deleteholes", {
@@ -125,7 +157,7 @@ class TworzenieOUZ(BaseModule):
             'MIN_AREA': 5000,
             'OUTPUT': 'memory:'
         })
-        self.tworzenieOUZDialog.progressBar.setValue(60)
+        self.tworzenieOUZDialog.progressBar.setValue(40)
         QCoreApplication.processEvents()
         
         # do wyliczenia Pb przycięcie do POG
@@ -145,11 +177,15 @@ class TworzenieOUZ(BaseModule):
         buforMinus40m = processing.run("native:buffer", {
             'INPUT': buforyBezDziur['OUTPUT'],
             'DISTANCE': -40,
-            'SEGMENTS': 10,
             'DISSOLVE': True,
+            'END_CAP_STYLE': 0,
+            'JOIN_STYLE': 0,
+            'MITER_LIMIT': 2,
+            'SEGMENTS': 60,
             'OUTPUT': 'memory:'
         })
-        self.tworzenieOUZDialog.progressBar.setValue(80)
+        
+        self.tworzenieOUZDialog.progressBar.setValue(50)
         QCoreApplication.processEvents()
         
         # rozbicie multipoligon na poligony
@@ -158,7 +194,7 @@ class TworzenieOUZ(BaseModule):
             'OUTPUT': 'memory:'
         })
         
-        self.tworzenieOUZDialog.progressBar.setValue(90)
+        self.tworzenieOUZDialog.progressBar.setValue(60)
         QCoreApplication.processEvents()
         
         # jeżeli jest obiekt POG to przecięcie z OUZ
@@ -193,9 +229,12 @@ class TworzenieOUZ(BaseModule):
         else:
             # rozbicie multipoligon na poligony
             pojedynczeBufory = processing.run("native:multiparttosingleparts", {
-                'INPUT': multipoligon['OUTPUT'],
+                'INPUT': buforMinus40m['OUTPUT'],
                 'OUTPUT': 'memory:'
             })
+        
+        self.tworzenieOUZDialog.progressBar.setValue(70)
+        QCoreApplication.processEvents()
         
         defaultPath = s.value("qgis_app2/settings/defaultPath", "/")
         pathQML = pathlib.Path(QgsApplication.qgisSettingsDirPath())/pathlib.Path("python/plugins/wtyczka_qgis_app/QML/ObszarUzupelnieniaZabudowy.qml")
@@ -229,6 +268,9 @@ class TworzenieOUZ(BaseModule):
             if not layerName in nazwyWarstw and not os.path.exists(pathlib.Path(str(defaultPath + '/' + layerName + '.gpkg'))):
                 i = n
                 break
+        
+        self.tworzenieOUZDialog.progressBar.setValue(80)
+        QCoreApplication.processEvents()
         
         if i > 0:
             layerName = 'ObszarUzupelnieniaZabudowy_' + str(i)
@@ -272,17 +314,21 @@ class TworzenieOUZ(BaseModule):
                     ouz.setAttribute(10,'w opracowaniu')
                     ouz.setAttribute(11,dataTime)
                     ouz.setAttribute(13,True)
-                    ouz.setGeometry(ouz.geometry().snappedToGrid(0.01,0.01))
+                    ouz.setGeometry(ouz.geometry())
                     
                     if warstwaZPOG.featureCount() > 0:
                         for pog in warstwaZPOG.getFeatures():
                             ouz.setAttribute(8,pog['OBOWIAZUJEOD'])
-                            ouz.setAttribute(10,pog['STATUS'])
+                            if pog['STATUS'] != NULL:
+                                ouz.setAttribute(10,pog['STATUS'])
                     
                     gkpg.updateFeature(ouz)
                     gkpg.commitChanges(False)
                 
                 gkpg.loadNamedStyle(str(pathQML))
+                
+                self.tworzenieOUZDialog.progressBar.setValue(90)
+                QCoreApplication.processEvents()
                 
                 editFormConfig = gkpg.editFormConfig()
                 pathUI = pathlib.Path(QgsApplication.qgisSettingsDirPath())/pathlib.Path("python/plugins/wtyczka_qgis_app/ObszarUzupelnieniaZabudowy.ui")
@@ -297,50 +343,43 @@ class TworzenieOUZ(BaseModule):
                 
                 # Zapis budynków do GML
                 target_path = os.path.join(defaultPathDokumentacja, "Budynki.gml")
-                if warstwaZBudynkami.dataProvider().storageType() == 'GML':
-                    warstwaZBudynkamiPath = str(warstwaZBudynkami.dataProvider().dataSourceUri()).split("|")[0]
-                    try:
-                        shutil.copy2(warstwaZBudynkamiPath, target_path)
-                    except:
-                        pass
-                else:
-                    try:
-                        kolDoUsuniecia = []
-                        for field in warstwaZBudynkami.fields():
-                            if field.type() == QVariant.String and field.length() > 254:
-                                for f in warstwaZBudynkami.getFeatures():
-                                    try:
-                                        max_length = len(f[field.name()])
-                                    except:
-                                        kolDoUsuniecia.append(field.name())
-                                        break
-                                    if max_length > 255:
-                                        kolDoUsuniecia.append(field.name())
-                                        break
-                        if kolDoUsuniecia != None and len(kolDoUsuniecia) > 0:
-                            warstwaZBudynkamiBezKolumny = processing.run("native:deletecolumn", {
-                                'COLUMN': kolDoUsuniecia,
-                                'INPUT': warstwaZBudynkami,
-                                'OUTPUT': 'memory:'
-                            })
-                            warstwaWynikowa = warstwaZBudynkamiBezKolumny['OUTPUT']
-                        else:
-                            warstwaWynikowa = warstwaZBudynkami
-                        wynik = processing.run("native:savefeatures", {
-                            'DATASOURCE_OPTIONS': '',
-                            'INPUT': warstwaWynikowa,
-                            'LAYER_NAME': 'Budynki',
-                            'LAYER_OPTIONS': '',
-                            'OUTPUT': target_path
+                try:
+                    kolDoUsuniecia = []
+                    for field in warstwaZBudynkami.fields():
+                        if field.type() == QVariant.String and field.length() > 254:
+                            for f in warstwaZBudynkami.getFeatures():
+                                try:
+                                    max_length = len(f[field.name()])
+                                except:
+                                    kolDoUsuniecia.append(field.name())
+                                    break
+                                if max_length > 255:
+                                    kolDoUsuniecia.append(field.name())
+                                    break
+                    if kolDoUsuniecia != None and len(kolDoUsuniecia) > 0:
+                        warstwaZBudynkamiBezKolumny = processing.run("native:deletecolumn", {
+                            'COLUMN': kolDoUsuniecia,
+                            'INPUT': warstwaZBudynkami,
+                            'OUTPUT': 'memory:'
                         })
-                        
-                        defaultPathDanePomocnicze = defaultPath + "/Dane pomocnicze/"
-                        if not os.path.exists(defaultPathDanePomocnicze):
-                            os.makedirs(defaultPathDanePomocnicze)
-                        shutil.move(defaultPathDokumentacja + '/Budynki.xsd', defaultPathDanePomocnicze + '/Budynki.xsd')
-                        
-                    except Exception as errorMsg:
-                        print(errorMsg)
+                        warstwaWynikowa = warstwaZBudynkamiBezKolumny['OUTPUT']
+                    else:
+                        warstwaWynikowa = warstwaZBudynkami
+                    wynik = processing.run("native:savefeatures", {
+                        'DATASOURCE_OPTIONS': '',
+                        'INPUT': warstwaWynikowa,
+                        'LAYER_NAME': 'Budynki',
+                        'LAYER_OPTIONS': '',
+                        'OUTPUT': target_path
+                    })
+                    
+                    defaultPathDanePomocnicze = defaultPath + "/Dane pomocnicze/"
+                    if not os.path.exists(defaultPathDanePomocnicze):
+                        os.makedirs(defaultPathDanePomocnicze)
+                    shutil.move(defaultPathDokumentacja + '/Budynki.xsd', defaultPathDanePomocnicze + '/Budynki.xsd')
+                    
+                except Exception as errorMsg:
+                    print(errorMsg)
                 
                 # zapisanie Pp, Pu, Pb do pliku Powierzchnie.xml
                 root = ET.Element("Dane")
