@@ -6,10 +6,9 @@ from ..utils import showPopup
 from PyQt5.QtCore import QVariant
 
 
-def isLayerInPoland(obrysLayer):
-    """sprawdza czy geometria obrysu jest poprawna"""
+
+def isLayerInPoland(obrysLayer, layerName):
     crs2180 = QgsCoordinateReferenceSystem("EPSG:2180")
-    czyGeometrieSaPoprawne = True
     granicaPolskiSHP = QgsApplication.qgisSettingsDirPath() + "/python/plugins/wtyczka_qgis_app/modules/app/A00_Granice_panstwa/A00_Granice_panstwa_bufor_300m.shp"
     warstwaGranicaPolski = QgsVectorLayer(granicaPolskiSHP, 'A00_Granice_panstwa', 'ogr')
     
@@ -20,9 +19,18 @@ def isLayerInPoland(obrysLayer):
         'OUTPUT': 'memory:'
     })
     
+    extractbyexpression = processing.run("qgis:extractbyexpression", {
+        'INPUT': reprojectlayer['OUTPUT'],
+        'EXPRESSION': '$area != 0',
+        'OUTPUT': 'memory:'
+    })
+    
+    if reprojectlayer['OUTPUT'].featureCount() - extractbyexpression['OUTPUT'].featureCount() > 0:
+        showPopup("Wczytaj warstwę",f"Warstwa \"{layerName}\" posiada co najmniej jeden obiekt z pustą geometrią. Kontynuuję wczytywanie.")
+    
     # geometria wychodzi poza granicę Polski
     przyciecie = processing.run("qgis:difference", {
-        'INPUT': reprojectlayer['OUTPUT'],
+        'INPUT': extractbyexpression['OUTPUT'],
         'OVERLAY': warstwaGranicaPolski,
         'OUTPUT': 'memory:'
     })
@@ -33,14 +41,20 @@ def isLayerInPoland(obrysLayer):
         'OUTPUT': 'memory:'
     })
     
+    # usuwanie obiektow o powierzchni < 1 m2
+    pojedynczeObjekty['OUTPUT'].startEditing()
+    for obj in pojedynczeObjekty['OUTPUT'].getFeatures():
+        if obj.geometry().area() < 1: # 1 m2
+            pojedynczeObjekty['OUTPUT'].deleteFeature(obj.id())
+    pojedynczeObjekty['OUTPUT'].commitChanges(False)
+    
     if pojedynczeObjekty['OUTPUT'].featureCount() > 0:
         pojedynczeObjekty['OUTPUT'].setName("Geometrie wychodzace poza granice Polski")
         QgsProject.instance().addMapLayer(pojedynczeObjekty['OUTPUT'])
-        showPopup("Błąd warstwy obrysu",
-                  "Niepoprawna geometria - obiekty muszą leżeć wewnątrz granicy Polski. Dodano warstwę z geometriami wychodzącymi poza granicę Polski.")
-        czyGeometrieSaPoprawne = False
+        showPopup("Błąd warstwy obrysu","Niepoprawna geometria - obiekty muszą leżeć wewnątrz granicy Polski.\nDodano warstwę z geometriami wychodzącymi poza granicę Polski.")
+        return False
     
-    return czyGeometrieSaPoprawne
+    return True
 
 
 def czyWarstwaMaWypelnioneObowiazkoweAtrybuty(obrysLayer):
