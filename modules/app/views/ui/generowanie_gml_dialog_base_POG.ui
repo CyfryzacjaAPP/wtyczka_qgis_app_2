@@ -58,7 +58,7 @@
           <x>0</x>
           <y>0</y>
           <width>763</width>
-          <height>407</height>
+          <height>433</height>
          </rect>
         </property>
         <property name="sizePolicy">
@@ -159,7 +159,7 @@
        </column>
        <column>
         <property name="text">
-         <string>Rodzaj dokumentu</string>
+         <string>Typ obiektu</string>
         </property>
        </column>
        <column>
