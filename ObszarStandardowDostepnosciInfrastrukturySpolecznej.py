@@ -77,10 +77,10 @@ def my_form_open(dialog, layer, feature):
                         'lokalnyId':'np. 1OSD',
                         'oznaczenie':'np. 1OSD',
                         'symbol':'np. OSD',
-                        'minimalnaOdleglosc':'wartość w metrach np. 1500',
-                        'minOdlegloscOdObszaruZieleniPublicznej':'wartość w metrach np. 3000',
-                        'powierzchnia obszaru':'wartość w hektarach min. 10',
-                        'powierzchnia obszarow':'wartość w hektarach min. 1.5'
+                        'minimalnaOdleglosc':'wartość w metrach np. 1500 m',
+                        'minOdlegloscOdObszaruZieleniPublicznej':'wartość w metrach np. 3000 m',
+                        'powierzchnia obszaru':'wartość w hektarach min. 10 ha',
+                        'powierzchnia obszarow':'wartość w hektarach min. 1.5 ha'
                         }
         
         pomoc = ['Przestrzeń nazw identyfikująca w sposób jednoznaczny źródło danych obiektu, o której mowa w § 5 ust. 1 pkt 1 rozporządzenia.\nWartość atrybutu przestrzeń nazw powinna jednoznacznie identyfikować zbiór danych przestrzennych, do którego należy instancja typu obiektu.',

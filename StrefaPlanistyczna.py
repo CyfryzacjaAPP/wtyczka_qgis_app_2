@@ -700,6 +700,8 @@ def profilDodatkowy_reader():
     try:
         lista = profilDodatkowy_createList()
         listaProfiliDodatkowych = profilDodatkowy.text().split(",")
+        if 'teren ogrodów działkowych' in listaProfiliDodatkowych:
+            listaProfiliDodatkowych.remove('teren ogrodów działkowych')
         if listaProfiliDodatkowych != [''] and listaProfiliDodatkowych != ['NULL']:
             for item in listaProfiliDodatkowych:
                 idx = lista.index(item)
