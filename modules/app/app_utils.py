@@ -124,7 +124,7 @@ def kontrolaZaleznosciAtrybutow(obrysLayer):
                        "if(nazwa='strefa górnictwa',if(symbol='SG',0,1),0)":"Symbol strefy jest niezgodny z jego nazwą",
                        "if(nazwa='strefa otwarta',if(symbol='SO',0,1),0)":"Symbol strefy jest niezgodny z jego nazwą",
                        "if(nazwa='strefa komunikacyjna',if(symbol='SK',0,1),0)":"Symbol strefy jest niezgodny z jego nazwą",
-                       "if(koniecWersjiObiektu is not NULL and obowiazujeDo is NULL,1,0)":"Należy wpisać datę dla 'obowiązuje do'",
+                       "if(koniecWersjiObiektu is not NULL and obowiazujeDo is NULL,1,0)":"Koniec wersji obiektu jest uzupełniony, należy wpisać datę dla 'obowiązuje do'",
                        "if(status='nieaktualny' and obowiazujeDo is NULL,1,0)":"Należy wpisać datę dla 'obowiązuje do'",
                        "if(obowiazujeOd>=obowiazujeDo,1,0)":"Atrybut 'obowiązuje od' nie może być większy lub równy od 'obowiązuje do'",
                        "if(koniecWersjiObiektu<=poczatekWersjiObiektu,1,0)":"Koniec wersji obiektu musi być późniejszy niż początek wersji obiektu"

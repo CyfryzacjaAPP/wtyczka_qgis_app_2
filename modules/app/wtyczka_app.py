@@ -19,6 +19,7 @@ from qgis.core import QgsSettings
 from shutil import copyfile
 from osgeo import ogr
 from qgis import processing
+from processing.core.Processing import Processing
 from PyQt5.QtCore import QSettings, QDateTime, QDate
 from ..tworzenieOUZ.dialogs import TworzenieOUZDialog
 import os
@@ -49,6 +50,8 @@ class AppModule(BaseModule):
 
 
     def __init__(self, iface):
+        Processing.initialize()
+        
         self.tableView = None
         self.iface = iface
         self.dataValidator = None  # inicjacja w głównym skrypcie wtyczki
@@ -465,8 +468,7 @@ class AppModule(BaseModule):
         
         if self.kontrolaGeometriiWarstwy(self.obrysLayer):
             if rodzajZbioru == 'POG' and self.OSD_GML_saved == False:
-                showPopup("Błąd warstwy obrysu",
-                          "Warstwa nie została zapisana do GML.")
+                showPopup("Błąd warstwy obrysu", "Warstwa nie została zapisana do GML.")
             else:
                 self.openNewDialog(self.dokumentyFormularzDialog)
                 self.obrysLayer = self.wektorInstrukcjaDialogOSD.layers_comboBox.currentLayer()
@@ -700,13 +702,13 @@ class AppModule(BaseModule):
             plik = str(file)
             param = True
             docNames = {
-                'AktPlanowaniaPrzestrzennego': 'APP',
+                'AktPlanowaniaPrzestrzennego': 'Akt planowania przestrzennego',
                 'RysunekAktuPlanowaniaPrzestrzennego': 'Rysunek APP',
                 'DokumentFormalny': 'Dokument Formalny',
-                'StrefaPlanistyczna':'Strefa Planistyczna',
-                'ObszarUzupelnieniaZabudowy':'Obszar Uzupelnienia Zabudowy',
-                'ObszarZabudowySrodmiejskiej':'Obszar Zabudowy Srodmiejskiej',
-                'ObszarStandardowDostepnosciInfrastrukturySpolecznej':'Obszar Standardow Dostepnosci Infrastruktury Spolecznej'
+                'StrefaPlanistyczna':'Strefa planistyczna',
+                'ObszarUzupelnieniaZabudowy':'Obszar uzupełnienia zabudowy',
+                'ObszarZabudowySrodmiejskiej':'Obszar zabudowy śródmiejskiej',
+                'ObszarStandardowDostepnosciInfrastrukturySpolecznej':'Obszar standardów dostępności infrastruktury społecznej'
             }
             try:
                 docName = utils.getDocType(plik)
@@ -752,24 +754,24 @@ class AppModule(BaseModule):
         
         # Ustawianie rodzaju dokumentu
         docNames = {
-                    'AktPlanowaniaPrzestrzennego': 'APP',
+                    'AktPlanowaniaPrzestrzennego': 'Akt planowania przestrzennego',
                     'RysunekAktuPlanowaniaPrzestrzennego': 'Rysunek APP',
-                    'DokumentFormalny': 'Dokument Formalny',
-                    'StrefaPlanistyczna':'Strefa Planistyczna',
-                    'ObszarUzupelnieniaZabudowy':'Obszar Uzupelnienia Zabudowy',
-                    'ObszarZabudowySrodmiejskiej':'Obszar Zabudowy Srodmiejskiej',
-                    'ObszarStandardowDostepnosciInfrastrukturySpolecznej':'Obszar Standardow Dostepnosci Infrastruktury Spolecznej'
+                    'DokumentFormalny': 'Dokument formalny',
+                    'StrefaPlanistyczna':'Strefa planistyczna',
+                    'ObszarUzupelnieniaZabudowy':'Obszar uzupełnienia zabudowy',
+                    'ObszarZabudowySrodmiejskiej':'Obszar zabudowy śródmiejskiej',
+                    'ObszarStandardowDostepnosciInfrastrukturySpolecznej':'Obszar standardów dostępności infrastruktury społecznej'
                    }
         
         docName = docNames[utils.getDocType(file)]
         
-        rodzaj = ['Dokument Formalny', 'APP', 'Rysunek APP', 'Strefa Planistyczna', 'Obszar Uzupelnienia Zabudowy', 'Obszar Zabudowy Srodmiejskiej', 'Obszar Standardow Dostepnosci Infrastruktury Spolecznej']
+        rodzaj = ['Dokument formalny', 'Akt planowania przestrzennego', 'Rysunek APP', 'Strefa planistyczna', 'Obszar uzupełnienia zabudowy', 'Obszar zabudowy śródmiejskiej', 'Obszar standardów dostępności infrastruktury społecznej']
         item2 = QTableWidgetItem(docName)
         item2.setFlags(flags)
         self.generowanieGMLDialog.filesTable_widget.setItem(rows, 1, item2)
         
         # relacja z APP
-        if self.generowanieGMLDialog.filesTable_widget.item(rows, 1).text() == 'Dokument Formalny':
+        if self.generowanieGMLDialog.filesTable_widget.item(rows, 1).text() == 'Dokument formalny':
             c = QComboBox()
             c.addItems(dictionaries.relacjeDokumentu.keys())
             i = self.generowanieGMLDialog.filesTable_widget.model().index(rows, 3)
@@ -794,7 +796,7 @@ class AppModule(BaseModule):
     def hasTableSP(self):
         row_num = self.generowanieGMLDialog.filesTable_widget.rowCount()
         for i in range(row_num):
-            if 'Strefa Planistyczna' in self.generowanieGMLDialog.filesTable_widget.item(i, 1).text():
+            if 'Strefa planistyczna' in self.generowanieGMLDialog.filesTable_widget.item(i, 1).text():
                 return True
         return False
 
@@ -802,7 +804,7 @@ class AppModule(BaseModule):
     def app_status_PWLR(self,docList):
         row_num = self.generowanieGMLDialog.filesTable_widget.rowCount()
         for i in range(row_num):
-            if 'APP' in self.generowanieGMLDialog.filesTable_widget.item(i, 1).text():
+            if 'Akt planowania przestrzennego' in self.generowanieGMLDialog.filesTable_widget.item(i, 1).text():
                 for doc in docList:
                     if self.generowanieGMLDialog.filesTable_widget.item(i, 0).text() in doc[0]:
                         root = ET.parse(doc[0]).getroot()
@@ -842,10 +844,11 @@ class AppModule(BaseModule):
                 if rel == 'przystąpienie':
                     przystapienie_count += 1
             uchwala_przystapienie_count = przystapienie_count + uchwala_count
+            przestrzenNazw_list = utils.validatePrzestrzenNazwAppSet(files=docList)
             if not utils.validateObjectNumber(files=docList):
                 pass
-            elif not utils.validatePrzestrzenNazwAppSet(files=docList):
-                utils.showPopup('Błąd przestrzeni nazw','Obiekty pochodzą z różnych przestrzeni nazw.')
+            elif len(przestrzenNazw_list) != 1:
+                utils.showPopup('Błąd przestrzeni nazw',f'Obiekty pochodzą z różnych przestrzeni nazw tj.: {przestrzenNazw_list}.\nSprawdź czy wszystkie obiekty posiadają taką samą wartość w polu przestrzeń nazw. Upewnij się, że w ustawieniach wszystkie pola są poprawnie wypełnione.')
             elif not utils.validateDokumentFormalnyDate(files=docList):
                 utils.showPopup('Błąd relacji dokumentów','Dokument z relacją uchwala nie może być starszy od dokumentu z relacją przystąpienie.')
             elif uchwala_przystapienie_count == 0:
@@ -880,14 +883,14 @@ class AppModule(BaseModule):
                             showPopup("Błąd tabeli","Wybrany plik znajduje się już w tabeli")
                             break
                     if param:
-                        self.tableContentAddSet(iip+' (Zbiór)', setPath, rows)
+                        self.tableContentAddSet(iip + ' (Zbiór)', setPath, rows)
                 else:
-                    self.tableContentAddSet(iip+' (Zbiór)', setPath, rows)
+                    self.tableContentAddSet(iip + ' (Zbiór)', setPath, rows)
 
 
     def addTableContentSet(self):
         files = QFileDialog.getOpenFileNames(
-            filter="pliki XML/GML (*.xml *.gml)")[0]
+            filter = "pliki XML/GML (*.xml *.gml)")[0]
         for file in files:
             plik = str(file)
             param = True
@@ -907,8 +910,7 @@ class AppModule(BaseModule):
                     else:
                         self.tableContentSet(plik, rows)
                 else:
-                    utils.showPopup(
-                        'Błąd wczytanego pliku', 'Wczytany plik: \n%s\nnie jest aktem planowania przestrzennego.' % plik)
+                    utils.showPopup('Błąd wczytanego pliku', 'Wczytany plik: \n%s\nnie jest aktem planowania przestrzennego.' % plik)
 
 
     def tableContentAddSet(self, iip, file, rows):
@@ -1013,9 +1015,7 @@ class AppModule(BaseModule):
     def newEmptyLayer(self):
         s = QgsSettings()
         epsg = s.value("qgis_app2/settings/strefaPL2000", "")
-        
-        layer = QgsVectorLayer(
-            'multipolygon?crs=epsg:' + str(epsg) + self.fieldsDefinition(fields=fields), 'granice_app', 'memory')
+        layer = QgsVectorLayer('multipolygon?crs=epsg:' + str(epsg) + self.fieldsDefinition(fields=fields), 'granice_app', 'memory')
 
 
     def newEmptyLayer(self):
@@ -1115,8 +1115,28 @@ class AppModule(BaseModule):
         QgsProject.instance().addMapLayer(layer)
         
         self.iface.messageBar().pushSuccess("Utworzenie warstwy:","Stworzono warstwę do wektoryzacji.")
+        
+        def on_geometry_changed(fid):
+            changed_feature = layer.getFeature(fid)
+            dataCzasTeraz = QDateTime.currentDateTimeUtc()
+            try:
+                changed_feature.setAttribute("wersjaId", dataCzasTeraz.toString("yyyyMMddThhmmss"))
+            except:
+                pass
+            try:
+                changed_feature.setAttribute("poczatekWersjiObiektu", dataCzasTeraz)
+            except:
+                pass
+            try:
+                changed_feature.setAttribute("edycja", True)
+            except:
+                pass
+            layer.updateFeature(changed_feature)
+        
+        layer.geometryChanged.connect(on_geometry_changed)
+        
         showPopup("Wygeneruj warstwę","Poprawnie utworzono pustą warstwę " + popup_txt + ". Uzupełnij ją danymi przestrzennymi.")
-
+        
     """Popup windows"""
 
 
@@ -1175,13 +1195,13 @@ class AppModule(BaseModule):
 
     def aggregateLayer(self, layer):
         # Aggregate
+        Processing.initialize()
         alg_params = {
             'AGGREGATES': [],
             'GROUP_BY': 'NULL',
             'INPUT': layer,
             'OUTPUT': QgsProcessing.TEMPORARY_OUTPUT
         }
-        import processing
         aggregated = processing.run('qgis:aggregate', alg_params)
         aggregated['OUTPUT'].setName('granice_app_zagregowane')
         QgsProject.instance().addMapLayer(aggregated['OUTPUT'])
@@ -1256,7 +1276,7 @@ class AppModule(BaseModule):
                     if inner.name == name:
                         return inner
             return None
-
+        
         def setValue(formElement1, formElement2):
             if formElement1 is None or formElement2 is None:
                 return
@@ -1283,7 +1303,7 @@ class AppModule(BaseModule):
                     date_time_obj = datetime.strptime(dateValue, '%Y-%m-%d %H:%M:%S')
                 str_date = date_time_obj.strftime("%Y-%m-%dT%H:%M:%S")
                 utils.setValueToWidget(formElement2, str_date)
-
+        
         if self.saved:
             if self.activeDlg == self.rasterFormularzDialog:
                 self.openNewDialog(self.wektorInstrukcjaDialog)
@@ -1303,9 +1323,8 @@ class AppModule(BaseModule):
                  findElement(self.wektorFormularzDialog.formElements, 'przestrzenNazw'))
         setValue(findElement(self.rasterFormularzDialog.formElements, 'przestrzenNazw'),
                  findElement(self.dokumentyFormularzDialog.formElements, 'przestrzenNazw'))
-        
-        setValue(findElement(self.rasterFormularzDialog.formElements, 'poczatekWersjiObiektu'),
-                 findElement(self.wektorFormularzDialog.formElements, 'poczatekWersjiObiektu'))
+        # setValue(findElement(self.rasterFormularzDialog.formElements, 'poczatekWersjiObiektu'),
+        #          findElement(self.wektorFormularzDialog.formElements, 'poczatekWersjiObiektu'))
         setValue(findElement(self.rasterFormularzDialog.formElements, 'koniecWersjiObiektu'),
                  findElement(self.wektorFormularzDialog.formElements, 'koniecWersjiObiektu'))
         setValue(findElement(self.rasterFormularzDialog.formElements, 'obowiazujeOd'),
@@ -1419,6 +1438,7 @@ class AppModule(BaseModule):
 
 
     def loadFromGMLorGPKG(self):
+        Processing.initialize()
         s = QgsSettings()
         defaultPath = s.value("qgis_app2/settings/defaultPath", "/")
         epsg_code = s.value("qgis_app2/settings/strefaPL2000", "/")
@@ -1434,12 +1454,13 @@ class AppModule(BaseModule):
             showPopup("Wczytaj warstwę","Proszę uzupełnić w ustawieniach wtyczki APP wartość JPT dla rodzaju zbioru POG.")
             return
         
-        file, format = QFileDialog.getOpenFileName(directory=defaultPath,filter="pliki GML (*.gml);; pliki GeoPackage (*.gpkg);")
+        file, format = QFileDialog.getOpenFileName(directory=defaultPath,filter = "pliki GML (*.gml);; pliki GeoPackage (*.gpkg);")
         file = str(file)
         
-        ds = ogr.Open(file)
-        if ds == None:
+        if not file:
             return
+        
+        ds = ogr.Open(file)
         
         warstwy = [x.GetName() for x in ds]
         activeDlgname = self.activeDlg.name
@@ -1492,17 +1513,17 @@ class AppModule(BaseModule):
                 layer_QML_Name = 'granice_app'
             else:
                 layer_QML_Name = layerName
-            geomTypeEPSG = 'polygon?crs=epsg:' + epsg_code
+            geomTypeEPSG = 'polygon?crs=epsg:' + str(epsg_code)
             geomType = 'Polygon'
             if file and layerName in dozwoloneWarstwy and activeDlgname in [layerName, 'PytanieAppDialog']:
                 field_edycja = utils.createEditField()
                 if layerName == 'AktPlanowaniaPrzestrzennego':
                     fields = utils.createFormElements('AktPlanowaniaPrzestrzennegoType') + field_edycja
                     geomType = 'MultiPolygon'
-                    geomTypeEPSG = 'multipolygon?crs=epsg:' + epsg_code
+                    geomTypeEPSG = 'multipolygon?crs=epsg:' + str(epsg_code)
                 if layerName == 'DokumentFormalny':
-                    fields = utils.createFormElements('DokumentFormalnyType')
-                    
+                    fields_DateCI_DateTypeCode = utils.createDateCI_DateTypeCodeFields()
+                    fields = utils.createFormElements('DokumentFormalnyType') + fields_DateCI_DateTypeCode
                     # brudne rozwiazanie usuniecia wersjaId dla DokumentFormalnyType
                     for x in fields:
                         if x.name == 'idIIP':
@@ -1630,22 +1651,33 @@ class AppModule(BaseModule):
                             else:
                                 tekst = str(wartosci)
                             new_feat.setAttribute(index, QVariant(tekst))
-                        # elif field.name() in ('poczatekWersjiObiektu','koniecWersjiObiektu') and feature.attribute(field.name()) != NULL:
-                        #     if not isinstance(feature.attribute(field.name()), QDateTime) and not re.match(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$", feature.attribute(field.name())):
-                        #         new_feat.setAttribute(index, QVariant(NULL))
-                        #         if not poczatekKoniecWersjiObiektu_msg:
-                        #             poczatekKoniecWersjiObiektu_msg = True
-                        #             showPopup("Wczytaj warstwę",f"Atrybut 'poczatekWersjiObiektu' lub 'koniecWersjiObiektu' zawiera błędne wartości. Plik GML {layerName} nie zostanie wczytany.")
-                        #     else:
-                        #         new_feat.setAttribute(index, QVariant(feature.attribute(field.name())))
-                        # elif field.name() in ('obowiazujeOd','obowiazujeDo') and feature.attribute(field.name()) != NULL:
-                        #     if not isinstance(feature.attribute(field.name()), QDate) and not isinstance(feature.attribute(field.name()), QDateTime) and not re.match(r"^\d{4}-\d{2}-\d{2}$", feature.attribute(field.name())):
-                        #         new_feat.setAttribute(index, QVariant(NULL))
-                        #         if not obowiazujeOdDo_msg:
-                        #             obowiazujeOdDo_msg = True
-                        #             showPopup("Wczytaj warstwę",f"Atrybut 'obowiazujeOd' lub 'obowiazujeDo' zawiera błędne wartości. Plik GML {layerName} nie zostanie wczytany.")
-                        #     else:
-                        #         new_feat.setAttribute(index, QVariant(feature.attribute(field.name())))
+                        
+                        elif field.name() in ('profilPodstawowy','profilDodatkowy') and feature.attribute(field.name()) != NULL and format == 'pliki GeoPackage (*.gpkg);':
+                            wartosci = feature.attribute(field.name()).split(",")
+                            if field.name() == 'profilPodstawowy' and not 'teren ogrodów działkowych' in wartosci:
+                                if wartosci[-1] == 'teren infrastruktury technicznej':
+                                    wartosci.insert(-1, 'teren ogrodów działkowych')
+                                elif wartosci[-1] == 'teren komunikacji':
+                                    wartosci.append('teren ogrodów działkowych')
+                                new_feat.setAttribute('wersjaId', dataCzasTeraz.toString("yyyyMMddThhmmss"))
+                                new_feat.setAttribute('poczatekWersjiObiektu', dataCzasTeraz)
+                                new_feat.setAttribute('obowiazujeOd', None)
+                                new_feat.setAttribute('profilPodstawowy', ",".join(wartosci))
+                                if not profile_msg:
+                                    profile_msg = True
+                                    showPopup("Wczytaj warstwę","Podczas wczytywania warstw, zgodnie ze zmianą rozporządzenia zmienił się profil funkcjonalny w strefach planistycznych związany z terenami ogrodów działkowych.")
+                            elif field.name() == 'profilDodatkowy' and 'teren ogrodów działkowych' in wartosci:
+                                wartosci.remove('teren ogrodów działkowych')
+                                new_feat.setAttribute('wersjaId', dataCzasTeraz.toString("yyyyMMddThhmmss"))
+                                new_feat.setAttribute('poczatekWersjiObiektu', dataCzasTeraz)
+                                new_feat.setAttribute('obowiazujeOd', None)
+                                new_feat.setAttribute('profilDodatkowy', ",".join(wartosci))
+                                if not profile_msg:
+                                    profile_msg = True
+                                    showPopup("Wczytaj warstwę","Podczas wczytywania warstw, zgodnie ze zmianą rozporządzenia zmienił się profil funkcjonalny w strefach planistycznych związany z terenami ogrodów działkowych.")
+                            else:
+                                tekst = feature.attribute(field.name())
+                                new_feat.setAttribute(index, QVariant(tekst))
                         else:
                             try:
                                 new_feat.setAttribute(index, QVariant(feature.attribute(field.name())))
@@ -1655,7 +1687,7 @@ class AppModule(BaseModule):
                             new_feat.setAttribute(idx_wersjaId, dataCzasTeraz.toString("yyyyMMddThhmmss"))
                             new_feat.setAttribute(idx_poczatekWersjiObiektu, dataCzasTeraz)
                             new_feat.setAttribute(idx_obowiazujeOd, None)
-                            
+                    
                     new_feat.setGeometry(feature.geometry())
                     destlayer.addFeature(new_feat)
                     destlayer.updateFeature(new_feat)
@@ -1707,10 +1739,31 @@ class AppModule(BaseModule):
                 if activeDlgname != 'PytanieAppDialog':
                     self.activeDlg.layers_comboBox.setCurrentText(layerName)
                 self.iface.messageBar().pushSuccess("Wczytanie warstwy:","Wczytano warstwę.")
+                
+                def on_geometry_changed(fid):
+                    changed_feature = gkpg.getFeature(fid)
+                    dataCzasTeraz = QDateTime.currentDateTimeUtc()
+                    try:
+                        changed_feature.setAttribute("wersjaId", dataCzasTeraz.toString("yyyyMMddThhmmss"))
+                    except:
+                        pass
+                    try:
+                        changed_feature.setAttribute("poczatekWersjiObiektu", dataCzasTeraz)
+                    except:
+                        pass
+                    try:
+                        changed_feature.setAttribute("edycja", True)
+                    except:
+                        pass
+                    gkpg.updateFeature(changed_feature)
+                
+                gkpg.geometryChanged.connect(on_geometry_changed)
+                
                 showPopup("Wczytaj warstwę","Poprawnie wczytano warstwę " + layerName + ".")
 
 
     def saveLayerToGML(self):
+        Processing.initialize()
         s = QgsSettings()
         defaultPath = s.value("qgis_app2/settings/defaultPath", "/")
         
@@ -1819,7 +1872,6 @@ class AppModule(BaseModule):
                         geom.append(ET.fromstring(geometriaGML))
                     elif geomAPP != None:
                         geomAPP.append(ET.fromstring(geometriaGML))
-                
                 for attr in obj.fields():
                     attr_name = attr.name()
                     attr_value = str(obj.attribute(attr_name))
@@ -1829,14 +1881,11 @@ class AppModule(BaseModule):
                         lokalnyId = attr_value
                     elif attr_name == 'wersjaId':
                         wersjaId = attr_value
-                    
                     if przestrzenNazw != '' and lokalnyId != '' and wersjaId != '':
                         layerMember = member.find('.//app:' + layerName + '[@gml:id]', namespaces=namespace_map)
                         layerMember.attrib['{http://www.opengis.net/gml/3.2}id'] = przestrzenNazw.replace("/","_") + "_" + lokalnyId + "_" + wersjaId
-                        
                         element = member.find('.//gml:identifier', namespaces=namespace_map)
                         element.text = "https://www.gov.pl/zagospodarowanieprzestrzenne/app/" + layerName + "/" + przestrzenNazw + "/" + lokalnyId + "/" + wersjaId
-                    
                     atrybutTitle = member.find('.//app:' + attr.name() + '[@xlink:title]', namespaces=namespace_map)
                     atrybutHref = member.find('.//app:' + attr.name() + '[@xlink:href]', namespaces=namespace_map)
                     if atrybutTitle != None and atrybutHref != None and attr.name() not in ('profilPodstawowy','profilDodatkowy','tytulAlternatywny'):
@@ -1946,6 +1995,7 @@ class AppModule(BaseModule):
 
 
     def saveLayerToGML_OUZ(self, layer):
+        Processing.initialize()
         global layer_OUZ
         layer_OUZ = layer
         self.saveLayerToGML()
@@ -1971,7 +2021,7 @@ class AppModule(BaseModule):
             'OUTPUT':'memory:'})
         obrysLayer = warstwaBezKoniecWersjiObiektu['OUTPUT']
         
-        if self.obrysLayer.featureCount() > 0:
+        if obrysLayer.featureCount() > 0:
             # kontrola poprawnosci geometrii
             bledne_geometrie = processing.run("qgis:checkvalidity", {
                 'INPUT_LAYER': obrysLayer,
@@ -2210,13 +2260,13 @@ class AppModule(BaseModule):
                         if not objTMP['modyfikacja'] or objTMP['status'] != 'w opracowaniu':
                             pojedynczeObjekty['OUTPUT'].setName("Geometrie dziur w SPL w zakresie POG")
                             QgsProject.instance().addMapLayer(pojedynczeObjekty['OUTPUT'])
-                            showPopup("Błąd warstwy obrysu",
-                                      "Niepoprawna geometria - Występują dziury w SPL.")
+                            showPopup("Błąd warstwy obrysu", "Niepoprawna geometria - Występują dziury w SPL.")
                             czyGeometrieSaPoprawne = False
                             break
         else:
-            showPopup("Błąd warstwy obrysu",
-                      "Brak obiektu/ów na warstwie stref planistycznych.")
+            showPopup("Błąd warstwy obrysu", "Brak obiektów na warstwie stref planistycznych lub obiekty mają uzupełniony koniec wersji obiektu.")
+            return False
+        
         return czyGeometrieSaPoprawne
 
 
@@ -2303,7 +2353,6 @@ class AppModule(BaseModule):
 
 
     def OUZpowyzej125procent(self, obrysLayer):
-        
         pathOUZ_wyjsciowy = os.path.join(defaultPath,"Dokumentacja/ObszarUzupelnieniaZabudowy-wyjsciowy.gml")
         powierzchnie_OUZ = os.path.join(defaultPath,"Dane pomocnicze/Powierzchnie.xml")
         
@@ -2335,17 +2384,22 @@ class AppModule(BaseModule):
                 return True
         
         pathOUZ_wyjsciowy_layer = QgsVectorLayer(pathOUZ_wyjsciowy + "|layername=ObszarUzupelnieniaZabudowy|option:FORCE_SRS_DETECTION=YES|option:CONSIDER_EPSG_AS_URN=YES|geometrytype=Polygon", "ObszarUzupelnieniaZabudowy", 'ogr')
-        pojedynczeBufory = processing.run("native:multiparttosingleparts", {
-            'INPUT': pathOUZ_wyjsciowy_layer,
-            'OUTPUT': 'memory:'
-        })
         
-        # różnica powierzchnii
-        roznica = processing.run("qgis:difference", {
-            'INPUT': obrysLayer,
-            'OVERLAY': pojedynczeBufory['OUTPUT'],
-            'OUTPUT': 'memory:'
-        })
+        try:
+            pojedynczeBufory = processing.run("native:multiparttosingleparts", {
+                'INPUT': pathOUZ_wyjsciowy_layer,
+                'OUTPUT': 'memory:'
+            })
+            
+            # różnica powierzchnii
+            roznica = processing.run("qgis:difference", {
+                'INPUT': obrysLayer,
+                'OVERLAY': pojedynczeBufory['OUTPUT'],
+                'OUTPUT': 'memory:'
+            })
+        except:
+            showPopup("Informacja", "Geometria ObszarUzupelnieniaZabudowy-wyjsciowy.gml jest prawdopodobnie niepoprawna.")
+            return True
         
         # zmiana multipoligonów na poligony
         pojedynczeBufory2 = processing.run("native:multiparttosingleparts", {
