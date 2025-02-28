@@ -233,13 +233,28 @@ def getNamespace(element):
 
 def createEditField():
     formElements = []
-    
     formElement = FormElement(
         name = 'edycja',
         type = 'boolean',
         form = 'edycja'
     )
-    
+    formElements.append(formElement)
+    return formElements
+
+
+def createDateCI_DateTypeCodeFields():
+    formElements = []
+    formElement = FormElement(
+        name = 'Date',
+        type = 'String',
+        form = 'Date'
+    )
+    formElements.append(formElement)
+    formElement = FormElement(
+        name = 'CI_DateTypeCode',
+        type = 'String',
+        form = 'CI_DateTypeCode'
+    )
     formElements.append(formElement)
     return formElements
 
@@ -372,6 +387,7 @@ def layout_widgets(layout):
 def layout_widget_by_name(layout, name):
     """wyszukuje widgeta wedlug nazwy wewnatrz layoutu
     Do wykorzystania również w trakcie tworzenia layoutu (np. QHBoxLayout)"""
+    
     for item in layout_widgets(layout):
         if isinstance(item, QLayout):   # zagnieżdzony layout
             result = layout_widget_by_name(layout=item, name=name)
@@ -1207,15 +1223,12 @@ def getDocType(filePath):
         tree = ET.parse(filePath)
         root = tree.getroot()
         elemList = []
-        # Sprawdzanie, czy plik
-        # if len(root) != 1:
-        #     return ''
         for elem in root.iter():
             elemList.append(elem.tag)
-
+            
         # usuwanie duplikatów
         elemList = list(set(elemList))
-
+        
         for elem in elemList:
             for docName in docNames:
                 if docName in elem:
@@ -1433,7 +1446,7 @@ def mergeDocsToAPP(docList):  # docList z getTableContent
                      'xlink':'http://www.w3.org/1999/xlink'}
     
     # Pozyskiwanie APP
-    for doc, relation in docList:
+    for doc, typObiektu, relation in docList:
         docType = getDocType(doc)
         root = ET.parse(doc).getroot()
         if docType == 'AktPlanowaniaPrzestrzennego':
@@ -1446,7 +1459,7 @@ def mergeDocsToAPP(docList):  # docList z getTableContent
     APPrelLink_z_wersja = APPrelLink
     APPrelLink = APPrelLink[:-16] # bez wersji
     
-    for doc, relation in docList:
+    for doc, typObiektu, relation in docList:
         if relation == 'inna':
             relation = 'dokument'
         if relation == 'przystąpienie':
@@ -2049,15 +2062,13 @@ def validatePrzestrzenNazwAppSet(files):
             if przestrzenNazw not in przestrzenNazw_list:
                 przestrzenNazw_list.append(przestrzenNazw)
     
-    if len(przestrzenNazw_list) != 1:
-        return False
-    return True
+    return przestrzenNazw_list
 
 
 def validateDokumentFormalnyDate(files):
     uchwala_dataWejsciaWZycie = None
     przystapienie_dataWejsciaWZycie = None
-    for doc, relation in files:
+    for doc, typ, relation in files:
         element = findElementInXmlFile(
             file=doc, docName='DokumentFormalny', elementName='dataWejsciaWZycie')
         if element is not None:

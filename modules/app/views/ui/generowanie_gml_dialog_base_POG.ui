@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>802</width>
-    <height>600</height>
+    <height>696</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -94,38 +94,28 @@
       </widget>
      </item>
      <item>
-      <widget class="QLabel" name="empty1_lbl">
-       <property name="text">
-        <string/>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <layout class="QHBoxLayout" name="horizontalLayout">
-       <item>
+      <layout class="QGridLayout" name="gridLayout_3">
+       <item row="0" column="0">
         <widget class="QLabel" name="addFile_lbl">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>25</height>
+          </size>
+         </property>
          <property name="text">
           <string>Lista plików, na podstawie których zostanie wygenerowany plik GML</string>
          </property>
         </widget>
        </item>
-       <item>
-        <widget class="QPushButton" name="addElement_btn">
-         <property name="font">
-          <font>
-           <pointsize>10</pointsize>
-          </font>
-         </property>
-         <property name="text">
-          <string>+</string>
-         </property>
-         <property name="autoDefault">
-          <bool>false</bool>
-         </property>
-        </widget>
-       </item>
-       <item>
+       <item row="0" column="3">
         <widget class="QPushButton" name="deleteElement_btn">
+         <property name="minimumSize">
+          <size>
+           <width>200</width>
+           <height>23</height>
+          </size>
+         </property>
          <property name="font">
           <font>
            <pointsize>10</pointsize>
@@ -139,6 +129,40 @@
          </property>
         </widget>
        </item>
+       <item row="0" column="2">
+        <widget class="QPushButton" name="addElement_btn">
+         <property name="minimumSize">
+          <size>
+           <width>200</width>
+           <height>23</height>
+          </size>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>10</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>+</string>
+         </property>
+         <property name="autoDefault">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <spacer name="horizontalSpacer_2">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
       </layout>
      </item>
      <item>
@@ -146,12 +170,21 @@
        <property name="minimumSize">
         <size>
          <width>0</width>
-         <height>250</height>
+         <height>150</height>
         </size>
        </property>
-       <property name="rowCount">
-        <number>0</number>
-       </property>
+       <attribute name="horizontalHeaderDefaultSectionSize">
+        <number>180</number>
+       </attribute>
+       <attribute name="horizontalHeaderStretchLastSection">
+        <bool>true</bool>
+       </attribute>
+       <attribute name="verticalHeaderMinimumSectionSize">
+        <number>20</number>
+       </attribute>
+       <attribute name="verticalHeaderDefaultSectionSize">
+        <number>20</number>
+       </attribute>
        <column>
         <property name="text">
          <string>Plik XML / GML</string>
@@ -175,10 +208,170 @@
       </widget>
      </item>
      <item>
-      <widget class="QLabel" name="empty3_lbl">
-       <property name="text">
-        <string/>
+      <widget class="QScrollArea" name="instruction2_scrollArea">
+       <property name="widgetResizable">
+        <bool>true</bool>
        </property>
+       <widget class="QWidget" name="scrollAreaWidgetContents_3">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>0</y>
+          <width>780</width>
+          <height>69</height>
+         </rect>
+        </property>
+        <property name="styleSheet">
+         <string notr="true"/>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_5">
+         <item row="0" column="0">
+          <widget class="QLabel" name="instruction2_lbl">
+           <property name="font">
+            <font>
+             <stylestrategy>PreferDefault</stylestrategy>
+            </font>
+           </property>
+           <property name="text">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;table border=&quot;1&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; border-collapse:collapse;&quot; cellspacing=&quot;2&quot; cellpadding=&quot;0&quot;&gt;&lt;tr&gt;&lt;td&gt;&lt;p&gt;&lt;span style=&quot; color:#ff0000;&quot;&gt;UWAGA: &lt;/span&gt;&lt;/p&gt;&lt;p&gt;Pliki do porównania należy wczytać tylko w przypadku, gdy to nie jest pierwsza wersja planu.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignJustify|Qt::AlignVCenter</set>
+           </property>
+           <property name="wordWrap">
+            <bool>true</bool>
+           </property>
+           <property name="openExternalLinks">
+            <bool>true</bool>
+           </property>
+           <property name="buddy">
+            <cstring>instruction2_lbl</cstring>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </widget>
+     </item>
+     <item>
+      <spacer name="verticalSpacer">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>20</width>
+         <height>40</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+       <item>
+        <widget class="QLabel" name="label">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>25</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>Lista plików, na podstawie których zostaną porównane pliki GML</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QPushButton" name="addElement_btn2">
+         <property name="minimumSize">
+          <size>
+           <width>200</width>
+           <height>23</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>+</string>
+         </property>
+         <property name="autoDefault">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="deleteElement_btn2">
+         <property name="minimumSize">
+          <size>
+           <width>200</width>
+           <height>23</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>-</string>
+         </property>
+         <property name="autoDefault">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <widget class="QTableWidget" name="filesTable_widget2">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>150</height>
+        </size>
+       </property>
+       <property name="wordWrap">
+        <bool>true</bool>
+       </property>
+       <attribute name="horizontalHeaderDefaultSectionSize">
+        <number>180</number>
+       </attribute>
+       <attribute name="horizontalHeaderStretchLastSection">
+        <bool>true</bool>
+       </attribute>
+       <attribute name="verticalHeaderCascadingSectionResizes">
+        <bool>false</bool>
+       </attribute>
+       <attribute name="verticalHeaderMinimumSectionSize">
+        <number>20</number>
+       </attribute>
+       <attribute name="verticalHeaderDefaultSectionSize">
+        <number>20</number>
+       </attribute>
+       <column>
+        <property name="text">
+         <string>Plik XML / GML</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Typ obiektu</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Data modyfikacji</string>
+        </property>
+       </column>
       </widget>
      </item>
      <item>
@@ -225,6 +418,18 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>instruction_scrollArea</tabstop>
+  <tabstop>addElement_btn</tabstop>
+  <tabstop>deleteElement_btn</tabstop>
+  <tabstop>filesTable_widget</tabstop>
+  <tabstop>instruction2_scrollArea</tabstop>
+  <tabstop>addElement_btn2</tabstop>
+  <tabstop>deleteElement_btn2</tabstop>
+  <tabstop>filesTable_widget2</tabstop>
+  <tabstop>prev_btn</tabstop>
+  <tabstop>generate_btn</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

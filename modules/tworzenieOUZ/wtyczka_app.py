@@ -10,13 +10,14 @@ import shutil
 from qgis.core import *
 from PyQt5.QtCore import *
 from qgis import processing
+from processing.core.Processing import Processing
 import pathlib
 from qgis.core import QgsSettings, QgsDistanceArea
 from datetime import date, datetime, timezone
 import xml.etree.ElementTree as ET
 
 
-class TworzenieOUZ(BaseModule):
+class TworzenieOUZModule(BaseModule):
 
     def __init__(self, iface):
         self.iface = iface
@@ -29,6 +30,7 @@ class TworzenieOUZ(BaseModule):
     """Event handlers"""
 
     def tworzenieOUZ_btn_clicked(self):
+        Processing.initialize()
         s = QgsSettings()
         rodzajZbioru = s.value("qgis_app2/settings/rodzajZbioru", "")
         numerZbioru = s.value("qgis_app2/settings/numerZbioru", "")
@@ -37,6 +39,15 @@ class TworzenieOUZ(BaseModule):
         epsg = str(s.value("qgis_app2/settings/strefaPL2000", ""))
         przestrzenNazw = 'PL.ZIPPZP.' + numerZbioru + '/' + jpt + '-' + rodzajZbioru
         defaultPath = s.value("qgis_app2/settings/defaultPath", "")
+        
+        test_file = os.path.join(defaultPath, 'test_write.tmp')
+        try:
+            with open(test_file, 'w') as f:
+                f.write('test')
+            os.remove(test_file)
+        except (OSError, IOError):
+            showPopup('Brak uprawniń', 'Brak uprawnień do zapisu w wskazanym w ustawieniach wtyczki katalogu.')
+            return
         
         try:
             warstwaZBudynkami = self.tworzenieOUZDialog.warstwaBudynki.currentLayer()
@@ -70,10 +81,18 @@ class TworzenieOUZ(BaseModule):
         if not os.path.exists(defaultPathDokumentacja):
             os.makedirs(defaultPathDokumentacja)
         
+        # rozbicie multipoligonu na poligony
+        warstwaZBudynkami_tmp = processing.run("native:multiparttosingleparts", {
+            'INPUT': warstwaZBudynkami,
+            'OUTPUT': 'memory:'
+        })
+        
+        warstwaZBudynkami = warstwaZBudynkami_tmp['OUTPUT']
+        
         if warstwaZBudynkami.crs().authid().split(":")[1] != epsg:
             # reprojekcja na epsg zapisany ustawieniach
             warstwaZBudynkami = processing.run("native:reprojectlayer", {
-                'INPUT': self.tworzenieOUZDialog.warstwaBudynki.currentLayer(),
+                'INPUT': warstwaZBudynkami_tmp['OUTPUT'],
                 'TARGET_CRS':QgsCoordinateReferenceSystem('EPSG:' + str(epsg)),
                 'OUTPUT': 'memory:'
             })
@@ -343,43 +362,41 @@ class TworzenieOUZ(BaseModule):
                 
                 # Zapis budynków do GML
                 target_path = os.path.join(defaultPathDokumentacja, "Budynki.gml")
-                try:
-                    kolDoUsuniecia = []
-                    for field in warstwaZBudynkami.fields():
-                        if field.type() == QVariant.String and field.length() > 254:
-                            for f in warstwaZBudynkami.getFeatures():
-                                try:
-                                    max_length = len(f[field.name()])
-                                except:
-                                    kolDoUsuniecia.append(field.name())
-                                    break
-                                if max_length > 255:
-                                    kolDoUsuniecia.append(field.name())
-                                    break
-                    if kolDoUsuniecia != None and len(kolDoUsuniecia) > 0:
-                        warstwaZBudynkamiBezKolumny = processing.run("native:deletecolumn", {
-                            'COLUMN': kolDoUsuniecia,
-                            'INPUT': warstwaZBudynkami,
-                            'OUTPUT': 'memory:'
-                        })
-                        warstwaWynikowa = warstwaZBudynkamiBezKolumny['OUTPUT']
-                    else:
-                        warstwaWynikowa = warstwaZBudynkami
-                    wynik = processing.run("native:savefeatures", {
-                        'DATASOURCE_OPTIONS': '',
-                        'INPUT': warstwaWynikowa,
-                        'LAYER_NAME': 'Budynki',
-                        'LAYER_OPTIONS': '',
-                        'OUTPUT': target_path
+                
+                kolDoUsuniecia = []
+                for field in warstwaZBudynkami.fields():
+                    if field.type() == QVariant.String and field.length() > 254:
+                        for f in warstwaZBudynkami.getFeatures():
+                            try:
+                                max_length = len(f[field.name()])
+                            except:
+                                kolDoUsuniecia.append(field.name())
+                                break
+                            if max_length > 255:
+                                kolDoUsuniecia.append(field.name())
+                                break
+                if kolDoUsuniecia != None and len(kolDoUsuniecia) > 0:
+                    warstwaZBudynkamiBezKolumny = processing.run("native:deletecolumn", {
+                        'COLUMN': kolDoUsuniecia,
+                        'INPUT': warstwaZBudynkami,
+                        'OUTPUT': 'memory:'
                     })
-                    
-                    defaultPathDanePomocnicze = defaultPath + "/Dane pomocnicze/"
-                    if not os.path.exists(defaultPathDanePomocnicze):
-                        os.makedirs(defaultPathDanePomocnicze)
-                    shutil.move(defaultPathDokumentacja + '/Budynki.xsd', defaultPathDanePomocnicze + '/Budynki.xsd')
-                    
-                except Exception as errorMsg:
-                    print(errorMsg)
+                    warstwaWynikowa = warstwaZBudynkamiBezKolumny['OUTPUT']
+                else:
+                    warstwaWynikowa = warstwaZBudynkami
+                
+                wynik = processing.run("native:savefeatures", {
+                    'DATASOURCE_OPTIONS': '',
+                    'INPUT': warstwaWynikowa,
+                    'LAYER_NAME': 'Budynki',
+                    'LAYER_OPTIONS': '',
+                    'OUTPUT': target_path
+                })
+                
+                defaultPathDanePomocnicze = defaultPath + "/Dane_pomocnicze/"
+                if not os.path.exists(defaultPathDanePomocnicze):
+                    os.makedirs(defaultPathDanePomocnicze)
+                shutil.move(defaultPathDokumentacja + '/Budynki.xsd', defaultPathDanePomocnicze + '/Budynki.xsd')
                 
                 # zapisanie Pp, Pu, Pb do pliku Powierzchnie.xml
                 root = ET.Element("Dane")
@@ -410,7 +427,7 @@ class TworzenieOUZ(BaseModule):
         
         showPopup("Wyznaczanie OUZ",'Utworzono warstwę OUZ i uzupełniono atrybuty.\nUtworzono w folderze „Dokumentacja”\
 plik o nazwie „ObszarUzupelnieniaZabudowy-wyjsciowy.gml” oraz plik o nazwie „Budynki.gml”.\nUtworzono w folderze \
-„Dane pomocnicze” plik o nazwie „Budynki.xsd”.')
+„Dane_pomocnicze” plik o nazwie „Budynki.xsd”.')
         
         self.tworzenieOUZDialog.progressBar.reset()
         self.tworzenieOUZDialog.progressBar.setValue(0)

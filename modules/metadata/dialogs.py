@@ -6,7 +6,7 @@ Okna dialogowe modułu Metadata
 """
 from .. import utils, dictionaries
 from ..base_dialogs import CloseMessageDialog, ButtonsDialog
-from . import mail, csw, metadataElementDictToForm, formToMetadataElementDict
+from . import metadataElementDictToForm, formToMetadataElementDict
 from .metadata_form_initializer import initializeMetadataForm
 import os, re
 
@@ -27,10 +27,6 @@ icon_metadata = ':/plugins/wtyczka_app/img/tworzenie.png'
 # This loads your .ui file so that PyQt can populate your plugin with the elements from Qt Designer
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'views', 'ui', 'metadane_dialog_base.ui'))
-FORM_CLASS2, _ = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), 'views', 'ui', 'smtp_dlg.ui'))
-FORM_CLASS3, _ = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), 'views', 'ui', 'csw_dlg.ui'))
 
 
 class SendFileDialog:
@@ -76,100 +72,6 @@ class SendFileDialog:
         return [True]
 
 
-class CswDialog(QtWidgets.QDialog, FORM_CLASS3, SendFileDialog):
-    """Okno dialogowe formularza CSW"""
-    def __init__(self, iface, xmlPath=None, parent=None,):
-        """Constructor."""
-        super(CswDialog, self).__init__(parent)
-        self.send_btn = None
-        self.save_btn = None
-        self.iface = iface
-        self.xmlPath = xmlPath
-        self.setupUi(self)
-        # self.setWindowTitle(title_metadata)
-        self.setWindowIcon(QtGui.QIcon(icon_metadata))
-        self.setWindowFlags(Qt.WindowMinimizeButtonHint | Qt.WindowSystemMenuHint | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
-        self.prepareLayout()
-
-    def prepareLayout(self):
-        """Przygotowanie layoutu CSW"""
-
-        self.host_lineEdit.setValidator(QRegExpValidator(QRegExp(r"\S*")))
-        self.readSettings("csw")  # wczytaj zapisane wartości
-        self.cancel_btn.clicked.connect(self.close)
-        self.send_btn.clicked.connect(self.send_btn_clicked)
-        self.save_btn.clicked.connect(lambda: self.saveSettings("csw"))
-
-    def send_btn_clicked(self):
-        result = self.validateForm()
-        if result[0]:
-            sendResult = csw.putFileToCswServer(
-                url=self.host_lineEdit.text(),
-                user=self.user_lineEdit.text(),
-                password=self.pass_lineEdit.text(),
-                file=self.xmlPath
-            )
-            if sendResult[0]:
-                self.iface.messageBar().pushSuccess("CSW:","Pomyslnie wysłano plik")
-                self.close()
-            else:
-                self.iface.messageBar().pushCritical("CSW:", "Nie udało się wysłać pliku")
-                msg = sendResult[1]
-                utils.showPopup("Błąd wysyłki", msg, QMessageBox.Warning)
-
-        else:   #błąd walidacji formularza
-            msg = result[1]
-            utils.showPopup("Błąd formularza", msg, QMessageBox.Warning)
-
-
-class SmtpDialog(QtWidgets.QDialog, FORM_CLASS2, SendFileDialog):
-    """Okno dialogowe formularza SMTP"""
-    def __init__(self, iface, xmlPath=None, parent=None,):
-        """Constructor."""
-        super(SmtpDialog, self).__init__(parent)
-        self.iface = iface
-        self.xmlPath = xmlPath
-        self.setupUi(self)
-        # self.setWindowTitle(title_metadata)
-        self.setWindowIcon(QtGui.QIcon(icon_metadata))
-        self.setWindowFlags(Qt.WindowMinimizeButtonHint | Qt.WindowSystemMenuHint | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
-        self.prepareLayout()
-
-    def prepareLayout(self):
-        """Przygotowanie layoutu SMTP"""
-        self.port_lineEdit.setValidator(QRegExpValidator(QRegExp("[0-9]*")))
-        self.host_lineEdit.setValidator(QRegExpValidator(QRegExp(r"\S*")))
-        self.receiver_lineEdit.setValidator(QRegExpValidator(QRegExp(r"[0-9a-zA-Z.\-\_\@\+]*")))
-        self.user_lineEdit.setValidator(QRegExpValidator(QRegExp(r"[0-9a-zA-Z.\-\_\@\+]*")))
-        self.readSettings("smtp")   # wczytaj zapisane wartości
-        self.cancel_btn.clicked.connect(self.close)
-        self.send_btn.clicked.connect(self.send_btn_clicked)
-        self.save_btn.clicked.connect(lambda: self.saveSettings("smtp"))
-
-    def send_btn_clicked(self):
-        result = self.validateForm()
-        if result[0]:
-            sendResult = mail.sendMail(
-                sender=self.user_lineEdit.text(),
-                host=self.host_lineEdit.text(),
-                port=self.port_lineEdit.text(),
-                receiver=self.receiver_lineEdit.text(),
-                password=self.pass_lineEdit.text(),
-                file=self.xmlPath
-            )
-            if sendResult[0]:
-                self.iface.messageBar().pushSuccess("Mail:","Pomyslnie wysłano plik")
-                self.close()
-            else:
-                self.iface.messageBar().pushCritical("Mail:", "Nie udało się wysłać pliku")
-                msg = sendResult[1]
-                utils.showPopup("Błąd wysyłki", msg, QMessageBox.Warning)
-
-        else:   #błąd walidacji formularza
-            msg = result[1]
-            utils.showPopup("Błąd formularza", msg, QMessageBox.Warning)
-
-
 class MetadaneDialog(CloseMessageDialog, FORM_CLASS, ButtonsDialog):
     def __init__(self, parent=None):
         """Constructor."""
@@ -199,7 +101,7 @@ class MetadaneDialog(CloseMessageDialog, FORM_CLASS, ButtonsDialog):
             self.prepareListWidgets(listWidget)
 
         # pola z ustawień
-        initializeMetadataForm(self)
+        # initializeMetadataForm(self)
         # pola edytowalne
         metadataElementDictToForm(metadataElementDict=dictionaries.metadataListWidgetsDefaultItems,
                                   targetForm=self)

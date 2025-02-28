@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from . import (MetadaneDialog, SmtpDialog, CswDialog)
+from . import (MetadaneDialog)
 from . import (xmlToMetadataElementDict,
                formToMetadataElementDict,
                metadataElementDictToXml,
@@ -31,19 +31,11 @@ class MetadataModule(BaseModule):
         # region okno moduł metadata
         self.metadaneDialog = MetadaneDialog()
 
-        # endregion
-        self.smtpDialog = SmtpDialog(iface=self.iface)
-        self.cswDialog = CswDialog(iface=self.iface)
-
         # region eventy moduł metadata
         self.metadaneDialog.prev_btn.clicked.connect(self.metadaneDialog_prev_btn_clicked)
         self.metadaneDialog.validateAndSave_btn.clicked.connect(self.showPopupValidateAndSave)
         self.metadaneDialog.close_btn.clicked.connect(self.metadaneDialog.close)
 
-        self.metadaneDialog.email_btn.clicked.connect(self.metadaneDialog_email_btn_clicked)
-        self.metadaneDialog.server_btn.clicked.connect(self.metadaneDialog_server_btn_clicked)
-
-        # self.metadaneDialog.newFile_widget.clicked.connect(self.saveMetaFile)
         self.metadaneDialog.chooseFile_widget.setFilter(filter="pliki XML (*.xml)")
         self.metadaneDialog.chooseFile_widget.setDefaultRoot(self.s.value("qgis_app2/settings/defaultPath", ""))
         self.metadaneDialog.chooseFile_widget.fileChanged.connect(self.chooseFile_widget_fileChanged)
@@ -80,39 +72,12 @@ class MetadataModule(BaseModule):
     # region metadaneDialog
     def metadaneDialog_prev_btn_clicked(self):
         self.openNewDialog(self.listaOkienek.pop())
-        self.metadaneDialog.server_btn.setEnabled(False)
-        self.metadaneDialog.email_btn.setEnabled(False)
+
 
     def metadaneDialog_next_btn_clicked(self):
         self.openNewDialog(self.walidacjaDialog)
         self.listaOkienek.append(self.metadaneDialog)
         self.walidacjaDialog.prev_btn.setEnabled(True)
-
-    def metadaneDialog_email_btn_clicked(self):
-        self.smtpDialog.setXmlPath(self.metadataXmlPath)
-        self.smtpDialog.show()
-
-    def metadaneDialog_server_btn_clicked(self):
-        self.cswDialog.setXmlPath(self.metadataXmlPath)
-        self.cswDialog.show()
-
-    def server_checkBoxChangedAction(self, state):
-        if Qt.Checked == state:
-            self.metadaneDialog.send_btn.setEnabled(True)
-        else:
-            if self.metadaneDialog.email_checkBox.isChecked():
-                self.metadaneDialog.send_btn.setEnabled(True)
-            else:
-                self.metadaneDialog.send_btn.setEnabled(False)
-
-    def email_checkBoxChangedAction(self, state):
-        if Qt.Checked == state:
-            self.metadaneDialog.send_btn.setEnabled(True)
-        else:
-            if self.metadaneDialog.server_checkBox.isChecked():
-                self.metadaneDialog.send_btn.setEnabled(True)
-            else:
-                self.metadaneDialog.send_btn.setEnabled(False)
     # endregion
 
     """Helper methods"""
@@ -144,10 +109,7 @@ class MetadataModule(BaseModule):
             showPopup("Zwaliduj plik XML",
                       "Poprawnie zwalidowano formularz. Możesz teraz zapisać plik XML z metadanymi.")
             if self.saveMetaFile(xmlString=xml):
-                self.iface.messageBar().pushSuccess("Generowanie pliku metadanych:",
-                                                    "Pomyślnie zapisano plik metadanych.")
-                self.metadaneDialog.server_btn.setEnabled(True)
-                self.metadaneDialog.email_btn.setEnabled(True)
+                self.iface.messageBar().pushSuccess("Generowanie pliku metadanych:","Pomyślnie zapisano plik metadanych.")
         else:
             msg = validationResult[1]
             utils.showPopup("Błąd walidacji formularza", msg, QMessageBox.Warning)

@@ -36,9 +36,6 @@ class UstawieniaDialog(QtWidgets.QDialog, FORM_CLASS):
         self.setWindowIcon(QtGui.QIcon(icon_settings))
         self.setWindowFlags(Qt.WindowMinimizeButtonHint | Qt.WindowSystemMenuHint | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
         self.exit_btn.clicked.connect(self.reject)
-        self.contactMail_lineEdit.setValidator(QRegExpValidator(QRegExp(r"[0-9a-zA-Z.\-\_\@\+]*")))
-        self.adminMail_lineEdit.setValidator(QRegExpValidator(QRegExp(r"[0-9a-zA-Z.\-\_\@\+]*")))
-
 
 class PomocDialog(QtWidgets.QDialog, FORM_CLASS1):
     def __init__(self, parent=None):

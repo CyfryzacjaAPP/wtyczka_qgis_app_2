@@ -4,7 +4,7 @@ from . import (PytanieAppDialog, ZbiorPrzygotowanieDialog, RasterInstrukcjaDialo
                WektorFormularzDialog, DokumentyFormularzDialog, WektorInstrukcjaDialog, GenerowanieGMLDialog,
                WektorInstrukcjaDialogSPL, WektorInstrukcjaDialogOUZ, WektorInstrukcjaDialogOZS, WektorInstrukcjaDialogOSD)
 
-from .app_utils import isLayerInPoland, czyWarstwaMaWypelnioneObowiazkoweAtrybuty, kontrolaZaleznosciAtrybutow
+from .app_utils import isLayerInPoland, czyWarstwaMaWypelnioneObowiazkoweAtrybuty, kontrolaZaleznosciAtrybutow, isJPTinLayer, kontrolaProfiliDodatkowych
 from .. import BaseModule, utils, Formularz
 from ..utils import showPopup
 from ..models import AppTableModel
@@ -22,23 +22,30 @@ from qgis import processing
 from processing.core.Processing import Processing
 from PyQt5.QtCore import QSettings, QDateTime, QDate
 from ..tworzenieOUZ.dialogs import TworzenieOUZDialog
+from PyQt5.QtGui import QColor
+from matplotlib import cm
+from matplotlib.colors import to_hex
+import numpy as np
 import os
 import os.path
 import sys
 import pathlib
 import re
 import time
+import lxml
 import xml.etree.ElementTree as ET
 import random
 import ntpath
 import copy
+import hashlib
+import math
 
 
 
 class AppModule(BaseModule):
     metadaneDialog = None
     
-    global s, rodzajZbioru, numerZbioru, jpt, idLokalnyAPP, defaultPath, warstwaPOG
+    global s, rodzajZbioru, numerZbioru, jpt, idLokalnyAPP, defaultPath, warstwaPOG, checksums
     s = QgsSettings()
     rodzajZbioru = s.value("qgis_app2/settings/rodzajZbioru", "/")
     numerZbioru = s.value("qgis_app2/settings/numerZbioru", "")
@@ -47,6 +54,7 @@ class AppModule(BaseModule):
     defaultPath = s.value("qgis_app2/settings/defaultPath", "/")
     QSettings().setValue('/Map/identifyAutoFeatureForm','true')
     warstwaPOG = None
+    checksums = set()
 
 
     def __init__(self, iface):
@@ -156,16 +164,22 @@ class AppModule(BaseModule):
             self.generowanieGMLDialog_prev_btn_clicked)
         self.generowanieGMLDialog.generate_btn.clicked.connect(
             self.generateAPP)
-        self.generowanieGMLDialog.addElement_btn.clicked.connect(
-            self.addTableContentGML)
-        self.generowanieGMLDialog.deleteElement_btn.clicked.connect(
-            self.deleteTableContentGML)
+        self.generowanieGMLDialog.addElement_btn.clicked.connect(lambda:
+            self.addTableContentGML(1))
+        if rodzajZbioru == 'POG':
+            self.generowanieGMLDialog.addElement_btn2.clicked.connect(lambda: self.addTableContentGML(2))
+        self.generowanieGMLDialog.deleteElement_btn.clicked.connect(lambda: self.deleteTableContentGML(1))
+        if rodzajZbioru == 'POG':
+            self.generowanieGMLDialog.deleteElement_btn2.clicked.connect(lambda: self.deleteTableContentGML(2))
     
         # rozszerzanie kolumn
         header_gml = self.generowanieGMLDialog.filesTable_widget.horizontalHeader()
         for i in range(header_gml.count()):
-            header_gml.setSectionResizeMode(
-                i, QtWidgets.QHeaderView.ResizeToContents)
+            header_gml.setSectionResizeMode(i, QtWidgets.QHeaderView.ResizeToContents)
+        if rodzajZbioru == 'POG':
+            header_gml2 = self.generowanieGMLDialog.filesTable_widget2.horizontalHeader()
+            for i in range(header_gml2.count()):
+                header_gml2.setSectionResizeMode(i, QtWidgets.QHeaderView.ResizeToContents)
     # endregion
     
     # region zbiorPrzygotowanieDialog
@@ -192,8 +206,8 @@ class AppModule(BaseModule):
             self.wektorInstrukcjaDialog_next_btn_clicked)
         self.wektorInstrukcjaDialogPOG.prev_btn.clicked.connect(
             self.wektorInstrukcjaDialog_prev_btn_clicked)
-        self.wektorInstrukcjaDialogPOG.loadLayerEdit.clicked.connect(
-            self.loadFromGMLorGPKG)
+        self.wektorInstrukcjaDialogPOG.loadLayerEdit.clicked.connect(lambda:
+            self.loadFromGMLorGPKG(False))
         self.wektorInstrukcjaDialogPOG.saveLayer.clicked.connect(
             self.saveLayerToGML)
         self.wektorInstrukcjaDialogPOG.skip_btn.clicked.connect(
@@ -209,8 +223,8 @@ class AppModule(BaseModule):
             self.wektorInstrukcjaDialogSPL_next_btn_clicked)
         self.wektorInstrukcjaDialogSPL.prev_btn.clicked.connect(
             self.wektorInstrukcjaDialog_prev_btn_clicked)
-        self.wektorInstrukcjaDialogSPL.loadLayerEdit.clicked.connect(
-            self.loadFromGMLorGPKG)
+        self.wektorInstrukcjaDialogSPL.loadLayerEdit.clicked.connect(lambda:
+            self.loadFromGMLorGPKG(False))
         self.wektorInstrukcjaDialogSPL.saveLayer.clicked.connect(
             self.saveLayerToGML)
         self.wektorInstrukcjaDialogSPL.skip_btn.clicked.connect(
@@ -226,8 +240,8 @@ class AppModule(BaseModule):
             self.wektorInstrukcjaDialogOUZ_next_btn_clicked)
         self.wektorInstrukcjaDialogOUZ.prev_btn.clicked.connect(
             self.wektorInstrukcjaDialog_prev_btn_clicked)
-        self.wektorInstrukcjaDialogOUZ.loadLayerEdit.clicked.connect(
-            self.loadFromGMLorGPKG)
+        self.wektorInstrukcjaDialogOUZ.loadLayerEdit.clicked.connect(lambda:
+            self.loadFromGMLorGPKG(False))
         self.wektorInstrukcjaDialogOUZ.saveLayer.clicked.connect(
             self.saveLayerToGML)
         self.wektorInstrukcjaDialogOUZ.skip_btn.clicked.connect(
@@ -243,8 +257,8 @@ class AppModule(BaseModule):
             self.wektorInstrukcjaDialogOZS_next_btn_clicked)
         self.wektorInstrukcjaDialogOZS.prev_btn.clicked.connect(
             self.wektorInstrukcjaDialog_prev_btn_clicked)
-        self.wektorInstrukcjaDialogOZS.loadLayerEdit.clicked.connect(
-            self.loadFromGMLorGPKG)
+        self.wektorInstrukcjaDialogOZS.loadLayerEdit.clicked.connect(lambda:
+            self.loadFromGMLorGPKG(False))
         self.wektorInstrukcjaDialogOZS.saveLayer.clicked.connect(
             self.saveLayerToGML)
         self.wektorInstrukcjaDialogOZS.skip_btn.clicked.connect(
@@ -260,8 +274,8 @@ class AppModule(BaseModule):
             self.wektorInstrukcjaDialogOSD_next_btn_clicked)
         self.wektorInstrukcjaDialogOSD.prev_btn.clicked.connect(
             self.wektorInstrukcjaDialog_prev_btn_clicked)
-        self.wektorInstrukcjaDialogOSD.loadLayerEdit.clicked.connect(
-            self.loadFromGMLorGPKG)
+        self.wektorInstrukcjaDialogOSD.loadLayerEdit.clicked.connect(lambda:
+            self.loadFromGMLorGPKG(False))
         self.wektorInstrukcjaDialogOSD.saveLayer.clicked.connect(
             self.saveLayerToGML)
         self.wektorInstrukcjaDialogOSD.skip_btn.clicked.connect(
@@ -294,7 +308,7 @@ class AppModule(BaseModule):
 
 
     def pytanieAppDialog_load_btn_clicked(self):
-        self.loadFromGMLorGPKG()
+        self.loadFromGMLorGPKG(False)
 
 
     def pytanieAppDialog_projekt_qgs_btn_clicked(self):
@@ -695,11 +709,18 @@ class AppModule(BaseModule):
             utils.loadItemsToForm(plik, formElements)
 
 
-    def addTableContentGML(self):
+    def addTableContentGML(self, nr_tabeli):
+        global checksums
         files = QFileDialog.getOpenFileNames(
             filter="pliki XML/GML (*.xml *.gml)")[0]
         for file in files:
             plik = str(file)
+            checksum = self.calculate_checksum(file)
+            if not checksum in checksums:
+                checksums.add(checksum)
+            else:
+                utils.showPopup(title='Dodawanie pliku do tabeli',text='Wczytano już plik: %s' % plik)
+                continue
             param = True
             docNames = {
                 'AktPlanowaniaPrzestrzennego': 'Akt planowania przestrzennego',
@@ -716,21 +737,32 @@ class AppModule(BaseModule):
                 docName = ''
             if plik:
                 if docName == '':
-                    utils.showPopup(title='Błędny plik',text='Wczytano błędny plik: %s' % plik)
+                    utils.showPopup(title='Błędny plik',text='Wskazano błędny plik: %s' % plik)
+                    checksums.remove(checksum)
                 elif docName in docNames.keys():
-                    rows = self.generowanieGMLDialog.filesTable_widget.rowCount()
+                    if nr_tabeli == 1:
+                        rows = self.generowanieGMLDialog.filesTable_widget.rowCount()
+                    else:
+                        rows = self.generowanieGMLDialog.filesTable_widget2.rowCount()
                     if rows > 0:
                         for i in range(rows):
-                            item = self.generowanieGMLDialog.filesTable_widget.item(
-                                i, 0).toolTip()
+                            if nr_tabeli == 1:
+                                item = self.generowanieGMLDialog.filesTable_widget.item(i, 0).toolTip()
+                            else:
+                                item = self.generowanieGMLDialog.filesTable_widget2.item(i, 0).toolTip()
                             if plik == item:
                                 param = False
-                                showPopup("Błąd tabeli","Wybrany plik znajduje się już w tabeli")
+                                utils.showPopup(title='Dodawanie pliku do tabeli',text='Wczytano już plik: %s' % plik)
                                 break
-                        if param:
+                        if param and nr_tabeli == 1:
                             self.tableContentGML(plik, rows)
+                        elif param and nr_tabeli == 2:
+                            self.tableContentGML2(plik, rows)
                     else:
-                        self.tableContentGML(plik, rows)
+                        if nr_tabeli == 1:
+                            self.tableContentGML(plik, rows)
+                        else:
+                            self.tableContentGML2(plik, rows)
 
 
     def tableContentGML(self, file, rows):
@@ -740,16 +772,16 @@ class AppModule(BaseModule):
             return tail or ntpath.basename(head)
         file2 = path_leaf(file)
         flags = Qt.ItemFlags(32)
+        
         self.generowanieGMLDialog.filesTable_widget.setRowCount(rows + 1)
-        self.generowanieGMLDialog.filesTable_widget.setItem(
-            rows, 0, QTableWidgetItem(file2))
-        test = self.generowanieGMLDialog.filesTable_widget.item(rows, 0)
-        test.setToolTip(file)
+        self.generowanieGMLDialog.filesTable_widget.setItem(rows, 0, QTableWidgetItem(file2))
+        self.generowanieGMLDialog.filesTable_widget.item(rows, 0).setToolTip(file)
         
         t = os.path.getmtime(file)
         mtime = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(t))
         item = QTableWidgetItem(mtime)
         item.setFlags(flags)
+        
         self.generowanieGMLDialog.filesTable_widget.setItem(rows, 2, item)
         
         # Ustawianie rodzaju dokumentu
@@ -768,6 +800,7 @@ class AppModule(BaseModule):
         rodzaj = ['Dokument formalny', 'Akt planowania przestrzennego', 'Rysunek APP', 'Strefa planistyczna', 'Obszar uzupełnienia zabudowy', 'Obszar zabudowy śródmiejskiej', 'Obszar standardów dostępności infrastruktury społecznej']
         item2 = QTableWidgetItem(docName)
         item2.setFlags(flags)
+        
         self.generowanieGMLDialog.filesTable_widget.setItem(rows, 1, item2)
         
         # relacja z APP
@@ -775,20 +808,94 @@ class AppModule(BaseModule):
             c = QComboBox()
             c.addItems(dictionaries.relacjeDokumentu.keys())
             i = self.generowanieGMLDialog.filesTable_widget.model().index(rows, 3)
-            self.generowanieGMLDialog.filesTable_widget.setCellWidget(
-                rows, 3, c)
+            self.generowanieGMLDialog.filesTable_widget.setCellWidget(rows, 3, c)
         else:
             empty = QTableWidgetItem('')
             empty.setFlags(flags)
             self.generowanieGMLDialog.filesTable_widget.setItem(rows, 3, empty)
 
 
-    def deleteTableContentGML(self):
-        row_num = self.generowanieGMLDialog.filesTable_widget.rowCount()
+
+    def tableContentGML2(self, file, rows):
+        # Ustawianie rodzaju dokumentu
+        docNames = {
+                    'AktPlanowaniaPrzestrzennego': 'Akt planowania przestrzennego',
+                    'RysunekAktuPlanowaniaPrzestrzennego': 'Rysunek APP',
+                    'DokumentFormalny': 'Dokument formalny',
+                    'StrefaPlanistyczna':'Strefa planistyczna',
+                    'ObszarUzupelnieniaZabudowy':'Obszar uzupełnienia zabudowy',
+                    'ObszarZabudowySrodmiejskiej':'Obszar zabudowy śródmiejskiej',
+                    'ObszarStandardowDostepnosciInfrastrukturySpolecznej':'Obszar standardów dostępności infrastruktury społecznej'
+                   }
+        
+        docNamesGML = set()
+        
+        try:
+            tree = ET.parse(file)
+            root = tree.getroot()
+            
+            elemList = set()
+            for elem in root.iter():
+                elemList.add(elem.tag)
+                
+            # usuwanie duplikatów
+            elemList = list(elemList)
+            
+            for elem in elemList:
+                for docName in docNames:
+                    if docName in elem:
+                        docNamesGML.add(docNames[docName])
+        except:
+            return ''
+        
+        for docName in docNamesGML:
+            # data modyfikacji
+            def path_leaf(file):
+                head, tail = ntpath.split(file)
+                return tail or ntpath.basename(head)
+            file2 = path_leaf(file)
+            flags = Qt.ItemFlags(32)
+            self.generowanieGMLDialog.filesTable_widget2.setRowCount(rows + 1)
+            self.generowanieGMLDialog.filesTable_widget2.setItem(rows, 0, QTableWidgetItem(file2))
+            txt = self.generowanieGMLDialog.filesTable_widget2.item(rows, 0)
+            txt.setToolTip(file)
+            
+            t = os.path.getmtime(file)
+            mtime = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(t))
+            item = QTableWidgetItem(mtime)
+            item.setFlags(flags)
+            self.generowanieGMLDialog.filesTable_widget2.setItem(rows, 2, item)
+            
+            rodzaj = ['Dokument formalny', 'Akt planowania przestrzennego', 'Rysunek APP', 'Strefa planistyczna', 'Obszar uzupełnienia zabudowy', 'Obszar zabudowy śródmiejskiej', 'Obszar standardów dostępności infrastruktury społecznej']
+            item2 = QTableWidgetItem(docName)
+            item2.setFlags(flags)
+            
+            self.generowanieGMLDialog.filesTable_widget2.setItem(rows, 1, item2)
+            
+            rows += 1
+
+
+    def deleteTableContentGML(self, nr_tabeli):
+        global checksums
+        if nr_tabeli == 1:
+            row_num = self.generowanieGMLDialog.filesTable_widget.rowCount()
+        else:
+            row_num = self.generowanieGMLDialog.filesTable_widget2.rowCount()
         if row_num > 0:
-            do_usuniecia = self.generowanieGMLDialog.filesTable_widget.currentRow()
-            self.generowanieGMLDialog.filesTable_widget.removeRow(do_usuniecia)
-            self.generowanieGMLDialog.filesTable_widget.setCurrentCell(-1, -1)
+            if nr_tabeli == 1:
+                do_usuniecia = self.generowanieGMLDialog.filesTable_widget.currentRow()
+                txt = self.generowanieGMLDialog.filesTable_widget.item(do_usuniecia, 0)
+                checksum = self.calculate_checksum(txt.toolTip())
+                self.generowanieGMLDialog.filesTable_widget.removeRow(do_usuniecia)
+                self.generowanieGMLDialog.filesTable_widget.setCurrentCell(-1, -1)
+            else:
+                do_usuniecia = self.generowanieGMLDialog.filesTable_widget2.currentRow()
+                txt = self.generowanieGMLDialog.filesTable_widget2.item(do_usuniecia, 0)
+                checksum = self.calculate_checksum(txt.toolTip())
+                self.generowanieGMLDialog.filesTable_widget2.removeRow(do_usuniecia)
+                self.generowanieGMLDialog.filesTable_widget2.setCurrentCell(-1, -1)
+            if checksum in checksums:
+                checksums.remove(checksum)
         else:
             pass
 
@@ -816,52 +923,86 @@ class AppModule(BaseModule):
                         return False
 
 
-    def getTableContent(self):
+    def getTableContent(self, table_num):
         content = []
-        row_num = self.generowanieGMLDialog.filesTable_widget.rowCount()
+        if table_num == 1:
+            row_num = self.generowanieGMLDialog.filesTable_widget.rowCount()
+        else:
+            row_num = self.generowanieGMLDialog.filesTable_widget2.rowCount()
         for i in range(row_num):
-            item = self.generowanieGMLDialog.filesTable_widget.item(
-                i, 0).toolTip()
-            try:
-                relation = self.generowanieGMLDialog.filesTable_widget.cellWidget(
-                    i, 3).currentText()
-            except:
-                relation = ''
-            content.append([item, relation])
+            if table_num == 1:
+                item = self.generowanieGMLDialog.filesTable_widget.item(i, 0).toolTip()
+                typObiektu = self.generowanieGMLDialog.filesTable_widget.item(i, 1).text()
+                try:
+                    relation = self.generowanieGMLDialog.filesTable_widget.cellWidget(i, 3).currentText()
+                except:
+                    relation = ''
+                content.append([item, typObiektu, relation])
+            else:
+                item = self.generowanieGMLDialog.filesTable_widget2.item(i, 0).toolTip()
+                typObiektu = self.generowanieGMLDialog.filesTable_widget2.item(i, 1).text()
+                content.append([item, typObiektu])
         return content  # ścieżki do plików
 
 
     def generateAPP(self):  # Generowanie pliku z APP
-        docList = self.getTableContent()
-        if len(docList) == 0:
+        docList1 = self.getTableContent(1)
+        if len(docList1) == 0:
             utils.showPopup(title='Brak Dokumentów',text='Do tabeli nie zostały dodane żadne dokumenty.')
         else:
             uchwala_count = 0
             przystapienie_count = 0
-            for doc, rel in docList:
+            for file, doc, rel in docList1:
                 if rel == 'uchwala':
                     uchwala_count += 1
                 if rel == 'przystąpienie':
                     przystapienie_count += 1
             uchwala_przystapienie_count = przystapienie_count + uchwala_count
-            przestrzenNazw_list = utils.validatePrzestrzenNazwAppSet(files=docList)
-            if not utils.validateObjectNumber(files=docList):
+            przestrzenNazw_list = utils.validatePrzestrzenNazwAppSet(files=docList1)
+            if not utils.validateObjectNumber(files=docList1):
                 pass
             elif len(przestrzenNazw_list) != 1:
                 utils.showPopup('Błąd przestrzeni nazw',f'Obiekty pochodzą z różnych przestrzeni nazw tj.: {przestrzenNazw_list}.\nSprawdź czy wszystkie obiekty posiadają taką samą wartość w polu przestrzeń nazw. Upewnij się, że w ustawieniach wszystkie pola są poprawnie wypełnione.')
-            elif not utils.validateDokumentFormalnyDate(files=docList):
+            elif not utils.validateDokumentFormalnyDate(files=docList1):
                 utils.showPopup('Błąd relacji dokumentów','Dokument z relacją uchwala nie może być starszy od dokumentu z relacją przystąpienie.')
             elif uchwala_przystapienie_count == 0:
                 utils.showPopup(title='Błąd relacji dokumentów', text='Wymagany jest co najmniej jeden dokument z relacją "przystąpienie" lub "uchwala".')
             elif uchwala_count > 1:
                 utils.showPopup(title='Błąd relacji dokumentów', text='W APP dozwolony jest tylko jeden dokument z relacją "uchwala".')
-            elif not self.hasTableSP() and self.app_status_PWLR(docList) and rodzajZbioru == 'POG':
+            elif rodzajZbioru == 'POG' and not self.hasTableSP() and self.app_status_PWLR(docList1):
                 utils.showPopup(title='Błąd APP', text='Dla APP o statusie "prawnie wiążący lub realizowany" wymagany jest plik "Strefa Planistyczna".')
             else:
+                if rodzajZbioru == 'POG':
+                    docList1 = sorted(docList1, key=lambda x: x[1], reverse=True)
+                    docList2 = self.getTableContent(2)
+                    if len(docList2) > 0:
+                        podanoDateObowiazujeOd = False
+                        dataObowiazujeOd = None
+                        dataCzasTeraz = QDateTime.currentDateTimeUtc()
+                        for doc1 in docList1:
+                            for doc2 in docList2:
+                                if doc1[1] == doc2[1]:
+                                    lokalnyids_to_update = list(self.kontrolaZmianAtrybutowWzgledemWersji(doc1[0],doc2[0]))
+                                    if len(lokalnyids_to_update) > 0:
+                                        if not podanoDateObowiazujeOd:
+                                            dataObowiazujeOd = self.pobierzDateObowiazujeOd()
+                                            if dataObowiazujeOd == None:
+                                                utils.showPopup(title='Pobieranie daty obowiązuje od', text='Ponieważ anulowano wskazanie daty obowiązuje od, nie nastąpi jej uspójnienie.')
+                                                break
+                                                break
+                                            else:
+                                                podanoDateObowiazujeOd = True
+                                        doc1[0] = self.updateObowiazujeOd(doc1[0], lokalnyids_to_update, dataObowiazujeOd, dataCzasTeraz)
+                                    break
+                            if podanoDateObowiazujeOd and doc1[1] == 'Akt planowania przestrzennego':
+                                lokalnyids_to_update = list(self.lokalnyId_APP(doc1[0]))
+                                doc1[0] = self.updateObowiazujeOd(doc1[0], lokalnyids_to_update, dataObowiazujeOd, dataCzasTeraz)
+                                continue
+                
                 defaultPath = s.value("qgis_app2/settings/defaultPath", "/")
                 self.fn = QFileDialog.getSaveFileName(directory=defaultPath, filter="GML Files (*.gml)")[0]
                 if self.fn:
-                    xml_string = utils.mergeDocsToAPP(docList)
+                    xml_string = utils.mergeDocsToAPP(docList1)
                     if xml_string != '':
                         myfile = open(self.fn, "w", encoding='utf-8')
                         myfile.write(xml_string)
@@ -876,8 +1017,7 @@ class AppModule(BaseModule):
                 rows = self.zbiorPrzygotowanieDialog.appTable_widget.rowCount()
                 if rows > 0:
                     for i in range(rows):
-                        item = self.zbiorPrzygotowanieDialog.appTable_widget.item(
-                            i, 0).text()
+                        item = self.zbiorPrzygotowanieDialog.appTable_widget.item(i, 0).text()
                         if iip == item:
                             param = False
                             showPopup("Błąd tabeli","Wybrany plik znajduje się już w tabeli")
@@ -1195,7 +1335,7 @@ class AppModule(BaseModule):
 
     def aggregateLayer(self, layer):
         # Aggregate
-        Processing.initialize()
+        processing.initialize()
         alg_params = {
             'AGGREGATES': [],
             'GROUP_BY': 'NULL',
@@ -1437,14 +1577,21 @@ class AppModule(BaseModule):
         wersjaId_lineEdit.textChanged.connect(lambda: updateIdIPP())
 
 
-    def loadFromGMLorGPKG(self):
+    def loadFromGMLorGPKG(self, analizy):
         Processing.initialize()
         s = QgsSettings()
         defaultPath = s.value("qgis_app2/settings/defaultPath", "/")
         epsg_code = s.value("qgis_app2/settings/strefaPL2000", "/")
         rodzajZbioru = s.value("qgis_app2/settings/rodzajZbioru", "/")
+        jpt = s.value("qgis_app2/settings/jpt", "/")
         dataCzasTeraz = QDateTime.currentDateTimeUtc()
         profile_msg = False
+        ileRazyPowielicWarstwe = 1
+        subNamesSPL = ['maksNadziemnaIntensywnoscZabudowy','maksWysokoscZabudowy','maksUdzialPowierzchniZabudowy',
+                       'minUdzialPowierzchniBiologicznieCzynnej','profileDodatkowe','obowiazujeOd']
+        subNamesOSD = ['odleglosciIPowierzchnie','obowiazujeOd']
+        subNamesOUZ = ['obowiazujeOd']
+        subNamesOZS = ['obowiazujeOd']
         
         if not os.access(defaultPath, os.W_OK):
             showPopup("Wczytaj warstwę","Brak uprawnień do zapisu w katalogu " + defaultPath + ". W ustawieniach wtyczki wskaż domyślną ścieżkę zapisu plików z uprawnieniami do zapisu.")
@@ -1461,12 +1608,14 @@ class AppModule(BaseModule):
             return
         
         ds = ogr.Open(file)
-        
         warstwy = [x.GetName() for x in ds]
+        
         activeDlgname = self.activeDlg.name
-        if activeDlgname not in warstwy and activeDlgname != 'PytanieAppDialog':
+        if not any(activeDlgname in element for element in warstwy) and activeDlgname != 'PytanieAppDialog':
             showPopup("Wczytaj warstwę","Proszę wskazać plik gml zawierający: " + activeDlgname)
             return
+        
+        QApplication.setOverrideCursor(Qt.BusyCursor)
         
         if format == 'pliki GeoPackage (*.gpkg);':
             definicja_warstwy = ds.GetLayer().GetLayerDefn()
@@ -1474,6 +1623,7 @@ class AppModule(BaseModule):
             
             if ilosc_pol == 0:
                 showPopup("Wczytaj warstwę","Warstwa nie zawiera pól.")
+                QApplication.restoreOverrideCursor()
                 return
                 
             for i in range(ilosc_pol):
@@ -1500,6 +1650,7 @@ class AppModule(BaseModule):
         
         dozwoloneWarstwy = ['AktPlanowaniaPrzestrzennego','StrefaPlanistyczna','ObszarUzupelnieniaZabudowy','ObszarZabudowySrodmiejskiej','ObszarStandardowDostepnosciInfrastrukturySpolecznej','DokumentFormalny','RysunekAktuPlanowaniaPrzestrzennego']
         warstwy.sort(reverse=True)
+        isJPTinLayer_msg = False
         
         for layerName in warstwy:
             for dozwolonaWarstwa in dozwoloneWarstwy:
@@ -1509,12 +1660,9 @@ class AppModule(BaseModule):
                 showPopup("Wczytaj warstwę",f"Wskazany plik zawiera warstwę \"{layerName}\", która nie występuje w modelu planowania przestrzennego.")
                 continue
             
-            if rodzajZbioru != 'POG' and layerName == 'AktPlanowaniaPrzestrzennego':
-                layer_QML_Name = 'granice_app'
-            else:
-                layer_QML_Name = layerName
             geomTypeEPSG = 'polygon?crs=epsg:' + str(epsg_code)
             geomType = 'Polygon'
+            
             if file and layerName in dozwoloneWarstwy and activeDlgname in [layerName, 'PytanieAppDialog']:
                 field_edycja = utils.createEditField()
                 if layerName == 'AktPlanowaniaPrzestrzennego':
@@ -1561,7 +1709,6 @@ class AppModule(BaseModule):
                     i += 1
                     numerWarstwy = '_' + str(i)
                 
-                pathQML = pathlib.Path(QgsApplication.qgisSettingsDirPath())/pathlib.Path("python/plugins/wtyczka_qgis_app/QML/" + layer_QML_Name + ".qml")
                 if format == 'pliki GML (*.gml)':
                     gfsfile = file.replace(".xml",".gfs").replace(".XML",".gfs").replace(".gml",".gfs").replace(".GML",".gfs")
                     if os.path.exists(gfsfile):
@@ -1588,7 +1735,14 @@ class AppModule(BaseModule):
                     try:
                         newEPSG = layer.crs().authid().split(":")[1]
                     except:
+                        QApplication.restoreOverrideCursor()
                         return
+                    
+                    # czy warstwa posiada atrybut przestrzenNazw
+                    if not 'przestrzenNazw' in [field.name() for field in layer.fields()]:
+                        QApplication.restoreOverrideCursor()
+                        showPopup("Wczytaj warstwę",f"Warstwa \"{layerName}\" nie posiada atrybutu przestrzenNazw.")
+                        continue
                     
                     checkvalidity = processing.run("qgis:checkvalidity", {
                         'INPUT_LAYER': layer,
@@ -1607,18 +1761,19 @@ class AppModule(BaseModule):
                                                      "Układ współrzędnych wczytywanej warstwy jest inny od układu współrzędnych przyjętego na podstawie ustawień wtyczki APP.\nCzy chcesz mimo to wczytać warstwę?", QMessageBox.Yes |
                                                      QMessageBox.No, QMessageBox.No)
                         if odp == QMessageBox.No:
+                            QApplication.restoreOverrideCursor()
                             return
                         else:
                             geomTypeEPSG = geomTypeEPSG[:-4] + newEPSG
                             epsg_code = newEPSG
+                    else:
+                        if not isJPTinLayer_msg and not isJPTinLayer(layer, jpt):
+                            showPopup("Wczytaj warstwę",f"Warstwa \"{layerName}\" posiada JPT niezgodne z ustawieniami.")
                 
                 destlayer = QgsVectorLayer(geomTypeEPSG + self.fieldsDefinition(fields=fields), layerName + numerWarstwy, 'memory')
                 destlayer.startEditing()
                 poczatekKoniecWersjiObiektu_msg = False
                 obowiazujeOdDo_msg = False
-                idx_wersjaId = destlayer.fields().indexFromName('wersjaId')
-                idx_poczatekWersjiObiektu = destlayer.fields().indexFromName('poczatekWersjiObiektu')
-                idx_obowiazujeOd = destlayer.fields().indexFromName('obowiazujeOd')
                 for feature in layer.getFeatures():
                     new_feat = QgsFeature(destlayer.fields())
                     for index, field in enumerate(destlayer.fields()):
@@ -1632,17 +1787,19 @@ class AppModule(BaseModule):
                                         wartosci.insert(-1, 'teren ogrodów działkowych')
                                     elif wartosci[-1] == 'teren komunikacji':
                                         wartosci.append('teren ogrodów działkowych')
-                                    new_feat.setAttribute(idx_wersjaId, dataCzasTeraz.toString("yyyyMMddThhmmss"))
-                                    new_feat.setAttribute(idx_poczatekWersjiObiektu, dataCzasTeraz)
-                                    new_feat.setAttribute(idx_obowiazujeOd, None)
+                                    new_feat.setAttribute('wersjaId', dataCzasTeraz.toString("yyyyMMddThhmmss"))
+                                    new_feat.setAttribute('poczatekWersjiObiektu', dataCzasTeraz)
+                                    new_feat.setAttribute('obowiazujeOd', None)
+                                    new_feat.setAttribute('edycja', True)
                                     if not profile_msg:
                                         profile_msg = True
                                         showPopup("Wczytaj warstwę","Podczas wczytywania warstw, zgodnie ze zmianą rozporządzenia zmienił się profil funkcjonalny w strefach planistycznych związany z terenami ogrodów działkowych.")
                                 if field.name() == 'profilDodatkowy' and 'teren ogrodów działkowych' in wartosci:
                                     wartosci.remove('teren ogrodów działkowych')
-                                    new_feat.setAttribute(idx_wersjaId, dataCzasTeraz.toString("yyyyMMddThhmmss"))
-                                    new_feat.setAttribute(idx_poczatekWersjiObiektu, dataCzasTeraz)
-                                    new_feat.setAttribute(idx_obowiazujeOd, None)
+                                    new_feat.setAttribute('wersjaId', dataCzasTeraz.toString("yyyyMMddThhmmss"))
+                                    new_feat.setAttribute('poczatekWersjiObiektu', dataCzasTeraz)
+                                    new_feat.setAttribute('obowiazujeOd', None)
+                                    new_feat.setAttribute('edycja', True)
                                     if not profile_msg:
                                         profile_msg = True
                                         showPopup("Wczytaj warstwę","Podczas wczytywania warstw, zgodnie ze zmianą rozporządzenia zmienił się profil funkcjonalny w strefach planistycznych związany z terenami ogrodów działkowych.")
@@ -1663,6 +1820,7 @@ class AppModule(BaseModule):
                                 new_feat.setAttribute('poczatekWersjiObiektu', dataCzasTeraz)
                                 new_feat.setAttribute('obowiazujeOd', None)
                                 new_feat.setAttribute('profilPodstawowy', ",".join(wartosci))
+                                new_feat.setAttribute('edycja', True)
                                 if not profile_msg:
                                     profile_msg = True
                                     showPopup("Wczytaj warstwę","Podczas wczytywania warstw, zgodnie ze zmianą rozporządzenia zmienił się profil funkcjonalny w strefach planistycznych związany z terenami ogrodów działkowych.")
@@ -1672,6 +1830,7 @@ class AppModule(BaseModule):
                                 new_feat.setAttribute('poczatekWersjiObiektu', dataCzasTeraz)
                                 new_feat.setAttribute('obowiazujeOd', None)
                                 new_feat.setAttribute('profilDodatkowy', ",".join(wartosci))
+                                new_feat.setAttribute('edycja', True)
                                 if not profile_msg:
                                     profile_msg = True
                                     showPopup("Wczytaj warstwę","Podczas wczytywania warstw, zgodnie ze zmianą rozporządzenia zmienił się profil funkcjonalny w strefach planistycznych związany z terenami ogrodów działkowych.")
@@ -1680,7 +1839,8 @@ class AppModule(BaseModule):
                                 new_feat.setAttribute(index, QVariant(tekst))
                         else:
                             try:
-                                new_feat.setAttribute(index, QVariant(feature.attribute(field.name())))
+                                if not (field.name() == 'edycja' and profile_msg):
+                                    new_feat.setAttribute(index, QVariant(feature.attribute(field.name())))
                             except:
                                 pass
                         if layerName == 'AktPlanowaniaPrzestrzennego' and profile_msg and field.name() == 'obowiazujeOd':
@@ -1718,24 +1878,66 @@ class AppModule(BaseModule):
                 
                 QgsProject.instance().removeMapLayer(destlayer)
                 QgsProject.instance().removeMapLayer(layer)
-                gkpg = QgsVectorLayer(output_path, layerName + numerWarstwy, 'ogr')
-                gkpg.startEditing()
                 
-                gkpg.loadNamedStyle(str(pathQML))
-                if activeDlgname != 'PytanieAppDialog':
-                    gkpg.startEditing()
+                if analizy and 'StrefaPlanistyczna' in layerName:
+                    ileRazyPowielicWarstwe = 6
+                elif analizy and 'ObszarStandardowDostepnosciInfrastrukturySpolecznej' in layerName:
+                    ileRazyPowielicWarstwe = 2
                 else:
-                    gkpg.commitChanges()
+                    ileRazyPowielicWarstwe = 1
                 
-                editFormConfig = gkpg.editFormConfig()
-                pathUI = pathlib.Path(QgsApplication.qgisSettingsDirPath())/pathlib.Path("python/plugins/wtyczka_qgis_app/" + layerName + ".ui")
-                editFormConfig.setUiForm(str(pathUI))
-                pathPy = pathlib.Path(QgsApplication.qgisSettingsDirPath())/pathlib.Path("python/plugins/wtyczka_qgis_app/" + layerName + ".py")
-                editFormConfig.setInitFilePath(str(pathPy))
-                editFormConfig.setInitFunction("my_form_open")
-                gkpg.setEditFormConfig(editFormConfig)
-                gkpg.setCrs(crs)
-                QgsProject.instance().addMapLayer(gkpg)
+                for n in range(ileRazyPowielicWarstwe):
+                    gkpg = QgsVectorLayer(output_path, layerName + numerWarstwy, 'ogr')
+                    
+                    if not analizy:
+                        if rodzajZbioru != 'POG' and layerName == 'AktPlanowaniaPrzestrzennego':
+                            layer_QML_Name = 'granice_app'
+                        else:
+                            layer_QML_Name = layerName
+                    elif layerName in ['StrefaPlanistyczna',
+                                       'ObszarStandardowDostepnosciInfrastrukturySpolecznej',
+                                       'ObszarUzupelnieniaZabudowy',
+                                       'ObszarZabudowySrodmiejskiej'] and rodzajZbioru == 'POG':
+                        if layerName == 'StrefaPlanistyczna':
+                            layer_QML_Name = 'SPL_' + subNamesSPL[n]
+                        if layerName == 'ObszarStandardowDostepnosciInfrastrukturySpolecznej':
+                            layer_QML_Name = 'OSD_' + subNamesOSD[n]
+                        if layerName == 'ObszarUzupelnieniaZabudowy':
+                            layer_QML_Name = 'OUZ_' + subNamesOUZ[n]
+                        if layerName == 'ObszarZabudowySrodmiejskiej':
+                            layer_QML_Name = 'OZS_' + subNamesOZS[n]
+                        gkpg.setName(layer_QML_Name)
+                    else:
+                        layer_QML_Name = layerName
+                    
+                    pathQML = pathlib.Path(QgsApplication.qgisSettingsDirPath())/pathlib.Path("python/plugins/wtyczka_qgis_app/QML/" + layer_QML_Name + ".qml")
+                    gkpg.startEditing()
+                    gkpg.loadNamedStyle(str(pathQML))
+                    if activeDlgname != 'PytanieAppDialog':
+                        gkpg.startEditing()
+                    else:
+                        gkpg.commitChanges()
+                    
+                    editFormConfig = gkpg.editFormConfig()
+                    pathUI = pathlib.Path(QgsApplication.qgisSettingsDirPath())/pathlib.Path("python/plugins/wtyczka_qgis_app/" + layerName + ".ui")
+                    editFormConfig.setUiForm(str(pathUI))
+                    pathPy = pathlib.Path(QgsApplication.qgisSettingsDirPath())/pathlib.Path("python/plugins/wtyczka_qgis_app/" + layerName + ".py")
+                    editFormConfig.setInitFilePath(str(pathPy))
+                    editFormConfig.setInitFunction("my_form_open")
+                    gkpg.setEditFormConfig(editFormConfig)
+                    gkpg.setCrs(crs)
+                    
+                    QgsProject.instance().addMapLayer(gkpg)
+                    
+                    if analizy:
+                        if layerName == 'StrefaPlanistyczna' and not subNamesSPL[n] == 'profileDodatkowe':
+                            self.dodajStylOpartyORegulach(gkpg, subNamesSPL[n])
+                        if layerName == 'ObszarStandardowDostepnosciInfrastrukturySpolecznej':
+                            self.dodajStylOpartyORegulach(gkpg, subNamesOSD[n])
+                        if layerName == 'ObszarUzupelnieniaZabudowy':
+                            self.dodajStylOpartyORegulach(gkpg, subNamesOUZ[n])
+                        if layerName == 'ObszarZabudowySrodmiejskiej':
+                            self.dodajStylOpartyORegulach(gkpg, subNamesOZS[n])
                 if activeDlgname != 'PytanieAppDialog':
                     self.activeDlg.layers_comboBox.setCurrentText(layerName)
                 self.iface.messageBar().pushSuccess("Wczytanie warstwy:","Wczytano warstwę.")
@@ -1758,8 +1960,9 @@ class AppModule(BaseModule):
                     gkpg.updateFeature(changed_feature)
                 
                 gkpg.geometryChanged.connect(on_geometry_changed)
-                
+                QApplication.restoreOverrideCursor()
                 showPopup("Wczytaj warstwę","Poprawnie wczytano warstwę " + layerName + ".")
+        QApplication.restoreOverrideCursor()
 
 
     def saveLayerToGML(self):
@@ -1795,11 +1998,11 @@ class AppModule(BaseModule):
             czyWynikKontroliPozytywny = True
             if not self.kontrolaWarstwy(self.obrysLayer):
                 czyWynikKontroliPozytywny = False
+            if self.activeDlg != self.wektorInstrukcjaDialogPOG and not self.kontrolaGeometriiWarstwy(self.obrysLayer):
+                czyWynikKontroliPozytywny = False
             if self.activeDlg != self.wektorInstrukcjaDialogPOG and not self.czyObiektyUnikalne(self.obrysLayer,'oznaczenie'):
                 czyWynikKontroliPozytywny = False
             if self.activeDlg != self.wektorInstrukcjaDialogPOG and not self.czyObiektyUnikalne(self.obrysLayer,'status'):
-                czyWynikKontroliPozytywny = False
-            if self.activeDlg != self.wektorInstrukcjaDialogPOG and not self.kontrolaGeometriiWarstwy(self.obrysLayer):
                 czyWynikKontroliPozytywny = False
             if self.activeDlg == self.wektorInstrukcjaDialogOUZ and self.OUZpowyzej125procent(self.obrysLayer):
                 czyWynikKontroliPozytywny = False
@@ -2004,11 +2207,14 @@ class AppModule(BaseModule):
     def update_layer_list(self, obj):
         layers = QgsProject.instance().mapLayers()
         expected_layers = []
+        
         for layer in layers.values():
-            if not layer.name().startswith(self.activeDlg.name):
+            if not layer.name().startswith(obj.name):
                 expected_layers.append(layer)
         
         obj.layers_comboBox.setExceptedLayerList(expected_layers)
+        if obj.layers_comboBox.currentIndex() == 0:
+            obj.layers_comboBox.setCurrentIndex(1)
 
 
     def kontrolaGeometriiWarstwy(self, obrysLayer):
@@ -2025,7 +2231,7 @@ class AppModule(BaseModule):
             # kontrola poprawnosci geometrii
             bledne_geometrie = processing.run("qgis:checkvalidity", {
                 'INPUT_LAYER': obrysLayer,
-                'METHOD': 2,
+                'METHOD': 1,
                 'INVALID_OUTPUT': 'memory:',
                 'ERROR_OUTPUT': 'memory:'
             })
@@ -2318,7 +2524,6 @@ class AppModule(BaseModule):
                 if epsg in crs:
                     srsName = crs
                     break
-        obrysLayerName = obrysLayer.name()
         
         if self.obrysLayer.featureCount() > 1 and obrysLayer.name().startswith("AktPlanowaniaPrzestrzennego"):
             warstwaBezKoniecWersjiObiektu = processing.run("qgis:extractbyexpression", {
@@ -2338,12 +2543,15 @@ class AppModule(BaseModule):
             return False
         elif not czyWarstwaMaWypelnioneObowiazkoweAtrybuty(self.obrysLayer):
             showPopup("Błąd warstwy obrysu",
-                      "Występują obiekty z niewypełnionymi atrybutami obowiązkowymi.")
+                      "Występują obiekty z niewypełnionymi atrybutami obowiązkowymi.\nWygenerowano warstwę z błędnymi obiektami.")
             return False
         elif not kontrolaZaleznosciAtrybutow(self.obrysLayer):
             showPopup("Błąd warstwy obrysu",
                       "Występują obiekty z błędnie wypełnionymi atrybutami.")
             return False
+        elif obrysLayer.name().startswith("StrefaPlanistyczna") and not kontrolaProfiliDodatkowych(self.obrysLayer):
+            showPopup("Błąd warstwy obrysu",
+                      "Występują obiekty z błędnie wypełnionymi profilami dodatkowymi.")
         elif srsName == '':
             showPopup("Błąd warstwy obrysu",
                       "Obrys posiada niezgodny układ współrzędnych - EPSG:%s.\nDostępne CRS:\n    - %s" % (epsg, ',\n    - '.join(['%s : %s' % (a, b) for a, b in zip(dictionaries.ukladyOdniesieniaPrzestrzennego.keys(), dictionaries.ukladyOdniesieniaPrzestrzennego.values())])))
@@ -2354,7 +2562,7 @@ class AppModule(BaseModule):
 
     def OUZpowyzej125procent(self, obrysLayer):
         pathOUZ_wyjsciowy = os.path.join(defaultPath,"Dokumentacja/ObszarUzupelnieniaZabudowy-wyjsciowy.gml")
-        powierzchnie_OUZ = os.path.join(defaultPath,"Dane pomocnicze/Powierzchnie.xml")
+        powierzchnie_OUZ = os.path.join(defaultPath,"Dane_pomocnicze/Powierzchnie.xml")
         
         if os.path.exists(pathOUZ_wyjsciowy) and os.path.exists(powierzchnie_OUZ):
             
@@ -2385,25 +2593,33 @@ class AppModule(BaseModule):
         
         pathOUZ_wyjsciowy_layer = QgsVectorLayer(pathOUZ_wyjsciowy + "|layername=ObszarUzupelnieniaZabudowy|option:FORCE_SRS_DETECTION=YES|option:CONSIDER_EPSG_AS_URN=YES|geometrytype=Polygon", "ObszarUzupelnieniaZabudowy", 'ogr')
         
-        try:
-            pojedynczeBufory = processing.run("native:multiparttosingleparts", {
-                'INPUT': pathOUZ_wyjsciowy_layer,
-                'OUTPUT': 'memory:'
-            })
+        pojedynczeBufory = processing.run("native:multiparttosingleparts", {
+            'INPUT': pathOUZ_wyjsciowy_layer,
+            'OUTPUT': 'memory:'
+        })
+        
+        roznica_features = []
+        for obrys_feat in obrysLayer.getFeatures():
+            obrys_geom = obrys_feat.geometry()
             
-            # różnica powierzchnii
-            roznica = processing.run("qgis:difference", {
-                'INPUT': obrysLayer,
-                'OVERLAY': pojedynczeBufory['OUTPUT'],
-                'OUTPUT': 'memory:'
-            })
-        except:
-            showPopup("Informacja", "Geometria ObszarUzupelnieniaZabudowy-wyjsciowy.gml jest prawdopodobnie niepoprawna.")
-            return True
+            for buf_feat in pojedynczeBufory['OUTPUT'].getFeatures():
+                buf_geom = buf_feat.geometry()
+                if obrys_geom.intersects(buf_geom):
+                    obrys_geom = obrys_geom.difference(buf_geom)
+        
+            if not obrys_geom.isEmpty():
+                new_feat = QgsFeature()
+                new_feat.setGeometry(obrys_geom)
+                new_feat.setAttributes(obrys_feat.attributes())
+                roznica_features.append(new_feat)
+        
+        roznica = QgsVectorLayer("Polygon?crs=" + obrysLayer.crs().authid(), "roznica", "memory")
+        roznica.dataProvider().addFeatures(roznica_features)
+        roznica.updateExtents()
         
         # zmiana multipoligonów na poligony
         pojedynczeBufory2 = processing.run("native:multiparttosingleparts", {
-            'INPUT': roznica['OUTPUT'],
+            'INPUT': roznica,
             'OUTPUT': 'memory:'
         })
         
@@ -2463,6 +2679,7 @@ class AppModule(BaseModule):
             for warstwa in warstwy:
                 if layer.name().startswith(warstwa):
                     break
+            
             if layer.type() == QgsMapLayer.VectorLayer and layer.geometryType() == QgsWkbTypes.PolygonGeometry and layer.name().startswith(warstwa):
                 # wczytanie stylu z QML
                 if layer.loadNamedStyle(QgsApplication.qgisSettingsDirPath() + "python/plugins/wtyczka_qgis_app/qml/" + warstwa + ".qml"):
@@ -2477,3 +2694,326 @@ class AppModule(BaseModule):
                     layer.setEditFormConfig(editFormConfig)
                     # zapisanie zmian w projekcie
                     QgsProject.instance().write()
+
+
+    def calculate_checksum(self, file_path):
+        hash_function = hashlib.new('md5')
+        with open(file_path, 'rb') as f:
+            # Odczytaj plik w blokach
+            for chunk in iter(lambda: f.read(4096), b""):
+                hash_function.update(chunk)
+        return hash_function.hexdigest()
+
+
+    def dodajStylOpartyORegulach(self, layer, field_name):
+        if layer.fields().indexOf(field_name) == -1:
+            return
+        
+        unique_values = set()
+        for feature in layer.getFeatures():
+            value = feature[field_name]
+            if isinstance(value, QDate):
+                year = value.year()
+                month = value.month()
+                day = value.day()
+                value = int(f"{year:04d}{month:02d}{day:02d}")
+            if value != NULL:
+                unique_values.add(value)
+        
+        unique_values = list(unique_values)
+        unique_values.sort()
+        
+        jednostki = {'maksWysokoscZabudowy':'m',
+                     'maksUdzialPowierzchniZabudowy':'%',
+                     'minUdzialPowierzchniBiologicznieCzynnej':'%',
+                     'maksNadziemnaIntensywnoscZabudowy':'',
+                     'obowiazujeOd':''}
+        
+        if 0 in unique_values:
+            unique_values_count = len(unique_values)
+        else:
+            unique_values_count = len(unique_values) + 1 # +1 dla pozycji zero
+        if unique_values_count > 9:
+            unique_values_count = 10
+        
+        if len(unique_values) > 0:
+            min_value = min(unique_values)
+            max_value = max(unique_values)
+            if unique_values_count > 1:
+                step = round((max_value - min_value) / (unique_values_count - 1), 2)
+            else:
+                step = round((max_value - min_value) / unique_values_count, 2)
+        else:
+            unique_values_count = 0
+        root_rule = QgsRuleBasedRenderer.Rule(None)
+        
+        # Reguła dla NULL
+        null_symbol = QgsSymbol.defaultSymbol(layer.geometryType())
+        null_color = QColor(230, 230, 230)  # Kolor szary dla wartości NULL
+        null_symbol.setColor(null_color)
+        null_rule = QgsRuleBasedRenderer.Rule(null_symbol)
+        null_rule.setFilterExpression(f'"{field_name}" IS NULL')
+        null_rule.setLabel('Brak danych')
+        root_rule.appendChild(null_rule)
+        
+        for layer_renderer in null_symbol.symbolLayers():
+            if hasattr(layer_renderer, 'setStrokeColor'):
+                layer_renderer.setStrokeColor(null_color)
+        
+        import numpy as np
+        import matplotlib.pyplot as plt
+        from matplotlib.colors import LinearSegmentedColormap
+        
+        # Definiowanie niestandardowej palety brązowej
+        custom_browns = LinearSegmentedColormap.from_list("CustomBrowns", ["#ffffff", "#8B4513"], N=9)
+        
+        # Definiowanie niestandardowej palety czerwonej
+        custom_reds = LinearSegmentedColormap.from_list("CustomBrowns", ["#ffffff", "#da0000"], N=9)
+        
+        if len(unique_values) > 0:
+            n_colors = unique_values_count  # Liczba kolorów w palecie
+            if field_name == 'maksWysokoscZabudowy':
+                colors = cm.Blues(np.linspace(0.2, 0.8, n_colors))
+            elif field_name == 'minUdzialPowierzchniBiologicznieCzynnej':
+                colors = cm.Greens(np.linspace(0.2, 0.8, n_colors))
+            elif field_name == 'maksNadziemnaIntensywnoscZabudowy':
+                colors = cm.Purples(np.linspace(0.2, 0.8, n_colors))
+            elif field_name == 'maksUdzialPowierzchniZabudowy':
+                colors = custom_browns(np.linspace(0.2, 0.8, n_colors))
+            elif field_name == 'obowiazujeOd':
+                colors = custom_reds(np.linspace(0.2, 0.8, n_colors))
+            qcolors = [QColor.fromRgbF(color[0], color[1], color[2]) for color in colors]
+        
+        # Reguły dla przedziałów
+        for i in range(unique_values_count):
+            if i == 0:
+                if field_name == 'obowiazujeOd':
+                    continue
+                lower_bound = 0.0
+                upper_bound = 0.0
+                rule_expression = f'"{field_name}" = {lower_bound:.1f}'
+                rule_label = f'{lower_bound:.1f}{jednostki[field_name]}'
+            else:
+                if i == 1:
+                    if field_name == 'obowiazujeOd':
+                        lower_bound = min_value
+                    else:
+                        lower_bound = 0.1
+                else:
+                    if field_name == 'obowiazujeOd':
+                        if unique_values_count < 10:
+                            lower_bound = unique_values[i - 1]
+                        else:
+                            lower_bound = upper_bound + 1
+                    else:
+                        if unique_values_count < 10:
+                            lower_bound = unique_values[i - 1]
+                        else:
+                            lower_bound = upper_bound + 0.1
+                if unique_values_count < 10:
+                    upper_bound = unique_values[i - 1]
+                else:
+                    upper_bound = min_value + i * step
+                
+                # Zaokrąglanie granic
+                if field_name == 'obowiazujeOd':
+                    lower_bound = int(lower_bound)
+                    upper_bound = int(upper_bound)
+                else:
+                    lower_bound = round(lower_bound, 1)
+                    upper_bound = round(upper_bound, 1)
+                
+                if field_name == 'obowiazujeOd':
+                    if i < unique_values_count - 1:
+                        rule_expression = f'year(obowiazujeOd)*10000+ month(obowiazujeOd)*100+ day(obowiazujeOd) >= {lower_bound} AND year(obowiazujeOd)*10000+ month(obowiazujeOd)*100+ day(obowiazujeOd) <= {upper_bound}'
+                    else:
+                        rule_expression = f'year(obowiazujeOd)*10000+ month(obowiazujeOd)*100+ day(obowiazujeOd) >= {lower_bound} AND year(obowiazujeOd)*10000+ month(obowiazujeOd)*100+ day(obowiazujeOd) <= {upper_bound}'
+                    if unique_values_count < 10:
+                        rule_label = f'{lower_bound}'
+                    else:
+                        rule_label = f'{lower_bound} - {upper_bound}'
+                else:
+                    if i < unique_values_count - 1:
+                        rule_expression = f'"{field_name}" >= {lower_bound:.1f} AND "{field_name}" <= {upper_bound:.1f}'
+                    else:
+                        rule_expression = f'"{field_name}" >= {lower_bound:.1f} AND "{field_name}" <= {upper_bound:.1f}'
+                    if unique_values_count < 10:
+                        rule_label = f'{upper_bound:.1f}{jednostki[field_name]}'
+                    else:
+                        rule_label = f'{lower_bound:.1f}{jednostki[field_name]} - {upper_bound:.1f}{jednostki[field_name]}'
+            
+            # Tworzenie symbolu
+            symbol = QgsSymbol.defaultSymbol(layer.geometryType())
+            symbol.setColor(qcolors[i])  # Kolor z palety
+        
+            for layer_renderer in symbol.symbolLayers():
+                if hasattr(layer_renderer, 'setStrokeColor'):
+                    layer_renderer.setStrokeColor(QColor(0, 0, 0))
+                    layer_renderer.setStrokeWidth(0.03)
+        
+            # Dodaj regułę
+            rule = QgsRuleBasedRenderer.Rule(symbol)
+            rule.setFilterExpression(rule_expression)
+            rule.setLabel(rule_label)
+            rule.setDescription(f'Zakres {i + 1}')
+            root_rule.appendChild(rule)
+            
+        # Stwórz renderer oparty na regułach
+        renderer = QgsRuleBasedRenderer(root_rule)
+        layer.setRenderer(renderer)
+        
+        # Włączenie pokazywania liczby obiektów w warstwie
+        QgsProject.instance().layerTreeRoot().findLayer(layer.id()).setCustomProperty("showFeatureCount", True)
+        iface.layerTreeView().refreshLayerSymbology(layer.id())
+
+
+    def kontrolaZmianAtrybutowWzgledemWersji(self, plikGMLzrodlowy, plikGML):
+        parser = lxml.etree.XMLParser(remove_blank_text=True)
+        k = lxml.etree.parse(plikGML, parser).getroot()
+        z = lxml.etree.parse(plikGMLzrodlowy, parser).getroot()
+        
+        # usuwanie gml:id
+        for elem in k.xpath('//*[@gml:id]', namespaces={'gml': 'http://www.opengis.net/gml/3.2'}):
+            del elem.attrib['{http://www.opengis.net/gml/3.2}id']
+        for elem in z.xpath('//*[@gml:id]', namespaces={'gml': 'http://www.opengis.net/gml/3.2'}):
+            del elem.attrib['{http://www.opengis.net/gml/3.2}id']
+        
+        # usuwanie zbędnych spacji z gml:posList
+        for posList_elem in k.xpath('//gml:posList', namespaces={'gml': 'http://www.opengis.net/gml/3.2'}):
+            if posList_elem.text:
+                posList_elem.text = posList_elem.text.strip()
+        for posList_elem in z.xpath('//gml:posList', namespaces={'gml': 'http://www.opengis.net/gml/3.2'}):
+            if posList_elem.text:
+                posList_elem.text = posList_elem.text.strip()
+        
+        ns = {'gml': 'http://www.opengis.net/gml/3.2',
+              'wfs': 'http://www.opengis.net/wfs/2.0',
+              'app': 'https://www.gov.pl/static/zagospodarowanieprzestrzenne/schemas/app/2.0'
+             }
+        
+        fMembers_K = k.findall('.//wfs:member', namespaces=ns)
+        fMembers_Z = z.findall('.//wfs:member', namespaces=ns)
+        
+        fMembers_K_dic = {}
+        fMembers_Z_dic = {}
+        obiektyNoweLubZmienione = set()
+        
+        for fMember in fMembers_K:
+            fMembers_K_dic[fMember.find('.//app:lokalnyId', namespaces=ns).text] = fMember
+        fMembers_K_dic = dict(sorted(fMembers_K_dic.items()))
+        for fMember in fMembers_Z:
+            fMembers_Z_dic[fMember.find('.//app:lokalnyId', namespaces=ns).text] = fMember
+        fMembers_Z_dic = dict(sorted(fMembers_Z_dic.items()))
+        del fMembers_K, fMembers_Z
+        
+        for fMember_Z_dic in fMembers_Z_dic:
+            # wyszukanie i dodanie obiektów nowych
+            if not fMember_Z_dic in fMembers_K_dic:
+               obiektyNoweLubZmienione.add(fMember_Z_dic)
+            
+            # wyszukanie i dodanie obiektów zmienionych
+            if fMember_Z_dic in fMembers_K_dic and lxml.etree.tostring(fMembers_K_dic[fMember_Z_dic], method="c14n", exclusive=True) != lxml.etree.tostring(fMembers_Z_dic[fMember_Z_dic], method="c14n", exclusive=True):
+                    atrybutyZRoznica = set()
+                    for element in fMembers_Z_dic[fMember_Z_dic].iter():
+                        elementyIdentyczne = False
+                        for fM_K_dic_element in fMembers_K_dic[fMember_Z_dic].findall('.//' + element.tag):
+                            if fM_K_dic_element.text == element.text:
+                                elementyIdentyczne = True
+                        if not elementyIdentyczne and element.tag != '{http://www.opengis.net/wfs/2.0}member':
+                            if element.tag.split("}")[1] in ['posList','LinearRing','LineString','exterior','interior','Polygon','segments','LineStringSegment','Curve','pos','Point']:
+                                atrybutyZRoznica.add('geometria')
+                            else:
+                                atrybutyZRoznica.add(element.tag.split("}")[1])
+                    
+                    for element in fMembers_K_dic[fMember_Z_dic].iter():
+                        elementyIdentyczne = False
+                        
+                        if callable(element.tag): # usuwanie komentarzy w GML
+                            continue
+                        
+                        for fM_Z_dic_element in fMembers_Z_dic[fMember_Z_dic].findall('.//' + element.tag):
+                            if fM_Z_dic_element.text == element.text:
+                                elementyIdentyczne = True
+                        if not elementyIdentyczne and element.tag != '{http://www.opengis.net/wfs/2.0}member':
+                            if element.tag.split("}")[1] in ['posList','LinearRing','LineString','exterior','interior','Polygon','segments','LineStringSegment','Curve','pos','Point']:
+                                atrybutyZRoznica.add('geometria')
+                            else:
+                                atrybutyZRoznica.add(element.tag.split("}")[1])
+                    if len(atrybutyZRoznica) > 1:
+                        if 'wersjaId' in atrybutyZRoznica and 'poczatekWersjiObiektu' in atrybutyZRoznica:
+                            obiektyNoweLubZmienione.add(fMember_Z_dic)
+        return obiektyNoweLubZmienione
+
+
+    def lokalnyId_APP(self, plikGMLzrodlowy):
+        parser = lxml.etree.XMLParser(remove_blank_text=True)
+        z = lxml.etree.parse(plikGMLzrodlowy, parser).getroot()
+        unikalnyLokalnyId = set()
+        
+        ns = {'gml': 'http://www.opengis.net/gml/3.2',
+              'wfs': 'http://www.opengis.net/wfs/2.0',
+              'app': 'https://www.gov.pl/static/zagospodarowanieprzestrzenne/schemas/app/2.0'
+             }
+        
+        fMembers_Z = z.findall('.//app:lokalnyId', namespaces=ns)
+        for fMember_Z in fMembers_Z:
+            unikalnyLokalnyId.add(fMember_Z.text)
+        
+        return unikalnyLokalnyId
+
+
+    def updateObowiazujeOd(self, input_file, lokalnyids_to_update, data_obowiazujeOd, dataCzasTerazUTC):
+        parser = lxml.etree.XMLParser(remove_blank_text=True)
+        tree = lxml.etree.parse(input_file, parser)
+        root = tree.getroot()
+        ns = root.nsmap
+        wersjaId = dataCzasTerazUTC.toString("yyyyMMddThhmmss")
+        poczatekWersjiObiektu = dataCzasTerazUTC.toString("yyyy-MM-ddThh:mm:ssZ")
+        
+        for lokalnyid in lokalnyids_to_update:
+            gmlid = root.xpath(f".//app:lokalnyId[text()='{lokalnyid}']/../../../@gml:id", namespaces=ns)[0]
+            identifier = root.xpath(f".//app:lokalnyId[text()='{lokalnyid}']/../../../gml:identifier", namespaces=ns)[0].text
+            werjaId_tmp = root.xpath(f".//app:lokalnyId[text()='{lokalnyid}']/../app:wersjaId", namespaces=ns)[0].text
+            gmlid = gmlid.replace(werjaId_tmp, wersjaId)
+            identifier = identifier.replace(werjaId_tmp, wersjaId)
+            
+            root.xpath(f".//app:lokalnyId[text()='{lokalnyid}']/../../..", namespaces=ns)[0].set(f"{{{ns['gml']}}}id", gmlid)
+            root.xpath(f".//app:lokalnyId[text()='{lokalnyid}']/../../../gml:identifier", namespaces=ns)[0].text = identifier
+            root.xpath(f".//app:lokalnyId[text()='{lokalnyid}']/../app:wersjaId", namespaces=ns)[0].text = wersjaId
+            root.xpath(f".//app:lokalnyId[text()='{lokalnyid}']/../../../app:poczatekWersjiObiektu", namespaces=ns)[0].text = poczatekWersjiObiektu
+            root.xpath(f".//app:lokalnyId[text()='{lokalnyid}']/../../../app:obowiazujeOd", namespaces=ns)[0].text = data_obowiazujeOd
+            
+        # Generowanie nowej nazwy pliku
+        base, ext = os.path.splitext(input_file)
+        output_file = f"{base}_tmp{ext}"
+        
+        # Zapis zmodyfikowanego XML do nowego pliku z zachowaniem przestrzeni nazw
+        tree.write(output_file, encoding="utf-8", xml_declaration=True, pretty_print=True)
+        return output_file
+
+
+    def pobierzDateObowiazujeOd(self):
+        dialog = QDialog()
+        dialog.setWindowTitle("Wybierz datę obowiązuje od")
+        layout = QVBoxLayout(dialog)
+        label = QLabel('Wybierz datę "obowiązuje od" dla obiektów nowych i zmienionych, a następnie naciśnij ok:')
+        layout.addWidget(label)
+        date_edit = QDateEdit()
+        date_edit.setDate(QDate.currentDate())
+        date_edit.setCalendarPopup(True)
+        layout.addWidget(date_edit)
+        
+        ok_button = QPushButton("OK")
+        layout.addWidget(ok_button)
+        selected_date_str = None
+        
+        def on_ok():
+            nonlocal selected_date_str
+            selected_date = date_edit.date()
+            selected_date_str = selected_date.toString("yyyy-MM-dd")
+            dialog.accept()
+        
+        ok_button.clicked.connect(on_ok)
+        dialog.exec_()
+        
+        return selected_date_str

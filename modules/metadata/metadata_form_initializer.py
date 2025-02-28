@@ -9,8 +9,10 @@ def initializeMetadataForm(dlg):
     s = QgsSettings()
 
     # Punkt kontaktowy
-    contactName = s.value("qgis_app2/settings/contactName", "")
-    contactMail = s.value("qgis_app2/settings/contactMail", "")
+    # contactName = s.value("qgis_app2/settings/contactName", "")
+    # contactMail = s.value("qgis_app2/settings/contactMail", "")
+    contactName = ''
+    contactMail = ''
     if contactName and contactMail:
         data = {
             'e22_name_lineEdit': contactName,

@@ -32,10 +32,10 @@ class ButtonsDialog:
         self.help_btn.clicked.connect(self.help_btn_clicked)
         hbox.addWidget(self.help_btn)
         vLayout.insertLayout(0, hbox)
-
+    
     def settings_btn_clicked(self):
         ustawieniaDialog.show()
-
+    
     def help_btn_clicked(self):
         pomocDialog.show()
 
@@ -133,11 +133,10 @@ class BaseModule:
 
 
     def showPopupValidationErrors(self, title, text, icon=QMessageBox.Warning):
-
         def saveErrorsFile(outputFile):
             with open(outputFile, 'w') as plik:
                 plik.write(text)
-
+        
         def saveErrors():
             plik = QFileDialog.getSaveFileName(
                 filter="Pliki tekstowe (*.txt)")[0]
@@ -148,7 +147,7 @@ class BaseModule:
                 except Exception as e:
                     self.iface.messageBar().pushCritical(
                         "Eksport błędów:", "Nie udało się zapisać pliku z błędami:" + str(e))
-
+        
         msg = QMessageBox()
         msg.setWindowTitle(title)
         msg.setText(text)

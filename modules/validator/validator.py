@@ -25,41 +25,49 @@ ns = {'gco': "http://www.isotc211.org/2005/gco",
      }
 
 class ValidatorLxml:
+    isXSDLoaded = False
     """Walidator oparty o bibliotekę lxml - wczytuje XSD z internetu 30-40 sekund """
 
     def __init__(self, schema_path=xsdPath):
         start = datetime.datetime.now()
         xsd_root = lxml.etree.parse(schema_path)
-        self.schema = lxml.etree.XMLSchema(xsd_root)
+        self.schema = None
+        try:
+            self.schema = lxml.etree.XMLSchema(xsd_root)
+        except Exception as e:
+            showPopup("Wczytanie XSD",f"Wystąpił błąd: {e}")
+            return
         ts = datetime.datetime.now() - start
         
         global s, rodzajZbioru
         s = QgsSettings()
         rodzajZbioru = s.value("qgis_app2/settings/rodzajZbioru", "/")
+        self.isXSDLoaded = True
 
 
     def validateXml(self, xmlPath):
         """Walidacja XML w zakresie składni i zgodności ze schematem """
-        try:
-            xml_root = lxml.etree.parse(xmlPath)
+        if self.isXSDLoaded:
+            try:
+                xml_root = lxml.etree.parse(xmlPath)
+                
+            except lxml.etree.XMLSyntaxError as e:  # błąd w składni XML
+                return False, "Błąd w składni XML:\n" + str(e)
+            except OSError as e:  # błąd odczytu pliku
+                return False, "Błąd odczytu pliku lub plik nie istnieje:\n" + str(e)
             
-        except lxml.etree.XMLSyntaxError as e:  # błąd w składni XML
-            return False, "Błąd w składni XML:\n" + str(e)
-        except OSError as e:  # błąd odczytu pliku
-            return False, "Błąd odczytu pliku lub plik nie istnieje:\n" + str(e)
-        
-        if self.schema.validate(xml_root):
-            return [True]
-        else:
-            errors = []
-            for error in self.schema.error_log:
-                # pomijanie błędu spowodowanego podpisem cyfrowym #dirtysolution
-                if not dsSignaturePattern.match(error.path):
-                    errors.append("Błąd w linii %s: %s" % (error.line, error.message.encode("utf-8").decode("utf-8")))
-            if not errors:
+            if self.schema.validate(xml_root):
                 return [True]
-            
-            return False, '\n\n'.join(errors)
+            else:
+                errors = []
+                for error in self.schema.error_log:
+                    # pomijanie błędu spowodowanego podpisem cyfrowym #dirtysolution
+                    if not dsSignaturePattern.match(error.path):
+                        errors.append("Błąd w linii %s: %s" % (error.line, error.message.encode("utf-8").decode("utf-8")))
+                if not errors:
+                    return [True]
+                
+                return False, '\n\n'.join(errors)
 
 
     def validateMetadataXml(self, xmlPath):
@@ -75,7 +83,7 @@ class ValidatorLxml:
         """Walidacja XML z APP"""
         
         valResult = self.validateXml(xmlPath)
-        if valResult[0]:
+        if self.isXSDLoaded and valResult[0]:
             layer = QgsVectorLayer(xmlPath + "|layername=AktPlanowaniaPrzestrzennego|option:FORCE_SRS_DETECTION=YES|option:CONSIDER_EPSG_AS_URN=YES", "gml", 'ogr')
             if layer and layer.isValid():
                 if not isLayerInPoland(layer, 'AktPlanowaniaPrzestrzennego'):
@@ -103,7 +111,9 @@ class ValidatorLxml:
             valDokFormResult = self.validateDokumentFormalny(xmlPath)
             if not valDokFormResult[0]:
                 return valDokFormResult
-            
+        else:
+            return [False,'Błąd wczytania schematu. Należy ponownie wczytać schemat.']
+        
         return valResult
 
 

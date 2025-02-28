@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>591</width>
-    <height>407</height>
+    <height>373</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -28,7 +28,7 @@
         <item row="6" column="1">
          <widget class="QLabel" name="label_11">
           <property name="text">
-           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;https://www.gov.pl/web/rozwoj&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;Ministerstwo Rozwoju&lt;br/&gt;i Technologii DPR&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;https://www.gov.pl/web/rozwoj&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;Ministerstwo Rozwoju i Technologii DPR&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
           </property>
           <property name="wordWrap">
            <bool>false</bool>
@@ -235,7 +235,7 @@
         <item row="0" column="1">
          <widget class="QLabel" name="label_13">
           <property name="text">
-           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;https://isap.sejm.gov.pl/isap.nsf/DocDetails.xsp?id=WDU20230002409&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;Rozporządzenie Ministra Rozwoju&lt;br/&gt;i Technologii&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;https://isap.sejm.gov.pl/isap.nsf/DocDetails.xsp?id=WDU20230002409&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;Rozporządzenie Ministra Rozwoju i Technologii&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
           </property>
           <property name="openExternalLinks">
            <bool>true</bool>

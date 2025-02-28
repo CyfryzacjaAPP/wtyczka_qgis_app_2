@@ -2,7 +2,6 @@
 from . import (UstawieniaDialog, PomocDialog, ustawieniaDialog, PLUGIN_VERSION)
 from .. import BaseModule, dictionaries
 from ..utils import showPopup, getWidgetByName, settingsValidateDatasetId, validate_IIP, validateEmailAddress, validate_ILAPP
-from ..metadata import SmtpDialog, CswDialog
 from qgis.PyQt import QtWidgets
 from PyQt5.QtWidgets import QFileDialog, QTableWidgetItem, QMessageBox
 from PyQt5.QtCore import Qt, QVariant, QRegExp
@@ -83,18 +82,21 @@ class SettingsModule(BaseModule):
             directory = '/'
         path = QFileDialog.getExistingDirectory(
             self.ustawieniaDialog, "Wskaż domyślny folder zapisu", directory , QFileDialog.ShowDirsOnly)
-        if path:
+        
+        test_file = os.path.join(path, 'test_write.tmp')
+        try:
+            with open(test_file, 'w') as f:
+                f.write('test')
+            os.remove(test_file)
             self.ustawieniaDialog.folder_lbl.setText(path)
+        except (OSError, IOError):
+            showPopup('Brak uprawniń', 'Brak uprawnień do zapisu w wskazanym katalogu.', icon=QMessageBox.Warning)
 
 
     def validate_settings(self):
         bledy = []
         if not (self.ustawieniaDialog.przestrzenNazw_lineEdit.text() == '' or validate_IIP(self.ustawieniaDialog.przestrzenNazw_lineEdit.text())):  # walidacja idIPP
             bledy.append('- Błędna wartość dla pola Przestrzeń nazw APP.')
-        if not (self.ustawieniaDialog.contactMail_lineEdit.text() == '' or validateEmailAddress(self.ustawieniaDialog.contactMail_lineEdit.text())):
-            bledy.append('- Błędna wartość dla adresu email domyślnego punktu kontaktowego.')
-        if not (self.ustawieniaDialog.adminMail_lineEdit.text() == '' or validateEmailAddress(self.ustawieniaDialog.adminMail_lineEdit.text())):
-            bledy.append('- Błędna wartość dla adresu email administratora danych.')
         if self.ustawieniaDialog.rodzajZbioru_comboBox.currentText() == 'POG' and self.getEPSGukladPL2000() == 0:
             bledy.append('- Błędna wartość dla pola JPT.')
         if self.ustawieniaDialog.rodzajZbioru_comboBox.currentText() == 'POG' and validate_ILAPP(self.ustawieniaDialog.edycjaILAPP.text()):
@@ -111,14 +113,6 @@ class SettingsModule(BaseModule):
             
             s.setValue("qgis_app2/settings/defaultPath",
                        self.ustawieniaDialog.folder_lbl.text())
-            s.setValue("qgis_app2/settings/contactName",
-                       self.ustawieniaDialog.contactName_lineEdit.text())
-            s.setValue("qgis_app2/settings/contactMail",
-                       self.ustawieniaDialog.contactMail_lineEdit.text())
-            s.setValue("qgis_app2/settings/adminName",
-                       self.ustawieniaDialog.adminName_lineEdit.text())
-            s.setValue("qgis_app2/settings/adminMail",
-                       self.ustawieniaDialog.adminMail_lineEdit.text())
             s.setValue("qgis_app2/settings/przestrzenNazw",
                        self.ustawieniaDialog.przestrzenNazw_lineEdit.text())
             s.setValue("qgis_app2/settings/numerZbioru",
@@ -190,14 +184,6 @@ class SettingsModule(BaseModule):
     def readSettings(self):
         self.ustawieniaDialog.folder_lbl.setText(
             s.value("qgis_app2/settings/defaultPath", ""))
-        self.ustawieniaDialog.contactName_lineEdit.setText(
-            s.value("qgis_app2/settings/contactName", ""))
-        self.ustawieniaDialog.contactMail_lineEdit.setText(
-            s.value("qgis_app2/settings/contactMail", ""))
-        self.ustawieniaDialog.adminName_lineEdit.setText(
-            s.value("qgis_app2/settings/adminName", ""))
-        self.ustawieniaDialog.adminMail_lineEdit.setText(
-            s.value("qgis_app2/settings/adminMail", ""))
         self.ustawieniaDialog.przestrzenNazw_lineEdit.setText(
             s.value("qgis_app2/settings/przestrzenNazw", "PL.ZIPPZP."))
         self.ustawieniaDialog.numerZbioru_lineEdit.setText(

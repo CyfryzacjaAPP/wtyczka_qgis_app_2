@@ -4,36 +4,46 @@ from qgis.core import *
 from qgis import processing
 from ..utils import showPopup
 from PyQt5.QtCore import QVariant
+from .. import dictionaries
 
 
 
 def isLayerInPoland(obrysLayer, layerName):
-    crs2180 = QgsCoordinateReferenceSystem("EPSG:2180")
     granicaPolskiSHP = QgsApplication.qgisSettingsDirPath() + "/python/plugins/wtyczka_qgis_app/modules/app/A00_Granice_panstwa/A00_Granice_panstwa_bufor_300m.shp"
     warstwaGranicaPolski = QgsVectorLayer(granicaPolskiSHP, 'A00_Granice_panstwa', 'ogr')
     
     # transformacja do układu granic Państwa
     reprojectlayer = processing.run("native:reprojectlayer", {
+        'INPUT': warstwaGranicaPolski,
+        'TARGET_CRS': obrysLayer.crs(),
+        'OUTPUT': 'memory:'
+    })
+    
+    # rozbicie multipoligon-u na poligony
+    pojedynczeObjekty = processing.run("native:multiparttosingleparts", {
         'INPUT': obrysLayer,
-        'TARGET_CRS': crs2180,
         'OUTPUT': 'memory:'
     })
     
     extractbyexpression = processing.run("qgis:extractbyexpression", {
-        'INPUT': reprojectlayer['OUTPUT'],
+        'INPUT': pojedynczeObjekty['OUTPUT'],
         'EXPRESSION': '$area != 0',
         'OUTPUT': 'memory:'
     })
     
-    if reprojectlayer['OUTPUT'].featureCount() - extractbyexpression['OUTPUT'].featureCount() > 0:
+    if pojedynczeObjekty['OUTPUT'].featureCount() - extractbyexpression['OUTPUT'].featureCount() > 0:
         showPopup("Wczytaj warstwę",f"Warstwa \"{layerName}\" posiada co najmniej jeden obiekt z pustą geometrią. Kontynuuję wczytywanie.")
     
-    # geometria wychodzi poza granicę Polski
-    przyciecie = processing.run("qgis:difference", {
-        'INPUT': extractbyexpression['OUTPUT'],
-        'OVERLAY': warstwaGranicaPolski,
-        'OUTPUT': 'memory:'
-    })
+    try:
+        # geometria wychodzi poza granicę Polski
+        przyciecie = processing.run("qgis:difference", {
+            'INPUT': obrysLayer,
+            'OVERLAY': reprojectlayer['OUTPUT'],
+            'OUTPUT': 'memory:'
+        })
+    except:
+        print("Problem z geometrią warstwy: ",obrysLayer.name())
+        return True
     
     # rozbicie multipoligon-u na poligony
     pojedynczeObjekty = processing.run("native:multiparttosingleparts", {
@@ -57,7 +67,22 @@ def isLayerInPoland(obrysLayer, layerName):
     return True
 
 
+def isJPTinLayer(obrysLayer, jpt):
+    txt = '/' + jpt
+    
+    for obj in obrysLayer.getFeatures():
+        if not txt in obj['przestrzenNazw']:
+            return False
+    return True
+
+
 def czyWarstwaMaWypelnioneObowiazkoweAtrybuty(obrysLayer):
+    fields = QgsFields(obrysLayer.fields())
+    layer = QgsVectorLayer('Polygon?crs=' + obrysLayer.crs().toWkt(), obrysLayer.name() + " - braki w atrybutach obowiazkowych", "memory")
+    layer_data_provider = layer.dataProvider()
+    layer_data_provider.addAttributes(fields)
+    layer.updateFields()
+    
     if obrysLayer.name().startswith("AktPlanowaniaPrzestrzennego"):
         sql = "tytul='' or typPlanu='' or poziomHierarchii='' or status='' or obowiazujeOd is null or lokalnyId='' or przestrzenNazw='' or wersjaId='' or poczatekWersjiObiektu=''"
     elif obrysLayer.name().startswith("StrefaPlanistyczna"):
@@ -73,8 +98,18 @@ def czyWarstwaMaWypelnioneObowiazkoweAtrybuty(obrysLayer):
     
     request = QgsFeatureRequest(QgsExpression(sql))
     requestFeatures = obrysLayer.getFeatures(request)
-    for x in requestFeatures:
+    
+    for requestFeature in requestFeatures:
+        new_feature = QgsFeature()
+        new_feature.setGeometry(requestFeature.geometry())
+        new_feature.setAttributes(requestFeature.attributes())
+        layer.dataProvider().addFeature(new_feature)
+    
+    layer.commitChanges()
+    if layer.featureCount() > 0:
+        QgsProject.instance().addMapLayer(layer)
         return False
+    
     return True
 
 
@@ -127,8 +162,22 @@ def kontrolaZaleznosciAtrybutow(obrysLayer):
                        "if(koniecWersjiObiektu is not NULL and obowiazujeDo is NULL,1,0)":"Koniec wersji obiektu jest uzupełniony, należy wpisać datę dla 'obowiązuje do'",
                        "if(status='nieaktualny' and obowiazujeDo is NULL,1,0)":"Należy wpisać datę dla 'obowiązuje do'",
                        "if(obowiazujeOd>=obowiazujeDo,1,0)":"Atrybut 'obowiązuje od' nie może być większy lub równy od 'obowiązuje do'",
-                       "if(koniecWersjiObiektu<=poczatekWersjiObiektu,1,0)":"Koniec wersji obiektu musi być późniejszy niż początek wersji obiektu"
+                       "if(koniecWersjiObiektu<=poczatekWersjiObiektu,1,0)":"Koniec wersji obiektu musi być późniejszy niż początek wersji obiektu",
+                       "if(symbol='SW' and profilPodstawowy != 'teren zabudowy mieszkaniowej wielorodzinnej,teren usług,teren komunikacji,teren zieleni urządzonej,teren ogrodów działkowych,teren infrastruktury technicznej',1,0)":"Błędny profil podstawowy",
+                       "if(symbol='SJ' and profilPodstawowy != 'teren zabudowy mieszkaniowej jednorodzinnej,teren usług,teren komunikacji,teren zieleni urządzonej,teren ogrodów działkowych,teren infrastruktury technicznej',1,0)":"Błędny profil podstawowy",
+                       "if(symbol='SZ' and profilPodstawowy != 'teren zabudowy zagrodowej,teren produkcji w gospodarstwach rolnych,teren akwakultury i obsługi rybactwa,teren komunikacji,teren zieleni urządzonej,teren ogrodów działkowych,teren infrastruktury technicznej',1,0)":"Błędny profil podstawowy",
+                       "if(symbol='SU' and profilPodstawowy != 'teren usług,teren komunikacji,teren zieleni urządzonej,teren ogrodów działkowych,teren infrastruktury technicznej',1,0)":"Błędny profil podstawowy",
+                       "if(symbol='SH' and profilPodstawowy != 'teren handlu wielkopowierzchniowego,teren komunikacji,teren zieleni urządzonej,teren ogrodów działkowych,teren infrastruktury technicznej',1,0)":"Błędny profil podstawowy",
+                       "if(symbol='SP' and profilPodstawowy != 'teren produkcji,teren komunikacji,teren zieleni urządzonej,teren ogrodów działkowych,teren infrastruktury technicznej',1,0)":"Błędny profil podstawowy",
+                       "if(symbol='SR' and profilPodstawowy != 'teren produkcji w gospodarstwach rolnych,teren wielkotowarowej produkcji rolnej,teren akwakultury i obsługi rybactwa,teren komunikacji,teren ogrodów działkowych,teren infrastruktury technicznej',1,0)":"Błędny profil podstawowy",
+                       "if(symbol='SI' and profilPodstawowy != 'teren infrastruktury technicznej,teren komunikacji,teren ogrodów działkowych',1,0)":"Błędny profil podstawowy",
+                       "if(symbol='SN' and profilPodstawowy != 'teren zieleni urządzonej,teren plaży,teren wód,teren komunikacji,teren ogrodów działkowych,teren infrastruktury technicznej',1,0)":"Błędny profil podstawowy",
+                       "if(symbol='SC' and profilPodstawowy != 'teren cmentarza,teren komunikacji,teren zieleni urządzonej,teren ogrodów działkowych,teren infrastruktury technicznej',1,0)":"Błędny profil podstawowy",
+                       "if(symbol='SG' and profilPodstawowy != 'teren górnictwa i wydobycia,teren komunikacji,teren ogrodów działkowych,teren infrastruktury technicznej',1,0)":"Błędny profil podstawowy",
+                       "if(symbol='SO' and profilPodstawowy != 'teren rolnictwa z zakazem zabudowy,teren lasu,teren zieleni naturalnej,teren wód,teren komunikacji,teren ogrodów działkowych,teren infrastruktury technicznej',1,0)":"Błędny profil podstawowy",
+                       "if(symbol='SK' and profilPodstawowy != 'teren autostrady,teren drogi ekspresowej,teren drogi głównej ruchu przyspieszonego,teren drogi głównej,teren komunikacji kolejowej i szynowej,teren komunikacji kolei linowej,teren komunikacji wodnej,teren komunikacji lotniczej,teren obsługi komunikacji,teren ogrodów działkowych,teren infrastruktury technicznej',1,0)":"Błędny profil podstawowy"
                       }
+    
     elif obrysLayer.name().startswith("ObszarUzupelnieniaZabudowy"):
         expressions = {
                        "if(regexp_match(oznaczenie,symbol)=0,1,0)":"Oznaczenie nie jest spójne z symbolem",
@@ -199,5 +248,39 @@ def kontrolaZaleznosciAtrybutow(obrysLayer):
     if layer.featureCount() > 0:
         QgsProject.instance().addMapLayer(layer)
         return False
+    return True
+
+
+def kontrolaProfiliDodatkowych(obrysLayer):
+    fields = QgsFields(obrysLayer.fields())
+    new_field = QgsField('Opis_bledu', QVariant.String)
+    fields.append(new_field)
+    
+    layer = QgsVectorLayer('Polygon?crs=' + obrysLayer.crs().toWkt(), obrysLayer.name() + " - bledy w profilach dodatkowych", "memory")
+    layer_data_provider = layer.dataProvider()
+    layer_data_provider.addAttributes(fields)
+    layer.updateFields()
+    
+    for obj in obrysLayer.getFeatures():
+        profileDodatkowe = obj['profilDodatkowy']
+        if profileDodatkowe == NULL:
+            continue
+        elif isinstance(profileDodatkowe, str):
+            profileDodatkowe_list = [item.strip() for item in profileDodatkowe.split(",")]
+        elif isinstance(profileDodatkowe, list):
+            profileDodatkowe_list = profileDodatkowe
+        
+        for profilDodatkowy in profileDodatkowe_list:
+            if not profilDodatkowy in dictionaries.profilPodstawowyLubDodatkowyListaKodowa:
+                new_feature = QgsFeature()
+                new_feature.setGeometry(obj.geometry())
+                new_feature.setAttributes(obj.attributes() + ['Blędy w profilach dodatkowych'])
+                layer.dataProvider().addFeature(new_feature)
+    
+    layer.commitChanges()
+    if layer.featureCount() > 0:
+        QgsProject.instance().addMapLayer(layer)
+        return False
+    
     return True
 
