@@ -167,6 +167,36 @@
       <Type>String</Type>
       <Width>255</Width>
     </PropertyDefn>
+	<PropertyDefn>
+      <Name>uchwala</Name>
+      <ElementPath>uchwala@href</ElementPath>
+      <Type>String</Type>
+      <Width>255</Width>
+    </PropertyDefn>
+	<PropertyDefn>
+      <Name>przystapienie</Name>
+      <ElementPath>przystapienie@href</ElementPath>
+      <Type>String</Type>
+      <Width>255</Width>
+    </PropertyDefn>
+	<PropertyDefn>
+      <Name>zmienia</Name>
+      <ElementPath>zmienia@href</ElementPath>
+      <Type>String</Type>
+      <Width>255</Width>
+    </PropertyDefn>
+	<PropertyDefn>
+      <Name>uchyla</Name>
+      <ElementPath>uchyla@href</ElementPath>
+      <Type>String</Type>
+      <Width>255</Width>
+    </PropertyDefn>
+	<PropertyDefn>
+      <Name>uniewaznia</Name>
+      <ElementPath>uniewaznia@href</ElementPath>
+      <Type>String</Type>
+      <Width>255</Width>
+    </PropertyDefn>
   </GMLFeatureClass>
   <GMLFeatureClass>
     <Name>RysunekAktuPlanowaniaPrzestrzennego</Name>
