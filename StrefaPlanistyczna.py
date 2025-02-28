@@ -48,7 +48,6 @@ def my_form_open(dialog, layer, feature):
         dlg.parent().setMaximumHeight(550)
         
         warstwa = layer
-        # warstwa.geometryOptions().setGeometryPrecision(0.001)
         warstwa.startEditing()
         
         qgis.utils.iface.setActiveLayer(warstwa)
@@ -375,6 +374,29 @@ def my_form_open(dialog, layer, feature):
         operacjeNaAtrybucie('koniecWersjiObiektu')
         
         dlg.parent().rejected.connect(dialogRejected)
+        
+        def on_geometry_changed(fid):
+            changed_feature = layer.getFeature(fid)
+            dataCzasTeraz = QDateTime.currentDateTimeUtc()
+            try:
+                changed_feature.setAttribute("wersjaId", dataCzasTeraz.toString("yyyyMMddThhmmss"))
+            except:
+                pass
+            try:
+                changed_feature.setAttribute("poczatekWersjiObiektu", dataCzasTeraz)
+            except:
+                pass
+            try:
+                changed_feature.setAttribute("edycja", True)
+            except:
+                pass
+            layer.updateFeature(changed_feature)
+        
+        warstwa.geometryChanged.connect(on_geometry_changed)
+        
+        if obj.id()> 0 and warstwa.isModified():
+            iface.messageBar().pushMessage("Uwaga!", f"Warstwa '{warstwa.name()}' posiada niezapisane zmiany.", level = Qgis.Warning)
+        
     except:
         pass
 
@@ -973,7 +995,8 @@ def operacjeNaAtrybucie(nazwaAtrybutu):
                    warstwa.name().startswith('ObszarUzupelnieniaZabudowy') or \
                    warstwa.name().startswith('ObszarZabudowySrodmiejskiej') or \
                    warstwa.name().startswith('AktPlanowaniaPrzestrzennego') or \
-                   warstwa.name().startswith('StrefaPlanistyczna'):
+                   warstwa.name().startswith('StrefaPlanistyczna') or \
+                   warstwa.name().startswith('SPL_'):
                        liczbaObiektowDoZmiany += warstwa.featureCount()
             
             if liczbaObiektowDoZmiany > 0:
@@ -989,7 +1012,8 @@ def operacjeNaAtrybucie(nazwaAtrybutu):
                        warstwa.name().startswith('ObszarUzupelnieniaZabudowy') or \
                        warstwa.name().startswith('ObszarZabudowySrodmiejskiej') or \
                        warstwa.name().startswith('AktPlanowaniaPrzestrzennego') or \
-                       warstwa.name().startswith('StrefaPlanistyczna'):
+                       warstwa.name().startswith('StrefaPlanistyczna') or \
+                       warstwa.name().startswith('SPL_'):
                         warstwa.startEditing()
                         idx_Atrybut = warstwa.fields().indexFromName(nazwaAtrybutu)
                         idx_edycja = warstwa.fields().indexFromName('edycja')
@@ -1006,9 +1030,9 @@ def operacjeNaAtrybucie(nazwaAtrybutu):
                         warstwa.commitChanges()
                         warstwa.startEditing()
                 progressMessageBar.dismiss()
-            dlg.changeAttribute(nazwaAtrybutu, atrybut)
-            dlg.changeAttribute('wersjaId', dataCzasTeraz)
-            zapis()
+                dlg.changeAttribute(nazwaAtrybutu, atrybut)
+                dlg.changeAttribute('wersjaId', dataCzasTeraz)
+                zapis()
             QMessageBox.information(None,'Informacja','Hurtowa zmiana atrybutu {} w ramach wszystkich warstw została zakończona.'.format(nazwaAtrybutu))
     
     def hurtowaZmianaArybutuWRamachWarstwy():
@@ -1038,7 +1062,7 @@ def operacjeNaAtrybucie(nazwaAtrybutu):
         else:
             liczbaObiektowDoZmiany = 0
             for warstwa_id, warstwa in QgsProject.instance().mapLayers().items():
-                if warstwa.name().startswith('StrefaPlanistyczna'):
+                if warstwa.name().startswith('StrefaPlanistyczna') or warstwa.name().startswith('SPL_'):
                     liczbaObiektowDoZmiany += warstwa.featureCount()
             
             if liczbaObiektowDoZmiany > 0:
@@ -1050,7 +1074,7 @@ def operacjeNaAtrybucie(nazwaAtrybutu):
                 y = 0
                 dataCzasTeraz = QDateTime.currentDateTimeUtc()
                 for warstwa_id, warstwa in QgsProject.instance().mapLayers().items():
-                    if warstwa.name().startswith('StrefaPlanistyczna'):
+                    if warstwa.name().startswith('StrefaPlanistyczna') or warstwa.name().startswith('SPL_'):
                         warstwa.startEditing()
                         idx_Atrybut = warstwa.fields().indexFromName(nazwaAtrybutu)
                         idx_edycja = warstwa.fields().indexFromName('edycja')
@@ -1068,9 +1092,9 @@ def operacjeNaAtrybucie(nazwaAtrybutu):
                         warstwa.startEditing()
                         break
                 progressMessageBar.dismiss()
-            dlg.changeAttribute(nazwaAtrybutu, atrybut)
-            dlg.changeAttribute('wersjaId', dataCzasTeraz)
-            zapis()
+                dlg.changeAttribute(nazwaAtrybutu, atrybut)
+                dlg.changeAttribute('wersjaId', dataCzasTeraz)
+                zapis()
             QMessageBox.information(None,'Informacja','Hurtowa zmiana atrybutu {} w ramach warstwy została zakończona.'.format(nazwaAtrybutu))
     
     def uspojnienieDatyObowiazujeOd():
@@ -1090,16 +1114,23 @@ Czy uspójnić "obowiązuje od" dla obiektów nowych lub zmienionych w ramach ws
                 if lyr.name().startswith('ObszarStandardowDostepnosciInfrastrukturySpolecznej') or \
                    lyr.name().startswith('ObszarUzupelnieniaZabudowy') or \
                    lyr.name().startswith('ObszarZabudowySrodmiejskiej') or \
-                   lyr.name().startswith('StrefaPlanistyczna'):
+                   lyr.name().startswith('StrefaPlanistyczna') or \
+                   lyr.name().startswith('SPL_'):
                        for f in lyr.getFeatures():
                            if f['edycja']:
                                liczbaObiektowDoZmiany += 1
             
             if liczbaObiektowDoZmiany > 0:
+                istniejeAktPlanowaniaPrzestrzennego = False
                 for warstwa_id, lyr in QgsProject.instance().mapLayers().items():
                     if lyr.name().startswith('AktPlanowaniaPrzestrzennego'):
                         liczbaObiektowDoZmiany += 1
+                        istniejeAktPlanowaniaPrzestrzennego = True
             
+                if not istniejeAktPlanowaniaPrzestrzennego:
+                    QMessageBox.warning(None,'Informacja','Brak warstwy AktPlanowaniaPrzestrzennego.\nUspójnienie daty "obowiązuje od" zostało zatrzymane.')
+                    return
+                
             if liczbaObiektowDoZmiany > 1:
                 progressMessageBar = iface.messageBar().createMessage('Postęp wykonania uspójnienia daty "obowiązuje od" w ramach wszystkich warstw.')
                 progress = QProgressBar()
@@ -1113,7 +1144,8 @@ Czy uspójnić "obowiązuje od" dla obiektów nowych lub zmienionych w ramach ws
                        lyr.name().startswith('ObszarUzupelnieniaZabudowy') or \
                        lyr.name().startswith('ObszarZabudowySrodmiejskiej') or \
                        lyr.name().startswith('AktPlanowaniaPrzestrzennego') or \
-                       lyr.name().startswith('StrefaPlanistyczna'):
+                       lyr.name().startswith('StrefaPlanistyczna') or \
+                       lyr.name().startswith('SPL_'):
                         lyr.startEditing()
                         idx_obowiazujeOd = lyr.fields().indexFromName('obowiazujeOd')
                         idx_wersjaId = lyr.fields().indexFromName('wersjaId')
@@ -1129,9 +1161,9 @@ Czy uspójnić "obowiązuje od" dla obiektów nowych lub zmienionych w ramach ws
                         lyr.commitChanges()
                         lyr.startEditing()
                 progressMessageBar.dismiss()
-            dlg.changeAttribute('obowiazujeOd', obowiazujeOd.dateTime())
-            dlg.changeAttribute('wersjaId', dataCzasTeraz)
-            zapis()
+                dlg.changeAttribute('obowiazujeOd', obowiazujeOd.dateTime())
+                dlg.changeAttribute('wersjaId', dataCzasTeraz)
+                zapis()
             QMessageBox.information(None,'Informacja','Uspójnienie daty "obowiązuje od" w ramach wszystkich warstw zostało zakończone.')
     
     def wskazanieNaOperacje(atrybut,txt):

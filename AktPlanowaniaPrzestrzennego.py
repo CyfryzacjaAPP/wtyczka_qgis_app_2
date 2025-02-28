@@ -175,6 +175,29 @@ def my_form_open(dialog, layer, feature):
         operacjeNaAtrybucie('koniecWersjiObiektu')
         
         dlg.parent().rejected.connect(dialogRejected)
+        
+        def on_geometry_changed(fid):
+            changed_feature = layer.getFeature(fid)
+            dataCzasTeraz = QDateTime.currentDateTimeUtc()
+            try:
+                changed_feature.setAttribute("wersjaId", dataCzasTeraz.toString("yyyyMMddThhmmss"))
+            except:
+                pass
+            try:
+                changed_feature.setAttribute("poczatekWersjiObiektu", dataCzasTeraz)
+            except:
+                pass
+            try:
+                changed_feature.setAttribute("edycja", True)
+            except:
+                pass
+            layer.updateFeature(changed_feature)
+        
+        warstwa.geometryChanged.connect(on_geometry_changed)
+        
+        if obj.id()> 0 and warstwa.isModified():
+            iface.messageBar().pushMessage("Uwaga!", f"Warstwa '{warstwa.name()}' posiada niezapisane zmiany.", level = Qgis.Warning)
+        
     except:
         pass
 
@@ -591,9 +614,9 @@ def operacjeNaAtrybucie(nazwaAtrybutu):
                         warstwa.commitChanges()
                         warstwa.startEditing()
                 progressMessageBar.dismiss()
-            dlg.changeAttribute(nazwaAtrybutu, atrybut)
-            dlg.changeAttribute('wersjaId', dataCzasTeraz)
-            zapis()
+                dlg.changeAttribute(nazwaAtrybutu, atrybut)
+                dlg.changeAttribute('wersjaId', dataCzasTeraz)
+                zapis()
             QMessageBox.information(None,'Informacja','Hurtowa zmiana atrybutu {} w ramach wszystkich warstw została zakończona.'.format(nazwaAtrybutu))
     
     def uspojnienieDatyObowiazujeOd():
@@ -652,9 +675,9 @@ Czy uspójnić "obowiązuje od" dla obiektów nowych lub zmienionych w ramach ws
                         lyr.commitChanges()
                         lyr.startEditing()
                 progressMessageBar.dismiss()
-            dlg.changeAttribute('obowiazujeOd', obowiazujeOd.dateTime())
-            dlg.changeAttribute('wersjaId', dataCzasTeraz)
-            zapis()
+                dlg.changeAttribute('obowiazujeOd', obowiazujeOd.dateTime())
+                dlg.changeAttribute('wersjaId', dataCzasTeraz)
+                zapis()
             QMessageBox.information(None,'Informacja','Uspójnienie daty "obowiązuje od" w ramach wszystkich warstw zostało zakończone.')
     
     def wskazanieNaOperacje(atrybut,txt):
