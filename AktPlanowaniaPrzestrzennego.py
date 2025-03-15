@@ -113,16 +113,18 @@ def my_form_open(dialog, layer, feature):
         
         typPlanu = dialog.findChild(QComboBox,"typPlanu")
         typPlanu.currentTextChanged.connect(typPlanu_kontrola)
+        typPlanu_kontrola()
         
         modyfikacja = dialog.findChild(QCheckBox,"modyfikacja")
         modyfikacja.stateChanged.connect(modyfikacja_kontrola)
         
         poziomHierarchii = dialog.findChild(QComboBox,"poziomHierarchii")
         poziomHierarchii.currentTextChanged.connect(poziomHierarchii_kontrola)
+        poziomHierarchii_kontrola()
         
         status = dialog.findChild(QComboBox,"status")
         status.currentTextChanged.connect(status_kontrola)
-        if obj.id() < 0: status_kontrola(status.currentText())
+        status_kontrola(status.currentText())
         
         poczatekWersjiObiektu = dialog.findChild(QDateTimeEdit,"poczatekWersjiObiektu")
         poczatekWersjiObiektu.dateTimeChanged.connect(poczatekWersjiObiektu_kontrola)

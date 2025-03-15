@@ -186,9 +186,6 @@ def my_form_open(dialog, layer, feature):
         
         warstwa.geometryChanged.connect(on_geometry_changed)
         
-        if obj.id()> 0 and warstwa.isModified():
-            iface.messageBar().pushMessage("Uwaga!", f"Warstwa '{warstwa.name()}' posiada niezapisane zmiany.", level = Qgis.Warning)
-        
     except:
         pass
 

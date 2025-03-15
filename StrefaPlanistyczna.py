@@ -259,6 +259,7 @@ def my_form_open(dialog, layer, feature):
         
         nazwa = dialog.findChild(QComboBox,"nazwa")
         
+        
         charakterUstalenia = dialog.findChild(QComboBox,"charakterUstalenia")
         charakterUstalenia.currentTextChanged.connect(charakterUstalenia_kontrola)
         charakterUstalenia_kontrola(charakterUstalenia.currentText())
@@ -282,7 +283,8 @@ def my_form_open(dialog, layer, feature):
         koniecWersjiObiektu.setMaximumDate(QDate.currentDate())
         
         nazwa.currentTextChanged.connect(nazwa_kontrola)
-        if obj.id() < 0: nazwa_kontrola('wybierz')
+        if obj.id() < 0 and obj['nazwa'] == None:
+            nazwa_kontrola('wybierz')
         
         nazwaAlternatywna = dialog.findChild(QLineEdit,"nazwaAlternatywna")
         nazwaAlternatywna.setPlaceholderText(placeHolders['nazwaAlternatywna'])
@@ -393,9 +395,6 @@ def my_form_open(dialog, layer, feature):
             layer.updateFeature(changed_feature)
         
         warstwa.geometryChanged.connect(on_geometry_changed)
-        
-        if obj.id()> 0 and warstwa.isModified():
-            iface.messageBar().pushMessage("Uwaga!", f"Warstwa '{warstwa.name()}' posiada niezapisane zmiany.", level = Qgis.Warning)
         
     except:
         pass

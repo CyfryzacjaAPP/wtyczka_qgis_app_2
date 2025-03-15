@@ -185,6 +185,11 @@ class WtyczkaAPP(AppModule, MetadataModule, ValidatorModule, TworzenieOUZModule,
             self.iface.removeToolBarIcon(action)
             
         self.iface.removeToolBarIcon(self.toolBtnAction)
+        
+        try:
+            QgsExpression.unregisterFunction('zamien_nazwy_na_skroty')
+        except Exception:
+            pass
 
 
     """Action handlers"""
@@ -223,69 +228,64 @@ class WtyczkaAPP(AppModule, MetadataModule, ValidatorModule, TworzenieOUZModule,
     # endregion
 
 
-    rejestrowac = False
-    functions = QgsExpression.Functions()
-    if not any(func.name() == 'zamien_nazwy_na_skroty' for func in functions):
-        rejestrowac = True
-        
-        @qgsfunction(group='Custom', register=rejestrowac)
-        def zamien_nazwy_na_skroty(input_text, feature):
-            """
-            Funkcja do wtyczki APP 2.
-            <br>
-            Funkcja zamienia pełne nazwy terenów na skróty zgodnie z mapowaniem.
-            <br>
-            :param input_text: Tekst wejściowy do zamiany
-            :param feature: Obiekt, na którym działa funkcja
-            :param parent: Rodzic (domyślnie wymagane)
-            :return: Zmieniony tekst
-            <br>
-            <h2>Przykłady</h2>
-            <br>
-            <ul>
-              <li>zamien_nazwy_na_skroty() -> 13</li>
-              <li>zamien_nazwy_na_skroty("field2") -> 42</li>
-            </ul>
-            """
+    @qgsfunction(group='Custom')
+    def zamien_nazwy_na_skroty(input_text, feature):
+        """
+        Funkcja do wtyczki APP 2.
+        <br>
+        Funkcja zamienia pełne nazwy terenów na skróty zgodnie z mapowaniem.
+        <br>
+        :param input_text: Tekst wejściowy do zamiany
+        :param feature: Obiekt, na którym działa funkcja
+        :param parent: Rodzic (domyślnie wymagane)
+        :return: Zmieniony tekst
+        <br>
+        <h2>Przykłady</h2>
+        <br>
+        <ul>
+        <li>zamien_nazwy_na_skroty() -> 13</li>
+        <li>zamien_nazwy_na_skroty("field2") -> 42</li>
+        </ul>
+        """
     
-            # Mapowanie pełnych nazw na skróty
-            mapping = {
-                "teren zabudowy mieszkaniowej jednorodzinnej": "MN",
-                "teren handlu wielkopowierzchniowego": "H",
-                "teren zieleni naturalnej": "ZN",
-                "teren lasu": "L",
-                "teren wód": "W",
-                "teren zabudowy letniskowej lub rekreacji indywidualnej": "ML",
-                "teren wielkotowarowej produkcji rolnej": "RZW",
-                "teren rolnictwa z zakazem zabudowy": "RN",
-                "teren biogazowni": "PEB",
-                "teren usług sportu i rekreacji": "US",
-                "teren usług kultury i rozrywki": "UK",
-                "teren usług handlu detalicznego": "UHD",
-                "teren usług gastronomii": "UG",
-                "teren usług turystyki": "UT",
-                "teren usług nauki": "UN",
-                "teren usług edukacji": "UE",
-                "teren usług zdrowia i pomocy społecznej": "UZ",
-                "teren usług kultu religijnego": "UR",
-                "teren usług handlu": "UH",
-                "teren usług rzemieślniczych": "UL",
-                "teren usług biurowych i administracji": "UA",
-                "teren usług": "U",
-                "teren elektrowni geotermalnej": "PEG",
-                "teren drogi zbiorczej": "KDZ",
-                "teren składów i magazynów": "PS",
-                "teren produkcji": "P",
-                "teren elektrowni słonecznej": "PEF",
-                "teren elektrowni wiatrowej": "PEW",
-                "teren elektrowni wodnej": "PEO",
-                "teren zieleni urządzonej": "ZP"
-            }
-            
-            if not input_text:  # Jeśli tekst pusty, zwróć bez zmian
-                return input_text
-            
-            # Zamiana tekstów
-            for full_text, short_text in mapping.items():
-                input_text = input_text.replace(full_text, short_text)
+        # Mapowanie pełnych nazw na skróty
+        mapping = {
+            "teren zabudowy mieszkaniowej jednorodzinnej": "MN",
+            "teren handlu wielkopowierzchniowego": "H",
+            "teren zieleni naturalnej": "ZN",
+            "teren lasu": "L",
+            "teren wód": "W",
+            "teren zabudowy letniskowej lub rekreacji indywidualnej": "ML",
+            "teren wielkotowarowej produkcji rolnej": "RZW",
+            "teren rolnictwa z zakazem zabudowy": "RN",
+            "teren biogazowni": "PEB",
+            "teren usług sportu i rekreacji": "US",
+            "teren usług kultury i rozrywki": "UK",
+            "teren usług handlu detalicznego": "UHD",
+            "teren usług gastronomii": "UG",
+            "teren usług turystyki": "UT",
+            "teren usług nauki": "UN",
+            "teren usług edukacji": "UE",
+            "teren usług zdrowia i pomocy społecznej": "UZ",
+            "teren usług kultu religijnego": "UR",
+            "teren usług handlu": "UH",
+            "teren usług rzemieślniczych": "UL",
+            "teren usług biurowych i administracji": "UA",
+            "teren usług": "U",
+            "teren elektrowni geotermalnej": "PEG",
+            "teren drogi zbiorczej": "KDZ",
+            "teren składów i magazynów": "PS",
+            "teren produkcji": "P",
+            "teren elektrowni słonecznej": "PEF",
+            "teren elektrowni wiatrowej": "PEW",
+            "teren elektrowni wodnej": "PEO",
+            "teren zieleni urządzonej": "ZP"
+        }
+        
+        if not input_text:  # Jeśli tekst pusty, zwróć bez zmian
             return input_text
+            
+        # Zamiana tekstów
+        for full_text, short_text in mapping.items():
+            input_text = input_text.replace(full_text, short_text)
+        return input_text
