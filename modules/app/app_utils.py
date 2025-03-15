@@ -82,17 +82,21 @@ def czyWarstwaMaWypelnioneObowiazkoweAtrybuty(obrysLayer):
     layer_data_provider = layer.dataProvider()
     layer_data_provider.addAttributes(fields)
     layer.updateFields()
-    
     if obrysLayer.name().startswith("AktPlanowaniaPrzestrzennego"):
-        sql = "tytul='' or typPlanu='' or poziomHierarchii='' or status='' or obowiazujeOd is null or lokalnyId='' or przestrzenNazw='' or wersjaId='' or poczatekWersjiObiektu=''"
+        sql = "tytul='' or typPlanu='' or poziomHierarchii='' or status='' or obowiazujeOd='' or lokalnyId='' or przestrzenNazw='' or wersjaId='' or poczatekWersjiObiektu='' or \
+               tytul is NULL or typPlanu is NULL or poziomHierarchii is NULL or status is NULL or obowiazujeOd is null or lokalnyId is NULL or przestrzenNazw is NULL or wersjaId is NULL or poczatekWersjiObiektu is NULL"
     elif obrysLayer.name().startswith("StrefaPlanistyczna"):
-        sql = "nazwa='' or symbol='' or oznaczenie='' or profilPodstawowy='' or status='' or obowiazujeOd is null or charakterUstalenia='' or lokalnyId='' or przestrzenNazw='' or wersjaId='' or poczatekWersjiObiektu=''"
+        sql = "nazwa='' or symbol='' or oznaczenie='' or profilPodstawowy='' or status='' or obowiazujeOd='' or charakterUstalenia='' or lokalnyId='' or przestrzenNazw='' or wersjaId='' or poczatekWersjiObiektu='' or \
+               nazwa is NULL or symbol is NULL or oznaczenie is NULL or profilPodstawowy is NULL or status is NULL or obowiazujeOd is null or charakterUstalenia is NULL or lokalnyId is NULL or przestrzenNazw is NULL or wersjaId is NULL or poczatekWersjiObiektu is NULL"
     elif obrysLayer.name().startswith("ObszarUzupelnieniaZabudowy"):
-        sql = "symbol='' or oznaczenie='' or status='' or obowiazujeOd is null or charakterUstalenia='' or lokalnyId='' or przestrzenNazw='' or wersjaId='' or poczatekWersjiObiektu=''"
+        sql = "symbol='' or oznaczenie='' or status='' or obowiazujeOd='' or charakterUstalenia='' or lokalnyId='' or przestrzenNazw='' or wersjaId='' or poczatekWersjiObiektu='' or \
+               symbol is NULL or oznaczenie is NULL or status is NULL or obowiazujeOd is NULL or charakterUstalenia is NULL or lokalnyId is NULL or przestrzenNazw is NULL or wersjaId is NULL or poczatekWersjiObiektu is NULL"
     elif obrysLayer.name().startswith("ObszarZabudowySrodmiejskiej"):
-        sql = "symbol='' or oznaczenie='' or status='' or obowiazujeOd is null or charakterUstalenia='' or lokalnyId='' or przestrzenNazw='' or wersjaId='' or poczatekWersjiObiektu=''"
+        sql = "symbol='' or oznaczenie='' or status='' or obowiazujeOd='' or charakterUstalenia='' or lokalnyId='' or przestrzenNazw='' or wersjaId='' or poczatekWersjiObiektu='' or \
+               symbol is NULL or oznaczenie is NULL or status is NULL or obowiazujeOd is NULL or charakterUstalenia is NULL or lokalnyId is NULL or przestrzenNazw is NULL or wersjaId is NULL or poczatekWersjiObiektu is NULL"
     elif obrysLayer.name().startswith("ObszarStandardowDostepnosciInfrastrukturySpolecznej"):
-        sql = "symbol='' or oznaczenie='' or status='' or obowiazujeOd is null or charakterUstalenia='' or odlegloscDoSzkolyPodstawowej='' or odlegloscDoObszarowZieleniPublicznej='' or powierzchniaLacznaObszarowZieleniPublicznej='' or odlegloscDoObszaruZieleniPublicznej='' or powierzchniaObszaruZieleniPublicznej='' or lokalnyId='' or przestrzenNazw='' or wersjaId='' or poczatekWersjiObiektu=''"
+        sql = "symbol='' or oznaczenie='' or status='' or obowiazujeOd='' or charakterUstalenia='' or odlegloscDoSzkolyPodstawowej='' or odlegloscDoObszarowZieleniPublicznej='' or powierzchniaLacznaObszarowZieleniPublicznej='' or odlegloscDoObszaruZieleniPublicznej='' or powierzchniaObszaruZieleniPublicznej='' or lokalnyId='' or przestrzenNazw='' or wersjaId='' or poczatekWersjiObiektu='' or \
+               symbol is NULL or oznaczenie is NULL or status is NULL or obowiazujeOd is NULL or charakterUstalenia is NULL or odlegloscDoSzkolyPodstawowej is NULL or odlegloscDoObszarowZieleniPublicznej is NULL or powierzchniaLacznaObszarowZieleniPublicznej is NULL or odlegloscDoObszaruZieleniPublicznej is NULL or powierzchniaObszaruZieleniPublicznej is NULL or lokalnyId is NULL or przestrzenNazw is NULL or wersjaId is NULL or poczatekWersjiObiektu is NULL"
     else:
         sql=""
     
@@ -263,7 +267,8 @@ def kontrolaProfiliDodatkowych(obrysLayer):
     
     for obj in obrysLayer.getFeatures():
         profileDodatkowe = obj['profilDodatkowy']
-        if profileDodatkowe == NULL:
+        
+        if profileDodatkowe == NULL or profileDodatkowe == '':
             continue
         elif isinstance(profileDodatkowe, str):
             profileDodatkowe_list = [item.strip() for item in profileDodatkowe.split(",")]

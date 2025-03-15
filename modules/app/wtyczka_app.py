@@ -1185,6 +1185,7 @@ class AppModule(BaseModule):
             else:
                 layerName = 'granice_app'
                 popup_txt = 'app'
+                geomTypeEPSG = 'multipolygon?crs=epsg:' + epsg
         elif self.activeDlg == self.wektorInstrukcjaDialogSPL:
             fieldsWP = utils.createFormElements('WydzieleniePlanistyczneType')
             fieldsSPL = utils.createFormElements('StrefaPlanistycznaType')
@@ -1768,7 +1769,8 @@ class AppModule(BaseModule):
                             epsg_code = newEPSG
                     else:
                         if not isJPTinLayer_msg and not isJPTinLayer(layer, jpt):
-                            showPopup("Wczytaj warstwę",f"Warstwa \"{layerName}\" posiada JPT niezgodne z ustawieniami.")
+                            showPopup("Wczytaj warstwę",f"Warstwa \"{layerName}\" posiada co najmniej jeden obiekt z JPT niezgodnym z ustawieniami.")
+                            isJPTinLayer_msg = True
                 
                 destlayer = QgsVectorLayer(geomTypeEPSG + self.fieldsDefinition(fields=fields), layerName + numerWarstwy, 'memory')
                 destlayer.startEditing()
@@ -1840,7 +1842,13 @@ class AppModule(BaseModule):
                         else:
                             try:
                                 if not (field.name() == 'edycja' and profile_msg):
-                                    new_feat.setAttribute(index, QVariant(feature.attribute(field.name())))
+                                    if format == 'pliki GeoPackage (*.gpkg);' and field.name() in ['poczatekWersjiObiektu','koniecWersjiObiektu'] and not feature.fields().field(feature.fieldNameIndex(field.name())).typeName() in ['datetime','DateTime']:
+                                        if not poczatekKoniecWersjiObiektu_msg:
+                                            field_type = feature.fields().field(feature.fieldNameIndex(field.name())).typeName()
+                                            showPopup("Wczytaj warstwę",f"Atrybut {field.name()} jest typu {field_type} a powinien być typu DateTime.")
+                                            poczatekKoniecWersjiObiektu_msg = True
+                                    else:
+                                        new_feat.setAttribute(index, QVariant(feature.attribute(field.name())))
                             except:
                                 pass
                         if layerName == 'AktPlanowaniaPrzestrzennego' and profile_msg and field.name() == 'obowiazujeOd':
@@ -1987,18 +1995,29 @@ class AppModule(BaseModule):
             self.obrysLayer = self.wektorInstrukcjaDialogOSD.layers_comboBox.currentLayer()
         elif isinstance(self.activeDlg, TworzenieOUZDialog):
             self.obrysLayer = layer_OUZ
-        
         if self.obrysLayer == None:
             showPopup("Błąd warstwy obrysu", "Nie wskazano warstwy do zapisu.")
             return
-        layerName = self.obrysLayer.name().split('_')[0]
+        
+        name_list = ["AktPlanowaniaPrzestrzennego",
+                     "dokument_formalny",
+                     "ObszarStandardowDostepnosciInfrastrukturySpolecznej",
+                     "ObszarUzupelnieniaZabudowy",
+                     "ObszarZabudowySrodmiejskiej",
+                     "rysunek_aktu_planowania_przestrzennego",
+                     "StrefaPlanistyczna"]
+        
+        for name in name_list:
+            if name in self.obrysLayer.name():
+                layerName = name
+                break
         
         if not isinstance(self.activeDlg, TworzenieOUZDialog):
             showPopup("Zapisz warstwę","Zostaną teraz przeprowadzone kontrole warstwy " + layerName + ". Może to potrwać do kilku minut.")
             czyWynikKontroliPozytywny = True
             if not self.kontrolaWarstwy(self.obrysLayer):
                 czyWynikKontroliPozytywny = False
-            if self.activeDlg != self.wektorInstrukcjaDialogPOG and not self.kontrolaGeometriiWarstwy(self.obrysLayer):
+            if not self.kontrolaGeometriiWarstwy(self.obrysLayer):
                 czyWynikKontroliPozytywny = False
             if self.activeDlg != self.wektorInstrukcjaDialogPOG and not self.czyObiektyUnikalne(self.obrysLayer,'oznaczenie'):
                 czyWynikKontroliPozytywny = False
@@ -2037,7 +2056,7 @@ class AppModule(BaseModule):
             timeStamp.attrib['timeStamp'] = str(datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S")+'Z')
             numberReturned.attrib['numberReturned'] = str(self.obrysLayer.featureCount())
             root = tree.getroot()
-    
+            
             attrs2Dic = {'charakterUstalenia':dictionaries.charakterUstaleniaListaKodowa,
                          'nazwa':dictionaries.nazwaListaKodowa,
                          'status':dictionaries.statusListaKodowa,
@@ -2220,7 +2239,6 @@ class AppModule(BaseModule):
     def kontrolaGeometriiWarstwy(self, obrysLayer):
         czyGeometrieSaPoprawne = True
         obrysLayerName = obrysLayer.name()
-        
         warstwaBezKoniecWersjiObiektu = processing.run("qgis:extractbyexpression", {
             'INPUT':obrysLayer,
             'EXPRESSION':'koniecWersjiObiektu is NULL',
@@ -2228,6 +2246,7 @@ class AppModule(BaseModule):
         obrysLayer = warstwaBezKoniecWersjiObiektu['OUTPUT']
         
         if obrysLayer.featureCount() > 0:
+            
             # kontrola poprawnosci geometrii
             bledne_geometrie = processing.run("qgis:checkvalidity", {
                 'INPUT_LAYER': obrysLayer,
@@ -2279,198 +2298,220 @@ class AppModule(BaseModule):
                     srsName = crs
                     break
             
+            # Kontrola układu współrzędnych
             if srsName == '':
                 showPopup("Błąd warstwy obrysu",
                           "Obrys posiada niezgodny układ współrzędnych - EPSG:%s.\nDostępne CRS:\n    - %s" % (epsg, ',\n    - '.join(['%s : %s' % (a, b) for a, b in zip(dictionaries.ukladyOdniesieniaPrzestrzennego.keys(), dictionaries.ukladyOdniesieniaPrzestrzennego.values())])))
                 czyGeometrieSaPoprawne = False
             
-            # czy geometria wychodzi poza granicę Polski
+            # Czy geometria wychodzi poza granicę Polski
             if not isLayerInPoland(obrysLayer, obrysLayerName):
                 czyGeometrieSaPoprawne = False
             
-            # czy geometria wychodzi poza POG
-            warstwaPOG = self.wektorInstrukcjaDialogPOG.layers_comboBox.currentLayer()
-            if warstwaPOG == None:
-                for layer in QgsProject.instance().mapLayers().values():
-                    if layer.type() == QgsMapLayer.VectorLayer and layer.name().startswith('AktPlanowaniaPrzestrzennego'):
-                        warstwaPOG = layer
-            else:
-                # zamiana POG na linie
-                POG_polygonstolines = processing.run("native:polygonstolines", {
-                    'INPUT': warstwaPOG,
-                    'OUTPUT': 'memory:'
-                })
+            # Kontrole obiektów innych niż POG
+            if self.activeDlg != self.wektorInstrukcjaDialogPOG:
                 
-                bufor_POG_lines = processing.run("native:buffer", {
-                    'INPUT': POG_polygonstolines['OUTPUT'],
-                    'DISTANCE': 0.01,
-                    'SEGMENTS': 10,
-                    'DISSOLVE': True,
-                    'OUTPUT': 'memory:'
-                })
-                
-                przyciecie = processing.run("qgis:difference", {
-                    'INPUT': obrysLayer,
-                    'OVERLAY': warstwaPOG,
-                    'OUTPUT': 'memory:'
-                })
-                
-                difference = processing.run("qgis:difference", {
-                    'INPUT': przyciecie['OUTPUT'],
-                    'OVERLAY': bufor_POG_lines['OUTPUT'],
-                    'OUTPUT': 'memory:'
-                })
-                
-                # rozbicie multipoligon-u na poligony
-                pojedynczeObjekty = processing.run("native:multiparttosingleparts", {
-                    'INPUT': difference['OUTPUT'],
-                    'OUTPUT': 'memory:'
-                })
-                
-                # kasowanie obiektów wychodzących poza POG o powierzchni < 1 m2
-                pojedynczeObjekty['OUTPUT'].startEditing()
-                for obj in pojedynczeObjekty['OUTPUT'].getFeatures():
-                    if obj.geometry().area() < 1: # 1 m2
-                        pojedynczeObjekty['OUTPUT'].deleteFeature(obj.id())
-                pojedynczeObjekty['OUTPUT'].commitChanges(False)
-                
-                if pojedynczeObjekty['OUTPUT'].featureCount() > 0:
-                    pojedynczeObjekty['OUTPUT'].setName("Geometrie wychodzace poza POG")
-                    QgsProject.instance().addMapLayer(pojedynczeObjekty['OUTPUT'])
-                    showPopup("Błąd warstwy obrysu",
-                              "Niepoprawna geometria - obiekty muszą leżeć wewnątrz POG. Dodano warstwę z geometriami wychodzącymi poza POG.")
-                    czyGeometrieSaPoprawne = False
-            
-            # czy strefy planistyczne posiadają dziury
-            if obrysLayerName.startswith('StrefaPlanistyczna'):
-                deleteholes = processing.run("native:deleteholes", {
-                    'INPUT': obrysLayer,
-                    'OUTPUT': 'memory:'
-                })
-                
-                difference = processing.run("qgis:difference", {
-                    'INPUT': deleteholes['OUTPUT'],
-                    'OVERLAY': obrysLayer,
-                    'OUTPUT': 'memory:'
-                })
-                
-                pojedynczeObjekty = processing.run("native:multiparttosingleparts", {
-                    'INPUT': difference['OUTPUT'],
-                    'OUTPUT': 'memory:'
-                })
-                
-                polygonstolines = processing.run("native:polygonstolines", {
-                    'INPUT': deleteholes['OUTPUT'],
-                    'OUTPUT': 'memory:'
-                })
-                
-                extractbylocation = processing.run("qgis:extractbylocation", {
-                    'INPUT': pojedynczeObjekty['OUTPUT'],
-                    'PREDICATE': [0],
-                    'INTERSECT': polygonstolines['OUTPUT'],
-                    'OUTPUT': 'memory:'
-                })
-                
-                difference2 = processing.run("qgis:difference", {
-                    'INPUT': pojedynczeObjekty['OUTPUT'],
-                    'OVERLAY': extractbylocation['OUTPUT'],
-                    'OUTPUT': 'memory:'
-                })
-                
-                pojedynczeObjekty2 = processing.run("native:multiparttosingleparts", {
-                    'INPUT': difference2['OUTPUT'],
-                    'OUTPUT': 'memory:'
-                })
-                
-                # wykluczenie dziur spowodowanych przez dziury w POG
-                if warstwaPOG != None:
-                    pojedynczeObjekty2 = processing.run("qgis:extractbylocation", {
-                        'INPUT': pojedynczeObjekty2['OUTPUT'],
-                        'PREDICATE': [6],
-                        'INTERSECT': warstwaPOG,
+                # Czy geometria wychodzi poza POG
+                warstwaPOG = self.wektorInstrukcjaDialogPOG.layers_comboBox.currentLayer()
+                if warstwaPOG == None:
+                    for layer in QgsProject.instance().mapLayers().values():
+                        if layer.type() == QgsMapLayer.VectorLayer and layer.name().startswith('AktPlanowaniaPrzestrzennego'):
+                            warstwaPOG = layer
+                else:
+                    # Zamiana POG na linie
+                    POG_polygonstolines = processing.run("native:polygonstolines", {
+                        'INPUT': warstwaPOG,
                         'OUTPUT': 'memory:'
                     })
+                    
+                    bufor_POG_lines = processing.run("native:buffer", {
+                        'INPUT': POG_polygonstolines['OUTPUT'],
+                        'DISTANCE': 0.01,
+                        'SEGMENTS': 10,
+                        'DISSOLVE': True,
+                        'OUTPUT': 'memory:'
+                    })
+                    
+                    przyciecie = processing.run("qgis:difference", {
+                        'INPUT': obrysLayer,
+                        'OVERLAY': warstwaPOG,
+                        'OUTPUT': 'memory:'
+                    })
+                    
+                    difference = processing.run("qgis:difference", {
+                        'INPUT': przyciecie['OUTPUT'],
+                        'OVERLAY': bufor_POG_lines['OUTPUT'],
+                        'OUTPUT': 'memory:'
+                    })
+                    
+                    # Rozbicie multipoligon-u na poligony
+                    pojedynczeObjekty = processing.run("native:multiparttosingleparts", {
+                        'INPUT': difference['OUTPUT'],
+                        'OUTPUT': 'memory:'
+                    })
+                    
+                    # Kasowanie obiektów wychodzących poza POG o powierzchni < 1 m2 oraz 
+                    # których smuklosc > 10 000
+                    pojedynczeObjekty['OUTPUT'].startEditing()
+                    for obj in pojedynczeObjekty['OUTPUT'].getFeatures():
+                        geom = obj.geometry()
+                        if geom.area() < 1: # 1 m2
+                            pojedynczeObjekty['OUTPUT'].deleteFeature(obj.id())
+                        else:
+                            smuklosc = (geom.length() ** 2) / geom.area()
+                            if smuklosc > 10000:
+                                pojedynczeObjekty['OUTPUT'].deleteFeature(obj.id())
+                    pojedynczeObjekty['OUTPUT'].commitChanges(False)
+                    
+                    if pojedynczeObjekty['OUTPUT'].featureCount() > 0:
+                        pojedynczeObjekty['OUTPUT'].setName("Geometrie wychodzace poza POG")
+                        QgsProject.instance().addMapLayer(pojedynczeObjekty['OUTPUT'])
+                        showPopup("Błąd warstwy obrysu",
+                                  "Niepoprawna geometria - obiekty muszą leżeć wewnątrz POG. Dodano warstwę z geometriami wychodzącymi poza POG.")
+                        czyGeometrieSaPoprawne = False
                 
-                if pojedynczeObjekty2['OUTPUT'].featureCount() > 0:
-                    pojedynczeObjekty2['OUTPUT'].setName("Dziury w strefach planistycznych")
-                    QgsProject.instance().addMapLayer(pojedynczeObjekty2['OUTPUT'])
-                    showPopup("Błąd warstwy obrysu","Niepoprawna geometria - Dziury w strefach planistycznych.")
-                    czyGeometrieSaPoprawne = False
-            
-            # czy wystepują nakładające się obiekty
-            if not obrysLayerName.startswith('AktPlanowaniaPrzestrzennego'):
-                union = processing.run("qgis:union", {
-                    'INPUT': obrysLayer,
-                    'OUTPUT': 'memory:'
-                })
+                # Czy strefy planistyczne posiadają dziury
+                if obrysLayerName.startswith('StrefaPlanistyczna'):
+                    deleteholes = processing.run("native:deleteholes", {
+                        'INPUT': obrysLayer,
+                        'OUTPUT': 'memory:'
+                    })
+                    
+                    difference = processing.run("qgis:difference", {
+                        'INPUT': deleteholes['OUTPUT'],
+                        'OVERLAY': obrysLayer,
+                        'OUTPUT': 'memory:'
+                    })
+                    
+                    pojedynczeObjekty = processing.run("native:multiparttosingleparts", {
+                        'INPUT': difference['OUTPUT'],
+                        'OUTPUT': 'memory:'
+                    })
+                    
+                    polygonstolines = processing.run("native:polygonstolines", {
+                        'INPUT': deleteholes['OUTPUT'],
+                        'OUTPUT': 'memory:'
+                    })
+                    
+                    extractbylocation = processing.run("qgis:extractbylocation", {
+                        'INPUT': pojedynczeObjekty['OUTPUT'],
+                        'PREDICATE': [0],
+                        'INTERSECT': polygonstolines['OUTPUT'],
+                        'OUTPUT': 'memory:'
+                    })
+                    
+                    difference2 = processing.run("qgis:difference", {
+                        'INPUT': pojedynczeObjekty['OUTPUT'],
+                        'OVERLAY': extractbylocation['OUTPUT'],
+                        'OUTPUT': 'memory:'
+                    })
+                    
+                    pojedynczeObjekty2 = processing.run("native:multiparttosingleparts", {
+                        'INPUT': difference2['OUTPUT'],
+                        'OUTPUT': 'memory:'
+                    })
+                    
+                    # Wykluczenie dziur spowodowanych przez dziury w POG
+                    if warstwaPOG != None:
+                        pojedynczeObjekty2 = processing.run("qgis:extractbylocation", {
+                            'INPUT': pojedynczeObjekty2['OUTPUT'],
+                            'PREDICATE': [6],
+                            'INTERSECT': warstwaPOG,
+                            'OUTPUT': 'memory:'
+                        })
+                    
+                    if pojedynczeObjekty2['OUTPUT'].featureCount() > 0:
+                        pojedynczeObjekty2['OUTPUT'].setName("Dziury w strefach planistycznych")
+                        QgsProject.instance().addMapLayer(pojedynczeObjekty2['OUTPUT'])
+                        showPopup("Błąd warstwy obrysu","Niepoprawna geometria - Dziury w strefach planistycznych.")
+                        czyGeometrieSaPoprawne = False
                 
-                usunDuplikaty = processing.run("native:deleteduplicategeometries", {
-                    'INPUT': union['OUTPUT'],
-                    'OUTPUT': 'memory:'
-                })
+                # Czy wystepują nakładające się obiekty
+                if not obrysLayerName.startswith('AktPlanowaniaPrzestrzennego'):
+                    union = processing.run("qgis:union", {
+                        'INPUT': obrysLayer,
+                        'OUTPUT': 'memory:'
+                    })
+                    
+                    usunDuplikaty = processing.run("native:deleteduplicategeometries", {
+                        'INPUT': union['OUTPUT'],
+                        'OUTPUT': 'memory:'
+                    })
+                    
+                    wynik = processing.run("native:detectvectorchanges", {
+                        'ORIGINAL': union['OUTPUT'],
+                        'REVISED': usunDuplikaty['OUTPUT'],
+                        'UNCHANGED': 'memory:',
+                        'ADDED': 'memory:',
+                        'DELETED': 'memory:'
+                    })
+                    
+                    # Kasowanie obiektów nakładających się o powierzchni < 1 m2 oraz 
+                    # których smuklosc > 10 000
+                    wynik['DELETED'].startEditing()
+                    for obj in wynik['DELETED'].getFeatures():
+                        geom = obj.geometry()
+                        if geom.area() < 1: # 1 m2
+                            wynik['DELETED'].deleteFeature(obj.id())
+                        else:
+                            smuklosc = (geom.length() ** 2) / geom.area()
+                            if smuklosc > 10000:
+                                wynik['DELETED'].deleteFeature(obj.id())
+                    wynik['DELETED'].commitChanges(False)
+                    
+                    if wynik['DELETED'].featureCount() > 0:
+                        wynik['DELETED'].setName("Nakładajace sie fragmenty geometrii")
+                        QgsProject.instance().addMapLayer(wynik['DELETED'])
+                        showPopup("Błąd warstwy obrysu","Niepoprawna geometria - Nakładające się fragmenty geometrii.")
+                        czyGeometrieSaPoprawne = False
                 
-                wynik = processing.run("native:detectvectorchanges", {
-                    'ORIGINAL': union['OUTPUT'],
-                    'REVISED': usunDuplikaty['OUTPUT'],
-                    'UNCHANGED': 'memory:',
-                    'ADDED': 'memory:',
-                    'DELETED': 'memory:'
-                })
-                
-                # kasowanie obiektów nakładających się o powierzchni < 1 m2
-                wynik['DELETED'].startEditing()
-                for obj in wynik['DELETED'].getFeatures():
-                    if obj.geometry().area() < 1: # 1 m2
-                        wynik['DELETED'].deleteFeature(obj.id())
-                wynik['DELETED'].commitChanges(False)
-                
-                if wynik['DELETED'].featureCount() > 0:
-                    wynik['DELETED'].setName("Nakładajace sie fragmenty geometrii")
-                    QgsProject.instance().addMapLayer(wynik['DELETED'])
-                    showPopup("Błąd warstwy obrysu","Niepoprawna geometria - Nakładające się fragmenty geometrii.")
-                    czyGeometrieSaPoprawne = False
-            
-            # czy wystepują dziury pomiędzy stykającymi się strefami i braki w dopełnieniu do POG
-            if obrysLayerName.startswith('StrefaPlanistyczna') and warstwaPOG != None:
-                
-                bufor0 = processing.run("native:buffer", {
-                    'INPUT': obrysLayer,
-                    'DISTANCE':0,
-                    'SEGMENTS':10,
-                    'DISSOLVE': True,
-                    'OUTPUT': 'memory:'
-                })
-                
-                difference = processing.run("qgis:difference", {
-                    'INPUT': warstwaPOG,
-                    'OVERLAY': bufor0['OUTPUT'],
-                    'OUTPUT': 'memory:'
-                })
-                
-                # rozbicie multipoligon-u na poligony
-                pojedynczeObjekty = processing.run("native:multiparttosingleparts", {
-                    'INPUT': difference['OUTPUT'],
-                    'OUTPUT': 'memory:'
-                })
-                
-                # kasowanie dziur o powierzchni < 1 m2
-                pojedynczeObjekty['OUTPUT'].startEditing()
-                for obj in pojedynczeObjekty['OUTPUT'].getFeatures():
-                    if obj.geometry().area() < 1: # 1 m2
-                        pojedynczeObjekty['OUTPUT'].deleteFeature(obj.id())
-                pojedynczeObjekty['OUTPUT'].commitChanges(False)
-                
-                if pojedynczeObjekty['OUTPUT'].featureCount() > 0:
-                    for objTMP in warstwaPOG.getFeatures():
-                        
-                        if not objTMP['modyfikacja'] or objTMP['status'] != 'w opracowaniu':
-                            pojedynczeObjekty['OUTPUT'].setName("Geometrie dziur w SPL w zakresie POG")
-                            QgsProject.instance().addMapLayer(pojedynczeObjekty['OUTPUT'])
-                            showPopup("Błąd warstwy obrysu", "Niepoprawna geometria - Występują dziury w SPL.")
-                            czyGeometrieSaPoprawne = False
-                            break
+                # Czy wystepują dziury pomiędzy stykającymi się strefami i braki w dopełnieniu do POG
+                if obrysLayerName.startswith('StrefaPlanistyczna') and warstwaPOG != None:
+                    
+                    bufor0 = processing.run("native:buffer", {
+                        'INPUT': obrysLayer,
+                        'DISTANCE':0,
+                        'SEGMENTS':10,
+                        'DISSOLVE': True,
+                        'OUTPUT': 'memory:'
+                    })
+                    
+                    difference = processing.run("qgis:difference", {
+                        'INPUT': warstwaPOG,
+                        'OVERLAY': bufor0['OUTPUT'],
+                        'OUTPUT': 'memory:'
+                    })
+                    
+                    # Rozbicie multipoligon-u na poligony
+                    pojedynczeObjekty = processing.run("native:multiparttosingleparts", {
+                        'INPUT': difference['OUTPUT'],
+                        'OUTPUT': 'memory:'
+                    })
+                    
+                    # Kasowanie dziur o powierzchni < 1 m2 oraz 
+                    # których smuklosc > 10 000
+                    pojedynczeObjekty['OUTPUT'].startEditing()
+                    for obj in pojedynczeObjekty['OUTPUT'].getFeatures():
+                        geom = obj.geometry()
+                        if geom.area() < 1: # 1 m2
+                            pojedynczeObjekty['OUTPUT'].deleteFeature(obj.id())
+                        else:
+                            smuklosc = (geom.length() ** 2) / geom.area()
+                            if smuklosc > 10000:
+                                pojedynczeObjekty['OUTPUT'].deleteFeature(obj.id())
+                    pojedynczeObjekty['OUTPUT'].commitChanges(False)
+                    
+                    if pojedynczeObjekty['OUTPUT'].featureCount() > 0:
+                        for objTMP in warstwaPOG.getFeatures():
+                            
+                            if not objTMP['modyfikacja'] or objTMP['status'] != 'w opracowaniu':
+                                pojedynczeObjekty['OUTPUT'].setName("Geometrie dziur w SPL w zakresie POG")
+                                QgsProject.instance().addMapLayer(pojedynczeObjekty['OUTPUT'])
+                                showPopup("Błąd warstwy obrysu", "Niepoprawna geometria - Występują dziury w SPL.")
+                                czyGeometrieSaPoprawne = False
+                                break
         else:
-            showPopup("Błąd warstwy obrysu", "Brak obiektów na warstwie stref planistycznych lub obiekty mają uzupełniony koniec wersji obiektu.")
+            showPopup("Błąd warstwy obrysu", "Brak obiektów na warstwie lub obiekty mają uzupełniony koniec wersji obiektu.")
             return False
         
         return czyGeometrieSaPoprawne

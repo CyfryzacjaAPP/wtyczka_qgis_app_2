@@ -252,6 +252,13 @@ class TworzenieOUZModule(BaseModule):
                 'OUTPUT': 'memory:'
             })
         
+        fixgeometries = processing.run("native:removeduplicatevertices", {
+            'INPUT': pojedynczeBufory['OUTPUT'],
+            'TOLERANCE': 0.000001,
+            'USE_Z_VALUE': False,
+            'OUTPUT': 'memory:'
+        })
+        
         self.tworzenieOUZDialog.progressBar.setValue(70)
         QCoreApplication.processEvents()
         
@@ -294,7 +301,7 @@ class TworzenieOUZModule(BaseModule):
         if i > 0:
             layerName = 'ObszarUzupelnieniaZabudowy_' + str(i)
         
-        layer = pojedynczeBufory['OUTPUT']
+        layer = fixgeometries['OUTPUT']
         layer.startEditing()
         
         provider = layer.dataProvider()

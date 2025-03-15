@@ -90,7 +90,7 @@ class SettingsModule(BaseModule):
             os.remove(test_file)
             self.ustawieniaDialog.folder_lbl.setText(path)
         except (OSError, IOError):
-            showPopup('Brak uprawniń', 'Brak uprawnień do zapisu w wskazanym katalogu.', icon=QMessageBox.Warning)
+            showPopup('Brak uprawniń', 'Brak uprawnień do zapisu we wskazanym katalogu.', icon=QMessageBox.Warning)
 
 
     def validate_settings(self):
