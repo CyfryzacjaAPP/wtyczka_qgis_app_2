@@ -5,16 +5,16 @@
 [general]
 name=Wtyczka APP 2
 qgisMinimumVersion=3.34.4
-qgisMaximumVersion=3.40.4
-description=Wtyczka wspomaga tworzenie danych przestrzennych dla planów ogólnych gminy w pełnym zakresie oraz pozostałych aktów planowania przestrzennego (APP) w zakresie podstawowym, w tym zbiorów APP oraz metadanych zgodnie z polskimi przepisami. Dedykowaną wersją oprogramowania QGIS do korzystania z Wtyczki APP są wersje od 3.34.4 do 3.40.4. 
-version=2.0.9
+qgisMaximumVersion=3.40.6
+description=Wtyczka wspomaga tworzenie danych przestrzennych dla planów ogólnych gminy w pełnym zakresie oraz pozostałych aktów planowania przestrzennego (APP) w zakresie podstawowym, w tym zbiorów APP oraz metadanych zgodnie z polskimi przepisami. Dedykowaną wersją oprogramowania QGIS do korzystania z Wtyczki APP są wersje od 3.34.4 do 3.40.6. 
+version=2.1.0
 author=Marcin Lebiecki
 email=cyfryzacja.app@mrit.gov.pl 
 
 about=PL: Wtyczka wspomaga tworzenie danych przestrzennych dla planów ogólnych gminy w pełnym zakresie, zgodnie z polskimi przepisami obowiązującymi od 24 września 2024 r. oraz pozostałych aktów planowania przestrzennego (APP), w tym zbiorów APP oraz metadanych zgodnie z polskimi przepisami obowiązującymi od 31 października 2020 r.
-  Dedykowaną wersją oprogramowania QGIS do korzystania z Wtyczki APP są wersje od 3.34.4 do 3.40.4.
+  Dedykowaną wersją oprogramowania QGIS do korzystania z Wtyczki APP są wersje od 3.34.4 do 3.40.6.
   ENG: The plugin supports creation of spatial data for general municipal plans in full scope and other spatial planning acts (APP), APP datasets and APP metadata in accordance with the Polish regulations.
-  Dedicated version of QGIS software to use APP Plugin are versions from 3.34.4 to 3.40.4.
+  Dedicated version of QGIS software to use APP Plugin are versions from 3.34.4 to 3.40.6.
 
 tracker=https://github.com/CyfryzacjaAPP/wtyczka_qgis_app_2/issues
 repository=https://github.com/CyfryzacjaAPP/wtyczka_qgis_app_2
@@ -25,6 +25,11 @@ repository=https://github.com/CyfryzacjaAPP/wtyczka_qgis_app_2
 hasProcessingProvider=no
 # Uncomment the following line and add your changelog:
   changelog=
+  Wersja 2.1.0
+  * zmieniono wygląd oraz udoskonalono okno ustawień wtyczki
+  * wprowadzono dodatkowe kontrole geometrii
+  * dodano funkcję hurtowego wyłączenia kontroli wypełniania pól w formularzu
+  * poprawiono pojedyncze błędy
   Wersja 2.0.9
   * poprawiono pojedyncze błędy
   Wersja 2.0.8
@@ -86,7 +91,7 @@ homepage=https://github.com/CyfryzacjaAPP/wtyczka_qgis_app_2
 category=Plugins
 icon=img/logo.png
 # experimental flag
-experimental=False
+experimental=True
 
 # deprecated flag (applies to the whole plugin, not just a single version)
 deprecated=False

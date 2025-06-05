@@ -43,6 +43,7 @@ from .modules import utils
 from .modules.base_dialogs import CloseMessageDialog
 from qgis.core import qgsfunction
 from qgis.core import QgsExpression
+from qgis.core import QgsSettings
 
 
 PLUGIN_NAME = 'Wtyczka APP 2'
@@ -52,6 +53,11 @@ class WtyczkaAPP(AppModule, MetadataModule, ValidatorModule, TworzenieOUZModule,
     """QGIS Plugin Implementation."""
 
     def __init__(self, iface):
+        global numerZbioru, jpt
+        s = QgsSettings()
+        numerZbioru = s.value("qgis_app2/settings/numerZbioru", "")
+        jpt = s.value("qgis_app2/settings/jpt", "")
+        
         # wczytanie modułów
         AppModule.__init__(self, iface)
         MetadataModule.__init__(self, iface)
@@ -89,7 +95,7 @@ class WtyczkaAPP(AppModule, MetadataModule, ValidatorModule, TworzenieOUZModule,
             try:
                 dialogObject.clearForm(dialogObject.form_scrollArea)
                 dialogObject.setDefaultValues()
-            except AttributeError:
+            except:
                 pass
 
 
@@ -188,19 +194,21 @@ class WtyczkaAPP(AppModule, MetadataModule, ValidatorModule, TworzenieOUZModule,
         
         try:
             QgsExpression.unregisterFunction('zamien_nazwy_na_skroty')
-        except Exception:
+        except:
             pass
 
 
     """Action handlers"""
     # region action handlers
     def run_app(self):
-        self.openNewDialog(self.pytanieAppDialog)
+        if self.czyPoprawneUstawienia():
+            self.openNewDialog(self.pytanieAppDialog)
 
 
     def run_metadata(self):
-        self.openNewDialog(self.metadaneDialog)
-        self.metadaneDialog.prev_btn.setEnabled(False)
+        if self.czyPoprawneUstawienia():
+            self.openNewDialog(self.metadaneDialog)
+            self.metadaneDialog.prev_btn.setEnabled(False)
 
 
     def run_settings(self):
@@ -216,16 +224,25 @@ class WtyczkaAPP(AppModule, MetadataModule, ValidatorModule, TworzenieOUZModule,
 
 
     def run_analizy(self):
-        self.openNewDialog(self.analizyDialog)
+        if self.czyPoprawneUstawienia():
+            self.openNewDialog(self.analizyDialog)
 
 
     def run_OUZ(self):
-        ouz_dlg = self.tworzenieOUZDialog
-        self.openNewDialog(ouz_dlg)
-        ouz_dlg.wlaczenieKonektorow()
-        ouz_dlg.warstwa_POG()
-        ouz_dlg.warstwa_Budynki()
+        if self.czyPoprawneUstawienia():
+            ouz_dlg = self.tworzenieOUZDialog
+            self.openNewDialog(ouz_dlg)
+            ouz_dlg.wlaczenieKonektorow()
+            ouz_dlg.warstwa_POG()
+            ouz_dlg.warstwa_Budynki()
     # endregion
+
+
+    def czyPoprawneUstawienia(self):
+        if jpt == "" or numerZbioru == "":
+            showPopup("Ustawienia wtyczki APP", "Przed przystąpieniem do pracy z Wtyczką APP 2 należy uzupełnić ustawienia wtyczki.")
+            return False
+        return True
 
 
     @qgsfunction(group='Custom')

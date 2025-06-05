@@ -33,12 +33,13 @@ def my_form_open(dialog, layer, feature):
         global maksNadziemnaIntensywnoscZabudowy_label, maksWysokoscZabudowy_label, maksUdzialPowierzchniZabudowy_label
         global minUdzialPowierzchniBiologicznieCzynnej_label
         global czyObiektZmieniony, czyWersjaZmieniona
-        global kontrolaAtrybutu
+        global kontrolaAtrybutu, kontrolaAtrybutu_CB, fid
         
         os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '1'
         atrybuty = feature.attributes()
         geometria = feature.geometry()
         obj = feature
+        fid = obj.id()
         dlg = dialog
         if dlg.parent() == None:
             return
@@ -49,13 +50,14 @@ def my_form_open(dialog, layer, feature):
         
         warstwa = layer
         warstwa.startEditing()
-        
+        warstwa.geometryOptions().setGeometryPrecision(0.01)
         qgis.utils.iface.setActiveLayer(warstwa)
         
         mainPath = Path(QgsApplication.qgisSettingsDirPath())/Path("python/plugins/wtyczka_qgis_app/")
         teryt_gminy = ''
         czyObiektZmieniony = False
         dataCzasTeraz = QDateTime.currentDateTimeUtc()
+        kontrolaAtrybutu_CB = []
         
         if warstwa.fields().indexFromName('edycja') == -1:
             warstwa.addAttribute(QgsField('edycja', QVariant.Bool, ''))
@@ -211,6 +213,8 @@ def my_form_open(dialog, layer, feature):
                  'Data i godzina, w której wersja obiektu została zastąpiona w zbiorze danych przestrzennych\n lub wycofana z tego zbioru danych przestrzennych.'
                 ]
         
+        zapisz = dialog.findChild(QPushButton,"zapisz")
+        
         atrybuty.append('geometria')
         listaBledowAtrybutow = [0 for i in range(len(atrybuty))]
         
@@ -259,7 +263,6 @@ def my_form_open(dialog, layer, feature):
         
         nazwa = dialog.findChild(QComboBox,"nazwa")
         
-        
         charakterUstalenia = dialog.findChild(QComboBox,"charakterUstalenia")
         charakterUstalenia.currentTextChanged.connect(charakterUstalenia_kontrola)
         charakterUstalenia_kontrola(charakterUstalenia.currentText())
@@ -275,11 +278,12 @@ def my_form_open(dialog, layer, feature):
         
         status = dialog.findChild(QComboBox,"status")
         status.currentTextChanged.connect(status_kontrola)
-        if obj.id() < 0 and atrybutyPOG != None:
+        
+        if obj.id() < 0 and atrybutyPOG not in [None,{}]:
             status.setCurrentText(atrybutyPOG['status'])
         status_kontrola(status.currentText())
         
-        koniecWersjiObiektu.valueChanged.connect(poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola)
+        koniecWersjiObiektu.dateTimeChanged.connect(poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola)
         koniecWersjiObiektu.setMaximumDate(QDate.currentDate())
         
         nazwa.currentTextChanged.connect(nazwa_kontrola)
@@ -348,9 +352,9 @@ def my_form_open(dialog, layer, feature):
         
         geometria_kontrola()
         poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola()
+        
         czyWersjaZmieniona = False
         
-        zapisz = dialog.findChild(QPushButton,"zapisz")
         zapisz.clicked.connect(zapis)
         zapisz.setEnabled(False)
         zapisz.setText("Zapisz")
@@ -379,24 +383,20 @@ def my_form_open(dialog, layer, feature):
         
         def on_geometry_changed(fid):
             changed_feature = layer.getFeature(fid)
+            field_names = [field.name() for field in layer.fields()]
             dataCzasTeraz = QDateTime.currentDateTimeUtc()
-            try:
+            
+            if 'wersjaId' in field_names:
                 changed_feature.setAttribute("wersjaId", dataCzasTeraz.toString("yyyyMMddThhmmss"))
-            except:
-                pass
-            try:
+            if 'poczatekWersjiObiektu' in field_names:
                 changed_feature.setAttribute("poczatekWersjiObiektu", dataCzasTeraz)
-            except:
-                pass
-            try:
+            if 'edycja' in field_names:
                 changed_feature.setAttribute("edycja", True)
-            except:
-                pass
+                
             layer.updateFeature(changed_feature)
         
         warstwa.geometryChanged.connect(on_geometry_changed)
-        
-    except:
+    except Exception as e:
         pass
 
 
@@ -404,14 +404,14 @@ def komunikowanieBledu(object, txt, nazwaAtrybutu):
     try:
         object.setToolTip(txt)
         if txt == '':
-            listaBledowAtrybutow[obj.fieldNameIndex(nazwaAtrybutu)] = 0
+            listaBledowAtrybutow[warstwa.fields().indexFromName(nazwaAtrybutu)] = 0
             object.setStyleSheet("")
             wlaczenieZapisu()
         else:
-            listaBledowAtrybutow[obj.fieldNameIndex(nazwaAtrybutu)] = 1
+            listaBledowAtrybutow[warstwa.fields().indexFromName(nazwaAtrybutu)] = 1
             object.setStyleSheet("border: 1px solid red")
             wylaczenieZapisu()
-    except:
+    except Exception as e:
         pass
 
 
@@ -426,30 +426,33 @@ def zmianaWersjiIPoczatkuWersji():
 
 
 def wlaczenieZapisu():
-    global czyObiektZmieniony
+    global czyObiektZmieniony, zapisz
     try:
         if sum(listaBledowAtrybutow) == 0 and warstwa.isEditable():
             zapisz.setEnabled(True)
             zapisz.setText("Zapisz")
             czyObiektZmieniony = True
             zmianaWersjiIPoczatkuWersji()
-    except:
+    except Exception as e:
         pass
 
 
 def wylaczenieZapisu():
-    global czyObiektZmieniony
+    global czyObiektZmieniony, zapisz
     try:
         if sum(listaBledowAtrybutow) != 0 or not warstwa.isEditable():
             czyObiektZmieniony = False
             zapisz.setEnabled(False)
-    except:
+    except Exception as e:
         pass
 
 
 def zapis():
+    global zapisz
     try:
         obj.setAttribute(warstwa.fields().indexFromName('edycja'),True)
+        if obj.id() > 0:
+            obj.setGeometry(warstwa.getFeature(obj.id()).geometry())
         warstwa.updateFeature(obj)
         dlg.save()
         warstwa.commitChanges(False)
@@ -458,7 +461,7 @@ def zapis():
         
         if obj.id() < 0:
             dlg.parent().close()
-    except:
+    except Exception as e:
         pass
 
 # ----------------------------------------------------------------------------------------------------
@@ -475,7 +478,7 @@ def geometria_kontrola():
             listaBledowAtrybutow[obj.fieldNameIndex('geometria')] = 1
         else:
             listaBledowAtrybutow[obj.fieldNameIndex('geometria')] = 0
-    except:
+    except Exception as e:
         pass
 
 
@@ -493,7 +496,7 @@ def przestrzenNazw_kontrola():
                 przestrzenNazw.setText(txt)
                 komunikowanieBledu(przestrzenNazw,'','przestrzenNazw')
             teryt_gminy = przestrzenNazw.text().split("/")[1].split("-")[0]
-    except:
+    except Exception as e:
         pass
 
 
@@ -506,7 +509,7 @@ def lokalnyId_kontrola(txt):
             lokalnyId.setText(idLokalnyAPP + "-" + oznaczenie.text())
         else:
             komunikowanieBledu(lokalnyId,'','lokalnyId')
-    except:
+    except Exception as e:
         pass
 
 
@@ -517,7 +520,7 @@ def wersjaId_kontrola():
             poczatekWersjiObiektu.disconnect()
             poczatekWersjiObiektu.setDateTime(wersjaId.dateTime())
             poczatekWersjiObiektu.dateTimeChanged.connect(poczatekWersjiObiektu_kontrola)
-    except:
+    except Exception as e:
         pass
 
 
@@ -528,7 +531,7 @@ def poczatekWersjiObiektu_kontrola():
             wersjaId.setDateTime(poczatekWersjiObiektu.dateTime())
             czyWersjaZmieniona = True
         poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola()
-    except:
+    except Exception as e:
         pass
 
 
@@ -553,7 +556,7 @@ def oznaczenie_kontrola(txt):
                 komunikowanieBledu(oznaczenie,'','oznaczenie')
         if not czyWartoscAtrybutuJestUnikalna('oznaczenie',txt) and kontrolaAtrybutu['oznaczenie'] == 2:
             komunikowanieBledu(oznaczenie,'Oznaczenie nie jest unikalne w ramach warstwy.','oznaczenie')
-    except:
+    except Exception as e:
         pass
 
 
@@ -593,7 +596,7 @@ def symbol_kontrola(txt):
 def charakterUstalenia_kontrola(txt):
     try:
         komunikowanieBledu(charakterUstalenia,'','charakterUstalenia')
-    except:
+    except Exception as e:
         pass
 
 
@@ -609,7 +612,7 @@ def status_kontrola(txt):
                 komunikowanieBledu(obowiazujeDo, 'Należy wybrać datę dla "obowiązuje do"', 'obowiazujeDo')
         else:
             poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola()
-    except:
+    except Exception as e:
         pass
 
 
@@ -626,8 +629,6 @@ def poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola():
                 komunikowanieBledu(obowiazujeOd, 'Atrybut "obowiązuje od" nie może być większy lub równy od "obowiązuje do".', 'obowiazujeOd')
             else:
                 komunikowanieBledu(obowiazujeOd, '', 'obowiazujeOd')
-                if czyObiektZmieniony:
-                    uspojnienieDatyObowiazujeOd()
         if koniecWersjiObiektuTxt in ['0:00','23:59'] and koniecWersjiObiektu.dateTime().date().year() != 1 and poczatekWersjiObiektu.dateTime() >= koniecWersjiObiektu.dateTime():
             komunikowanieBledu(poczatekWersjiObiektu,'Koniec wersji obiektu musi być późniejszy niż początek wersji obiektu','poczatekWersjiObiektu')
             komunikowanieBledu(koniecWersjiObiektu,'Koniec wersji obiektu musi być późniejszy niż początek wersji obiektu','koniecWersjiObiektu')
@@ -646,7 +647,7 @@ def poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola():
                     komunikowanieBledu(obowiazujeOd, 'Atrybut "obowiązuje od" nie może być większy lub równy od "obowiązuje do".', 'obowiazujeOd')
                 else:
                     komunikowanieBledu(obowiazujeDo, '', 'obowiazujeDo')
-    except:
+    except Exception as e:
         pass
 
 
@@ -658,15 +659,15 @@ def nazwa_kontrola(txt):
             komunikowanieBledu(nazwa,'','nazwa')
             maksWysokoscZabudowy_kontrola(maksWysokoscZabudowy.text())
         symbol.setCurrentText(mapaNazwaSymbol[txt])
-    except:
-        pass
+    except Exception as e:
+        QgsMessageLog.logMessage(f"Błąd nazwa_kontrola:{str(e)}", 'APP2')
 
 
 def nazwaAlternatywna_kontrola(txt):
     try:
         nazwaAlternatywna.setPlaceholderText(placeHolders['nazwaAlternatywna'])
         komunikowanieBledu(nazwaAlternatywna,'','nazwaAlternatywna')
-    except:
+    except Exception as e:
         pass
 
 
@@ -680,8 +681,8 @@ def profilPodstawowy_QCCB_kontrola(lista):
             profilPodstawowy_QCCB.selectAllOptions()
         else:
             komunikowanieBledu(profilPodstawowy_QCCB,'','profilPodstawowy')
-    except:
-        pass
+    except Exception as e:
+        QgsMessageLog.logMessage(f"Błąd profilPodstawowy_QCCB_kontrola:{str(e)}", 'APP2')
 
 
 def profilPodstawowy_reader():
@@ -691,7 +692,7 @@ def profilPodstawowy_reader():
         for item in listaProfiliPodstawowych:
             profilPodstawowy_QCCB.addItem(item)
         profilPodstawowy_QCCB.selectAllOptions()
-    except:
+    except Exception as e:
         pass
 
 
@@ -702,7 +703,7 @@ def profilPodstawowy_createList():
             if skrot != 'NULL':
                 lista.append(klasaPrzeznaczeniaTerenuKod[skrot])
         return lista
-    except:
+    except Exception as e:
         pass
 
 
@@ -713,7 +714,7 @@ def profilDodatkowy_QCCB_kontrola(lista):
         else:
             profilDodatkowy.setText('')
         komunikowanieBledu(profilDodatkowy_QCCB,'','profilDodatkowy_QCCB')
-    except:
+    except Exception as e:
         pass
 
 
@@ -727,7 +728,7 @@ def profilDodatkowy_reader():
             for item in listaProfiliDodatkowych:
                 idx = lista.index(item)
                 profilDodatkowy_QCCB.setItemCheckState(idx,2)
-    except:
+    except Exception as e:
         pass
 
 
@@ -738,7 +739,7 @@ def profilDodatkowy_createList():
             if skrot != 'NULL':
                 lista.append(klasaPrzeznaczeniaTerenuKod[skrot])
         return lista
-    except:
+    except Exception as e:
         pass
 
 
@@ -758,7 +759,7 @@ def maksNadziemnaIntensywnoscZabudowy_kontrola(txt):
             maksNadziemnaIntensywnoscZabudowy_label.setText("maksymalna nadziemna intensywność zabudowy*")
         else:
             maksNadziemnaIntensywnoscZabudowy_label.setText("maksymalna nadziemna intensywność zabudowy")
-    except:
+    except Exception as e:
         pass
 
 
@@ -780,7 +781,7 @@ Wartość musi być podana dla: ' + nazwa.currentText(),'maksUdzialPowierzchniZa
             maksUdzialPowierzchniZabudowy_label.setText("maksymalny udział powierzchnii zabudowy*")
         else:
             maksUdzialPowierzchniZabudowy_label.setText("maksymalny udział powierzchnii zabudowy")
-    except:
+    except Exception as e:
         pass
 
 
@@ -796,7 +797,7 @@ def maksWysokoscZabudowy_kontrola(txt):
             maksWysokoscZabudowy_label.setText("maksymalna wysokość zabudowy*")
         else:
             maksWysokoscZabudowy_label.setText("maksymalna wysokość zabudowy")
-    except:
+    except Exception as e:
         pass
 
 
@@ -814,7 +815,7 @@ def minUdzialPowierzchniBiologicznieCzynnej_kontrola(txt):
             minUdzialPowierzchniBiologicznieCzynnej_label.setText("minimalny udział powierzchni biologicznie czynnej*")
         else:
             minUdzialPowierzchniBiologicznieCzynnej_label.setText("minimalny udział powierzchni biologicznie czynnej")
-    except:
+    except Exception as e:
         pass
 
 
@@ -826,7 +827,7 @@ def wlaczenieWylaczenieProfiliDoEdycji():
             czyWarstwaWEdycji = True
         profilPodstawowy_QCCB.setEnabled(czyWarstwaWEdycji)
         profilDodatkowy_QCCB.setEnabled(czyWarstwaWEdycji)
-    except:
+    except Exception as e:
         pass
 
 
@@ -834,9 +835,8 @@ def czyWartoscAtrybutuJestUnikalna(atrybut, wartosc):
     wartoscAtrybutuJestUnikalna = True
     if koniecWersjiObiektu.dateTime().time().msec() != 0:
         request = QgsFeatureRequest(QgsExpression('koniecWersjiObiektu is NULL and ' + atrybut + "='" + wartosc + "'"))
-        
         for x in warstwa.getFeatures(request):
-            if x.id() != obj.id():
+            if x.id() != fid:
                 wartoscAtrybutuJestUnikalna = False
     return wartoscAtrybutuJestUnikalna
 
@@ -859,22 +859,28 @@ def odczytajAtrybutyZPOG():
             return atrybutyPOG
         else:
             return None
-    except:
+    except Exception as e:
         pass
 
 
 def operacjeNaAtrybucie(nazwaAtrybutu):
-    global operacja
-    operacje = ['włączona kontrola wypełnienia','hurtowa zmiana atrybutu w ramach wszystkich warstw','hurtowa zmiana atrybutu w ramach warstwy','uspójnienie daty dla obiektów nowych lub zmienionych']
-    atrybutOperacje = {'oznaczenie':[0],
-                       'maksNadziemnaIntensywnoscZabudowy':[0],
-                       'maksWysokoscZabudowy':[0],
-                       'maksUdzialPowierzchniZabudowy':[0],
-                       'minUdzialPowierzchniBiologicznieCzynnej':[0],
-                       'status':[1,2],
-                       'obowiazujeOd':[0,1,2,3],
-                       'obowiazujeDo':[0,1,2],
-                       'koniecWersjiObiektu':[1,2]
+    global operacja, kontrolaAtrybutu_CB
+    
+    operacje = ['włączona kontrola wypełnienia',
+                'włączona kontrola wypełnienia wymaganych atrybutów',
+                'hurtowa zmiana atrybutu w ramach wszystkich warstw',
+                'hurtowa zmiana atrybutu w ramach warstwy',
+                'uspójnienie daty dla obiektów nowych lub zmienionych'
+               ]
+    atrybutOperacje = {'oznaczenie':[0,1],
+                       'maksNadziemnaIntensywnoscZabudowy':[0,1],
+                       'maksWysokoscZabudowy':[0,1],
+                       'maksUdzialPowierzchniZabudowy':[0,1],
+                       'minUdzialPowierzchniBiologicznieCzynnej':[0,1],
+                       'status':[2,3],
+                       'obowiazujeOd':[0,1,2,3,4],
+                       'obowiazujeDo':[0,1,2,3],
+                       'koniecWersjiObiektu':[2,3]
                        }
     atrybutLayout = {'oznaczenie':"gridLayout",
                      'maksNadziemnaIntensywnoscZabudowy':"gridLayout",
@@ -902,6 +908,7 @@ def operacjeNaAtrybucie(nazwaAtrybutu):
                        'obowiazujeOd':"poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola",
                        'obowiazujeDo':"poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola"}
     atrybutOperacje_tmp = []
+    
     for x in atrybutOperacje[nazwaAtrybutu]:
         atrybutOperacje_tmp.append(operacje[x])
     
@@ -920,6 +927,13 @@ def operacjeNaAtrybucie(nazwaAtrybutu):
             if 0 in atrybutOperacje[nazwaAtrybutu]:
                 action.setChecked(kontrolaAtrybutu[nazwaAtrybutu])
             action.triggered.connect(lambda checked, text=item: wlaczenieLubWylaczenieKontroli(nazwaAtrybutu,checked))
+            kontrolaAtrybutu_CB.append(action)
+        elif item == 'włączona kontrola wypełnienia wymaganych atrybutów':
+            action.setCheckable(True)
+            if 0 in atrybutOperacje[nazwaAtrybutu]:
+                action.setChecked(kontrolaAtrybutu[nazwaAtrybutu])
+            action.triggered.connect(lambda checked, text=item: wlaczenieLubWylaczenieKontroliWszystkichWymaganychAtrybutow(checked))
+            kontrolaAtrybutu_CB.append(action)
         else:
             if item == 'hurtowa zmiana atrybutu w ramach wszystkich warstw':
                 action.setIcon(QIcon(":/plugins/wtyczka_app/img/hurtowa_zmiana_atrybutu_ikona.png"))
@@ -942,6 +956,20 @@ def operacjeNaAtrybucie(nazwaAtrybutu):
                 'obowiazujeOd':['włączona kontrola wypełnienia'],
                 'obowiazujeDo':['włączona kontrola wypełnienia'],
                 'koniecWersjiObiektu':[]}
+    
+    def wlaczenieLubWylaczenieKontroliWszystkichWymaganychAtrybutow(isChecked):
+        if isChecked:
+            for atrybut, operacje in atrybutOperacje.items():
+                if 1 in operacje:
+                    wlaczenieLubWylaczenieKontroli(atrybut,2)
+            for ka in kontrolaAtrybutu_CB:
+                ka.setChecked(True)
+        else:
+            for atrybut, operacje in atrybutOperacje.items():
+                if 1 in operacje:
+                    wlaczenieLubWylaczenieKontroli(atrybut,0)
+            for ka in kontrolaAtrybutu_CB:
+                ka.setChecked(False)
     
     def wlaczenieLubWylaczenieKontroli(atrybut,isChecked):
         global kontrolaAtrybutu
@@ -1186,7 +1214,7 @@ def dialogRejected():
         global rodzajZbioru, numerZbioru, jpt, idLokalnyAPP
         global maksNadziemnaIntensywnoscZabudowy_label, maksWysokoscZabudowy_label, maksUdzialPowierzchniZabudowy_label
         global minUdzialPowierzchniBiologicznieCzynnej_label
-        global czyObiektZmieniony, czyWersjaZmieniona, kontrolaAtrybutu
+        global czyObiektZmieniony, czyWersjaZmieniona, kontrolaAtrybutu, kontrolaAtrybutu_CB, fid
         
         del obj, dlg, warstwa, listaBledowAtrybutow, placeHolders, teryt_gminy, mapaNazwaSymbol, mapaSymbolProfilDodatkowy
         del zapisz, przestrzenNazw, koniecWersjiObiektu, lokalnyId, wersjaId, poczatekWersjiObiektu, nazwa, oznaczenie, symbol, symbolTXT
@@ -1197,6 +1225,6 @@ def dialogRejected():
         del rodzajZbioru, numerZbioru, jpt, idLokalnyAPP
         del maksNadziemnaIntensywnoscZabudowy_label, maksWysokoscZabudowy_label, maksUdzialPowierzchniZabudowy_label
         del minUdzialPowierzchniBiologicznieCzynnej_label
-        del czyObiektZmieniony, czyWersjaZmieniona, kontrolaAtrybutu
-    except:
+        del czyObiektZmieniony, czyWersjaZmieniona, kontrolaAtrybutu, kontrolaAtrybutu_CB, fid
+    except Exception as e:
         pass
