@@ -11,6 +11,7 @@ from qgis.PyQt.QtCore import Qt, QRegExp
 from qgis.PyQt import uic, QtGui
 from qgis.PyQt import QtWidgets
 from PyQt5.QtGui import QRegExpValidator
+from .comboBoxWithContextMenu import ComboBoxWithContextMenu
 
 
 title_settings = 'Ustawienia'
@@ -36,6 +37,10 @@ class UstawieniaDialog(QtWidgets.QDialog, FORM_CLASS):
         self.setWindowIcon(QtGui.QIcon(icon_settings))
         self.setWindowFlags(Qt.WindowMinimizeButtonHint | Qt.WindowSystemMenuHint | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
         self.exit_btn.clicked.connect(self.reject)
+        
+        self.jpt_comboBoxWithContextMenu  = ComboBoxWithContextMenu(self)
+        self.jpt_comboBoxWithContextMenu.setObjectName("jpt_comboBoxWithContextMenu")
+        self.gridLayout_4.addWidget(self.jpt_comboBoxWithContextMenu ,2, 1)
 
 class PomocDialog(QtWidgets.QDialog, FORM_CLASS1):
     def __init__(self, parent=None):

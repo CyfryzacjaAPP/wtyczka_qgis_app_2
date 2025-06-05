@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from PyQt5.QtWidgets import *
 import PyQt5.QtCore
-from qgis.core import QgsSettings
+from qgis.core import QgsSettings, QgsMessageLog
 from qgis.gui import QgsDateTimeEdit, QgsFilterLineEdit, QgsMapLayerComboBox
 from qgis.PyQt.QtCore import Qt, QRegExp, QVariant
 from qgis.PyQt.QtGui import QRegExpValidator, QPixmap

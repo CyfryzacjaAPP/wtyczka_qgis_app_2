@@ -45,7 +45,7 @@ import math
 class AppModule(BaseModule):
     metadaneDialog = None
     
-    global s, rodzajZbioru, numerZbioru, jpt, idLokalnyAPP, defaultPath, warstwaPOG, checksums
+    global s, rodzajZbioru, numerZbioru, jpt, idLokalnyAPP, defaultPath, warstwaPOG, checksums, informacjaOgolna
     s = QgsSettings()
     rodzajZbioru = s.value("qgis_app2/settings/rodzajZbioru", "/")
     numerZbioru = s.value("qgis_app2/settings/numerZbioru", "")
@@ -55,6 +55,7 @@ class AppModule(BaseModule):
     QSettings().setValue('/Map/identifyAutoFeatureForm','true')
     warstwaPOG = None
     checksums = set()
+    informacjaOgolna = False
 
 
     def __init__(self, iface):
@@ -1119,7 +1120,7 @@ class AppModule(BaseModule):
 
     def fieldsDefinition(self, fields):
         if rodzajZbioru == 'POG':
-            pomijane = ['zmiana', 'mapaPodkladowa', 'data', 'referencja', 'lacze',
+            pomijane = ['zmiana', 'mapaPodkladowa', 'data', 'referencja',
                         'dokument', 'dokumentPrzystepujacy', 'dokumentUchwalajacy', 'dokumentZmieniajacy', 'dokumentUchylajacy', 'dokumentUniewazniajacy']
         else:
             pomijane = ['zmiana', 'mapaPodkladowa', 'data', 'referencja', 'lacze',
@@ -1168,6 +1169,12 @@ class AppModule(BaseModule):
             return
         
         QgsProject.instance().setCrs(QgsCoordinateReferenceSystem(int(epsg)))
+        
+        # włączenie snapowania i edycji topologicznej
+        new_conf = QgsSnappingConfig(QgsProject.instance().snappingConfig())
+        new_conf.setEnabled(True)
+        QgsProject.instance().setSnappingConfig(new_conf)
+        QgsProject.instance().setTopologicalEditing(True)
         
         defaultPath = s.value("qgis_app2/settings/defaultPath", "/")
         if not os.access(defaultPath, os.W_OK):
@@ -1257,24 +1264,18 @@ class AppModule(BaseModule):
         
         self.iface.messageBar().pushSuccess("Utworzenie warstwy:","Stworzono warstwę do wektoryzacji.")
         
-        def on_geometry_changed(fid):
-            changed_feature = layer.getFeature(fid)
+        def on_geometry_changed(fid, geom, warstwa_tmp):
+            changed_feature = warstwa_tmp.getFeature(fid)
             dataCzasTeraz = QDateTime.currentDateTimeUtc()
             try:
                 changed_feature.setAttribute("wersjaId", dataCzasTeraz.toString("yyyyMMddThhmmss"))
-            except:
-                pass
-            try:
                 changed_feature.setAttribute("poczatekWersjiObiektu", dataCzasTeraz)
-            except:
-                pass
-            try:
                 changed_feature.setAttribute("edycja", True)
             except:
                 pass
-            layer.updateFeature(changed_feature)
+            warstwa_tmp.updateFeature(changed_feature)
         
-        layer.geometryChanged.connect(on_geometry_changed)
+        layer.geometryChanged.connect(lambda fid, geom, lyr=layer: on_geometry_changed(fid, geom, lyr))
         
         showPopup("Wygeneruj warstwę","Poprawnie utworzono pustą warstwę " + popup_txt + ". Uzupełnij ją danymi przestrzennymi.")
         
@@ -1579,6 +1580,8 @@ class AppModule(BaseModule):
 
 
     def loadFromGMLorGPKG(self, analizy):
+        global informacjaOgolna
+        
         Processing.initialize()
         s = QgsSettings()
         defaultPath = s.value("qgis_app2/settings/defaultPath", "/")
@@ -1594,6 +1597,12 @@ class AppModule(BaseModule):
         subNamesOUZ = ['obowiazujeOd']
         subNamesOZS = ['obowiazujeOd']
         
+        # włączenie snapowania i edycji topologicznej
+        new_conf = QgsSnappingConfig(QgsProject.instance().snappingConfig())
+        new_conf.setEnabled(True)
+        QgsProject.instance().setSnappingConfig(new_conf)
+        QgsProject.instance().setTopologicalEditing(True)
+        
         if not os.access(defaultPath, os.W_OK):
             showPopup("Wczytaj warstwę","Brak uprawnień do zapisu w katalogu " + defaultPath + ". W ustawieniach wtyczki wskaż domyślną ścieżkę zapisu plików z uprawnieniami do zapisu.")
             return
@@ -1601,6 +1610,11 @@ class AppModule(BaseModule):
         if epsg_code in (0, NULL, ''):
             showPopup("Wczytaj warstwę","Proszę uzupełnić w ustawieniach wtyczki APP wartość JPT dla rodzaju zbioru POG.")
             return
+        
+        if not informacjaOgolna:
+            showPopup("Informacja",
+                      "Wtyczka umożliwia wczytanie także niepoprawnych danych, aby umożliwić ich naprawienie. Rekomendujemy, aby plik sprawdzić w Przeglądarce danych planistycznych.")
+            informacjaOgolna = True
         
         file, format = QFileDialog.getOpenFileName(directory=defaultPath,filter = "pliki GML (*.gml);; pliki GeoPackage (*.gpkg);")
         file = str(file)
@@ -1612,8 +1626,8 @@ class AppModule(BaseModule):
         warstwy = [x.GetName() for x in ds]
         
         activeDlgname = self.activeDlg.name
-        if not any(activeDlgname in element for element in warstwy) and activeDlgname != 'PytanieAppDialog':
-            showPopup("Wczytaj warstwę","Proszę wskazać plik gml zawierający: " + activeDlgname)
+        if not any(activeDlgname.upper() in element.upper() for element in warstwy) and activeDlgname != 'PytanieAppDialog':
+            showPopup("Wczytaj warstwę","Proszę wskazać plik gml lub gpkg zawierający: " + activeDlgname)
             return
         
         QApplication.setOverrideCursor(Qt.BusyCursor)
@@ -1654,9 +1668,13 @@ class AppModule(BaseModule):
         isJPTinLayer_msg = False
         
         for layerName in warstwy:
-            for dozwolonaWarstwa in dozwoloneWarstwy:
-                if layerName.startswith(dozwolonaWarstwa):
-                    layerName = dozwolonaWarstwa
+            
+            # poprawa nazwy warstwy jeżeli to kwestia tylko wielkości liter
+            nazwa = layerName.lower()
+            for warstwa in dozwoloneWarstwy:
+                if warstwa.lower() in nazwa:
+                    layerName = warstwa
+            
             if layerName not in dozwoloneWarstwy:
                 showPopup("Wczytaj warstwę",f"Wskazany plik zawiera warstwę \"{layerName}\", która nie występuje w modelu planowania przestrzennego.")
                 continue
@@ -1752,8 +1770,9 @@ class AppModule(BaseModule):
                         'ERROR_OUTPUT': 'memory:'
                     })
                     if checkvalidity['INVALID_OUTPUT'].featureCount() > 0:
-                        showPopup("Wczytaj warstwę",f"Warstwa \"{layerName}\" posiada co najmniej jeden obiekt z błędną geometrią.")
-                        continue
+                        showPopup("Wczytaj warstwę",f"Warstwa \"{layerName}\" posiada co najmniej jeden obiekt z błędną geometrią.\nNastąpi próba wczytania warstwy.")
+                        self.kontrolaGeometriiWarstwy(layer)
+                        # continue
                     
                     isLayerInPoland(layer, layerName)
                     
@@ -1852,9 +1871,9 @@ class AppModule(BaseModule):
                             except:
                                 pass
                         if layerName == 'AktPlanowaniaPrzestrzennego' and profile_msg and field.name() == 'obowiazujeOd':
-                            new_feat.setAttribute(idx_wersjaId, dataCzasTeraz.toString("yyyyMMddThhmmss"))
-                            new_feat.setAttribute(idx_poczatekWersjiObiektu, dataCzasTeraz)
-                            new_feat.setAttribute(idx_obowiazujeOd, None)
+                            new_feat.setAttribute('wersjaId', dataCzasTeraz.toString("yyyyMMddThhmmss"))
+                            new_feat.setAttribute('poczatekWersjiObiektu', dataCzasTeraz)
+                            new_feat.setAttribute('obowiazujeOd', None)
                     
                     new_feat.setGeometry(feature.geometry())
                     destlayer.addFeature(new_feat)
@@ -1950,24 +1969,18 @@ class AppModule(BaseModule):
                     self.activeDlg.layers_comboBox.setCurrentText(layerName)
                 self.iface.messageBar().pushSuccess("Wczytanie warstwy:","Wczytano warstwę.")
                 
-                def on_geometry_changed(fid):
-                    changed_feature = gkpg.getFeature(fid)
+                def on_geometry_changed(fid, geom, warstwa_tmp):
+                    changed_feature = warstwa_tmp.getFeature(fid)
                     dataCzasTeraz = QDateTime.currentDateTimeUtc()
                     try:
                         changed_feature.setAttribute("wersjaId", dataCzasTeraz.toString("yyyyMMddThhmmss"))
-                    except:
-                        pass
-                    try:
                         changed_feature.setAttribute("poczatekWersjiObiektu", dataCzasTeraz)
-                    except:
-                        pass
-                    try:
                         changed_feature.setAttribute("edycja", True)
                     except:
                         pass
-                    gkpg.updateFeature(changed_feature)
+                    warstwa_tmp.updateFeature(changed_feature)
                 
-                gkpg.geometryChanged.connect(on_geometry_changed)
+                gkpg.geometryChanged.connect(lambda fid, geom, lyr=gkpg: on_geometry_changed(fid, geom, lyr))
                 QApplication.restoreOverrideCursor()
                 showPopup("Wczytaj warstwę","Poprawnie wczytano warstwę " + layerName + ".")
         QApplication.restoreOverrideCursor()
@@ -2007,14 +2020,21 @@ class AppModule(BaseModule):
                      "rysunek_aktu_planowania_przestrzennego",
                      "StrefaPlanistyczna"]
         
+        layerName = None
+        
         for name in name_list:
             if name in self.obrysLayer.name():
                 layerName = name
                 break
         
+        if layerName == None:
+            showPopup("Błąd warstwy obrysu", "Niepoprawna nazwa warstwy: " + self.obrysLayer.name())
+            return
+        
         if not isinstance(self.activeDlg, TworzenieOUZDialog):
             showPopup("Zapisz warstwę","Zostaną teraz przeprowadzone kontrole warstwy " + layerName + ". Może to potrwać do kilku minut.")
             czyWynikKontroliPozytywny = True
+            
             if not self.kontrolaWarstwy(self.obrysLayer):
                 czyWynikKontroliPozytywny = False
             if not self.kontrolaGeometriiWarstwy(self.obrysLayer):
@@ -2116,7 +2136,10 @@ class AppModule(BaseModule):
                     elif atrybutTitle == None and atrybutHref != None and attr.name() not in ('plan'):
                         atrybutHref.attrib['{http://www.w3.org/1999/xlink}href'] = attrs2Dic[attr.name()][str(obj.attribute(attr.name()))]
                     elif atrybutTitle == None and atrybutHref != None and attr.name() in ('plan'):
-                        atrybutHref.attrib['{http://www.w3.org/1999/xlink}href'] = str(obj.attribute(attr.name()))
+                        if obj.attribute(attr.name()) == NULL:
+                            atrybutHref.attrib['{http://www.w3.org/1999/xlink}href'] = ''
+                        else:
+                            atrybutHref.attrib['{http://www.w3.org/1999/xlink}href'] = str(obj.attribute(attr.name()))
                     elif attr.name() == 'profilPodstawowy':
                         profile = str(obj.attribute(attr.name()))
                         profileLista = profile.split(",")
@@ -2239,37 +2262,60 @@ class AppModule(BaseModule):
     def kontrolaGeometriiWarstwy(self, obrysLayer):
         czyGeometrieSaPoprawne = True
         obrysLayerName = obrysLayer.name()
-        warstwaBezKoniecWersjiObiektu = processing.run("qgis:extractbyexpression", {
-            'INPUT':obrysLayer,
-            'EXPRESSION':'koniecWersjiObiektu is NULL',
-            'OUTPUT':'memory:'})
-        obrysLayer = warstwaBezKoniecWersjiObiektu['OUTPUT']
+        
+        try:
+            warstwaBezKoniecWersjiObiektu = processing.run("qgis:extractbyexpression", {
+                'INPUT':obrysLayer,
+                'EXPRESSION':'koniecWersjiObiektu is NULL',
+                'OUTPUT':'memory:'})
+            obrysLayer = warstwaBezKoniecWersjiObiektu['OUTPUT']
+        except:
+            pass
         
         if obrysLayer.featureCount() > 0:
             
             # kontrola poprawnosci geometrii
-            bledne_geometrie = processing.run("qgis:checkvalidity", {
-                'INPUT_LAYER': obrysLayer,
-                'METHOD': 1,
-                'INVALID_OUTPUT': 'memory:',
-                'ERROR_OUTPUT': 'memory:'
-            })
+            for nr_metody in range(1, 3):
+                bledne_geometrie = processing.run("qgis:checkvalidity", {
+                    'INPUT_LAYER': obrysLayer,
+                    'METHOD': nr_metody,
+                    'INVALID_OUTPUT': 'memory:',
+                    'ERROR_OUTPUT': 'memory:'
+                })
+                if bledne_geometrie['INVALID_OUTPUT'].featureCount() > 0:
+                    break
             
-            if bledne_geometrie['INVALID_OUTPUT'].featureCount() > 0:
-                bledne_geometrie['INVALID_OUTPUT'].setName("Błędy geometrii")
-                bledne_geometrie['INVALID_OUTPUT'].startEditing()
-                bledne_geometrie['INVALID_OUTPUT'].renameAttribute(bledne_geometrie['INVALID_OUTPUT'].fields().indexFromName("_errors"), "opis_bledu")
-                bledne_geometrie['INVALID_OUTPUT'].commitChanges()
-                QgsProject.instance().addMapLayer(bledne_geometrie['INVALID_OUTPUT'])
             if bledne_geometrie['ERROR_OUTPUT'].featureCount() > 0:
                 bledne_geometrie['ERROR_OUTPUT'].setName("Lokalizacje błędów geometrii")
                 bledne_geometrie['ERROR_OUTPUT'].startEditing()
                 bledne_geometrie['ERROR_OUTPUT'].renameAttribute(bledne_geometrie['ERROR_OUTPUT'].fields().indexFromName("message"), "opis_bledu")
+                
+                # usuwanie błędów typu Poligon 7 leży wewnątrz poligonu 2
+                for bledna_geometria in bledne_geometrie['ERROR_OUTPUT'].getFeatures():
+                    if re.search('Poligon \d+ leży wewnątrz poligonu \d+', bledna_geometria['opis_bledu'], re.IGNORECASE) or \
+                       re.search('Polygon \d+ inside polygon \d+', bledna_geometria['opis_bledu'], re.IGNORECASE):
+                        bledne_geometrie['ERROR_OUTPUT'].deleteFeature(bledna_geometria.id())
+                
                 bledne_geometrie['ERROR_OUTPUT'].commitChanges()
-                QgsProject.instance().addMapLayer(bledne_geometrie['ERROR_OUTPUT'])
-            if bledne_geometrie['INVALID_OUTPUT'].featureCount() > 0 or bledne_geometrie['ERROR_OUTPUT'].featureCount() > 0:
-                showPopup("Błąd warstwy obrysu", "Występuje niepoprawna geometria w warstwie.\nDodano warstwę z błędnymi obiektami w zakresie geometrii oraz warstwę punktową wskazującą miejsca z błędami.\nDalsza kontrola została wstrzymana z uwagi na błędy geometrii.")
-                return False
+                
+                if bledne_geometrie['INVALID_OUTPUT'].featureCount() > 0:
+                    bledne_geometrie['INVALID_OUTPUT'].setName("Błędy geometrii")
+                    bledne_geometrie['INVALID_OUTPUT'].startEditing()
+                    bledne_geometrie['INVALID_OUTPUT'].renameAttribute(bledne_geometrie['INVALID_OUTPUT'].fields().indexFromName("_errors"), "opis_bledu")
+                    
+                    # usuwanie błędów typu Poligon 7 leży wewnątrz poligonu 2
+                    for bledna_geometria in bledne_geometrie['INVALID_OUTPUT'].getFeatures():
+                        if re.search('Poligon \d+ leży wewnątrz poligonu \d+', bledna_geometria['opis_bledu'], re.IGNORECASE) or \
+                           re.search('Polygon \d+ inside polygon \d+', bledna_geometria['opis_bledu'], re.IGNORECASE):
+                            bledne_geometrie['INVALID_OUTPUT'].deleteFeature(bledna_geometria.id())
+                    
+                    bledne_geometrie['INVALID_OUTPUT'].commitChanges()
+                    
+                if bledne_geometrie['INVALID_OUTPUT'].featureCount() > 0 or bledne_geometrie['ERROR_OUTPUT'].featureCount() > 0:
+                    showPopup("Błąd warstwy obrysu", "Występuje niepoprawna geometria w warstwie.\nDodano warstwę z błędnymi obiektami w zakresie geometrii oraz warstwę punktową wskazującą miejsca z błędami.\nDalsza kontrola została wstrzymana z uwagi na błędy geometrii.")
+                    QgsProject.instance().addMapLayer(bledne_geometrie['ERROR_OUTPUT'])
+                    QgsProject.instance().addMapLayer(bledne_geometrie['INVALID_OUTPUT'])
+                    return False
             
             # usuwanie pustych geometrii
             removenullgeometries = processing.run("native:removenullgeometries", {
@@ -2549,6 +2595,11 @@ class AppModule(BaseModule):
 
 
     def kontrolaWarstwy(self, obrysLayer):
+        s = QgsSettings()
+        jpt = s.value("qgis_app2/settings/jpt", "/")
+        
+        wynikKontroli = True
+        
         if not self.obrysLayer:   # brak wybranej warstwy
             showPopup("Błąd warstwy obrysu", "Nie wskazano warstwy z obrysem.")
             return False
@@ -2566,7 +2617,7 @@ class AppModule(BaseModule):
                     srsName = crs
                     break
         
-        if self.obrysLayer.featureCount() > 1 and obrysLayer.name().startswith("AktPlanowaniaPrzestrzennego"):
+        if self.obrysLayer.featureCount() > 1 and self.obrysLayer.name().startswith("AktPlanowaniaPrzestrzennego"):
             warstwaBezKoniecWersjiObiektu = processing.run("qgis:extractbyexpression", {
                 'INPUT':obrysLayer,
                 'EXPRESSION':'koniecWersjiObiektu is NULL',
@@ -2575,30 +2626,42 @@ class AppModule(BaseModule):
                 showPopup(title="Błąd warstwy obrysu", text="Wybrana warstwa posiada obiekty w liczbie: %d.\nObrys może składać się wyłącznie z jednego obiektu z niewypełnionym atrybutem koniecWersjiObiektu." % (
                     self.obrysLayer.featureCount()))
                 return False
+        
         for objx in self.obrysLayer.getFeatures():
             objxgeom = objx.geometry()
             if not objxgeom.isGeosValid():
                 return False
+        
         if self.obrysLayer.featureCount() == 0:
             showPopup("Błąd warstwy obrysu", "Wybrana warstwa nie posiada obiektu.")
             return False
-        elif not czyWarstwaMaWypelnioneObowiazkoweAtrybuty(self.obrysLayer):
+        
+        if not czyWarstwaMaWypelnioneObowiazkoweAtrybuty(self.obrysLayer):
             showPopup("Błąd warstwy obrysu",
                       "Występują obiekty z niewypełnionymi atrybutami obowiązkowymi.\nWygenerowano warstwę z błędnymi obiektami.")
-            return False
-        elif not kontrolaZaleznosciAtrybutow(self.obrysLayer):
+            wynikKontroli = False
+        
+        if not kontrolaZaleznosciAtrybutow(self.obrysLayer):
             showPopup("Błąd warstwy obrysu",
                       "Występują obiekty z błędnie wypełnionymi atrybutami.")
-            return False
-        elif obrysLayer.name().startswith("StrefaPlanistyczna") and not kontrolaProfiliDodatkowych(self.obrysLayer):
+            wynikKontroli = False
+        
+        if obrysLayer.name().startswith("StrefaPlanistyczna") and not kontrolaProfiliDodatkowych(self.obrysLayer):
             showPopup("Błąd warstwy obrysu",
                       "Występują obiekty z błędnie wypełnionymi profilami dodatkowymi.")
-        elif srsName == '':
+            wynikKontroli = False
+            
+        if srsName == '':
             showPopup("Błąd warstwy obrysu",
                       "Obrys posiada niezgodny układ współrzędnych - EPSG:%s.\nDostępne CRS:\n    - %s" % (epsg, ',\n    - '.join(['%s : %s' % (a, b) for a, b in zip(dictionaries.ukladyOdniesieniaPrzestrzennego.keys(), dictionaries.ukladyOdniesieniaPrzestrzennego.values())])))
-            return False
-        else:
-            return True
+            wynikKontroli = False
+        
+        if not isJPTinLayer(self.obrysLayer, jpt):
+            showPopup("Błąd warstwy obrysu",
+                      "Warstwa posiada co najmniej jeden obiekt z JPT niezgodnym z ustawieniami.")
+            wynikKontroli = False
+        
+        return wynikKontroli
 
 
     def OUZpowyzej125procent(self, obrysLayer):
@@ -2630,20 +2693,24 @@ class AppModule(BaseModule):
                 ouz_dlg.show()
                 ouz_dlg.warstwa_POG()
                 ouz_dlg.warstwa_Budynki()
+                ouz_dlg.wylaczenieKonektorow()
                 return True
         
         pathOUZ_wyjsciowy_layer = QgsVectorLayer(pathOUZ_wyjsciowy + "|layername=ObszarUzupelnieniaZabudowy|option:FORCE_SRS_DETECTION=YES|option:CONSIDER_EPSG_AS_URN=YES|geometrytype=Polygon", "ObszarUzupelnieniaZabudowy", 'ogr')
         
-        pojedynczeBufory = processing.run("native:multiparttosingleparts", {
-            'INPUT': pathOUZ_wyjsciowy_layer,
-            'OUTPUT': 'memory:'
-        })
+        try:
+            pojedynczeBufory = processing.run("native:multiparttosingleparts", {
+                'INPUT': pathOUZ_wyjsciowy_layer,
+                'OUTPUT': 'memory:'
+            })['OUTPUT']
+        except:
+            pojedynczeBufory = pathOUZ_wyjsciowy_layer
         
         roznica_features = []
         for obrys_feat in obrysLayer.getFeatures():
             obrys_geom = obrys_feat.geometry()
             
-            for buf_feat in pojedynczeBufory['OUTPUT'].getFeatures():
+            for buf_feat in pojedynczeBufory.getFeatures():
                 buf_geom = buf_feat.geometry()
                 if obrys_geom.intersects(buf_geom):
                     obrys_geom = obrys_geom.difference(buf_geom)
@@ -2659,23 +2726,26 @@ class AppModule(BaseModule):
         roznica.updateExtents()
         
         # zmiana multipoligonów na poligony
-        pojedynczeBufory2 = processing.run("native:multiparttosingleparts", {
-            'INPUT': roznica,
-            'OUTPUT': 'memory:'
-        })
+        try:
+            pojedynczeBufory2 = processing.run("native:multiparttosingleparts", {
+                'INPUT': roznica,
+                'OUTPUT': 'memory:'
+            })['OUTPUT']
+        except:
+            pojedynczeBufory2 = roznica
         
         # usunięcie bardzo małych powierzchnii
-        pojedynczeBufory2['OUTPUT'].startEditing()
-        for tmpObj in pojedynczeBufory2['OUTPUT'].getFeatures():
-            if tmpObj.geometry().area() < 0.05:
-                pojedynczeBufory2['OUTPUT'].deleteFeature(tmpObj.id())
-        pojedynczeBufory2['OUTPUT'].commitChanges(False)
+        pojedynczeBufory2.startEditing()
+        for tmpObj in pojedynczeBufory2.getFeatures():
+            if tmpObj.geometry().area() < 0.5:
+                pojedynczeBufory2.deleteFeature(tmpObj.id())
+        pojedynczeBufory2.commitChanges(False)
         
         # odseparowanie obiektów, które się nie przecinają
         obiektyBledne = processing.run("qgis:extractbylocation", {
-            'INPUT': pojedynczeBufory2['OUTPUT'],
+            'INPUT': pojedynczeBufory2,
             'PREDICATE': 2,
-            'INTERSECT': pojedynczeBufory['OUTPUT'],
+            'INTERSECT': pojedynczeBufory,
             'OUTPUT': 'memory:'
         })
         
@@ -2695,7 +2765,7 @@ class AppModule(BaseModule):
             return area
         
         powierzchniaPowiekszeniaOUZ = 0
-        for tmp_obj in pojedynczeBufory2['OUTPUT'].getFeatures():
+        for tmp_obj in pojedynczeBufory2.getFeatures():
             powierzchniaPowiekszeniaOUZ += powierzchniaNaElipsoidzie(tmp_obj)
         
         if powierzchniaPowiekszeniaOUZ > powierzchnia_Pp:
@@ -2713,6 +2783,9 @@ class AppModule(BaseModule):
         file = str(file)
         if file == '':
             return
+        
+        showPopup("Informacja",
+                  "Wtyczka umożliwia wczytanie także projektu zawierającego niepoprawne dane, aby umożliwić ich naprawienie. Rekomendujemy, aby plik sprawdzić w Przeglądarce danych planistycznych.")
         
         QgsProject.instance().read(file)
         warstwy = ['StrefaPlanistyczna','ObszarZabudowySrodmiejskiej','ObszarUzupelnieniaZabudowy','ObszarStandardowDostepnosciInfrastrukturySpolecznej','AktPlanowaniaPrzestrzennego']

@@ -19,6 +19,7 @@
 			<app:status xlink:href="placeholder" xlink:title="placeholder"/>
 			<app:charakterUstalenia xlink:href="placeholder" xlink:title="placeholder"/>
 			<app:geometria></app:geometria>
+			<app:plan xlink:href="placeholder"/>
 			<app:nazwa xlink:href="placeholder" xlink:title="placeholder"/>
 			<app:nazwaAlternatywna>placeholder</app:nazwaAlternatywna>
 			<app:profilPodstawowy xlink:href="placeholder" xlink:title="placeholder"/>

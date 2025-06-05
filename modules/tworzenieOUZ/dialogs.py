@@ -44,93 +44,99 @@ class TworzenieOUZDialog(CloseMessageDialog, FORM_CLASS, ButtonsDialog):
         self.warstwaPOG.currentTextChanged.connect(self.warstwa_POG)
 
     def wylaczenieKonektorow(self):
-        self.warstwaBudynki.currentTextChanged.disconnect()
-        self.warstwaPOG.currentTextChanged.disconnect()
+        try:
+            self.warstwaBudynki.currentTextChanged.disconnect()
+            self.warstwaPOG.currentTextChanged.disconnect()
+        except Exception as e:
+            QgsMessageLog.logMessage(f"Błąd:{str(e)}", 'APP2')
 
     def warstwa_Budynki(self):
         global pierwszyKomunikat_Bud
         self.tworzenie_btn.setEnabled(False)
         cl_Bud = self.warstwaBudynki.currentLayer()
-        if isinstance(cl_Bud, QgsVectorLayer):
-            if cl_Bud != None and \
-                not cl_Bud.name().__contains__("AktPlanowaniaPrzestrzennego") and \
-                not cl_Bud.name().__contains__("StrefaPlanistyczna") and \
-                not cl_Bud.name().__contains__("ObszarZabudowySrodmiejskiej") and \
-                not cl_Bud.name().__contains__("ObszarStandardowDostepnosciInfrastrukturySpolecznej") and \
-                not cl_Bud.name().__contains__("ObszarUzupelnieniaZabudowy") and \
-                cl_Bud.geometryType() == QgsWkbTypes.PolygonGeometry and \
-                cl_Bud.featureCount() >= 5 and \
-                cl_Bud.crs().authid() != "":
-                if self.warstwaPOG.currentLayer() != None:
-                    self.tworzenie_btn.setEnabled(True)
-                pierwszyKomunikat_Bud = False
-                return
+        try:
+            if isinstance(cl_Bud, QgsVectorLayer):
+                if cl_Bud != None and \
+                    not cl_Bud.name().__contains__("AktPlanowaniaPrzestrzennego") and \
+                    not cl_Bud.name().__contains__("StrefaPlanistyczna") and \
+                    not cl_Bud.name().__contains__("ObszarZabudowySrodmiejskiej") and \
+                    not cl_Bud.name().__contains__("ObszarStandardowDostepnosciInfrastrukturySpolecznej") and \
+                    not cl_Bud.name().__contains__("ObszarUzupelnieniaZabudowy") and \
+                    cl_Bud.geometryType() == QgsWkbTypes.PolygonGeometry and \
+                    cl_Bud.featureCount() >= 5 and \
+                    cl_Bud.crs().authid() != "":
+                    if self.warstwaPOG.currentLayer() != None:
+                        self.tworzenie_btn.setEnabled(True)
+                    pierwszyKomunikat_Bud = False
+                    return
+                else:
+                    vectorLayers = [layer for layer in QgsProject.instance().mapLayers().values() if layer.type() == QgsMapLayer.VectorLayer]
+                    # komunikaty bledów
+                    if not pierwszyKomunikat_Bud:
+                        if cl_Bud.name().__contains__("AktPlanowaniaPrzestrzennego"):
+                            l_b = False
+                            for vl in vectorLayers:
+                                if not vl.name().__contains__("AktPlanowaniaPrzestrzennego"):
+                                    l_b = True
+                                    break
+                            if not l_b:
+                                QMessageBox.critical(None,'Informacja','Wybrano warstwę AktPlanowaniaPrzestrzennego. Należy wybrać warstwę z budynkami.')
+                        elif cl_Bud.name().__contains__("StrefaPlanistyczna"):
+                            l_b = False
+                            for vl in vectorLayers:
+                                if not vl.name().__contains__("StrefaPlanistyczna"):
+                                    l_b = True
+                                    break
+                            if not l_b:
+                                QMessageBox.critical(None,'Informacja','Wybrano warstwę StrefaPlanistyczna. Należy wybrać warstwę z budynkami.')
+                        elif cl_Bud.name().__contains__("ObszarZabudowySrodmiejskiej"):
+                            l_b = False
+                            for vl in vectorLayers:
+                                if not vl.name().__contains__("ObszarZabudowySrodmiejskiej"):
+                                    l_b = True
+                                    break
+                            if not l_b:
+                                QMessageBox.critical(None,'Informacja','Wybrano warstwę ObszarZabudowySrodmiejskiej. Należy wybrać warstwę z budynkami.')
+                        elif cl_Bud.name().__contains__("ObszarStandardowDostepnosciInfrastrukturySpolecznej"):
+                            l_b = False
+                            for vl in vectorLayers:
+                                if not vl.name().__contains__("ObszarStandardowDostepnosciInfrastrukturySpolecznej"):
+                                    l_b = True
+                                    break
+                            if not l_b:
+                                QMessageBox.critical(None,'Informacja','Wybrano warstwę ObszarStandardowDostepnosciInfrastrukturySpolecznej. Należy wybrać warstwę z budynkami.')
+                        elif cl_Bud.name().__contains__("ObszarUzupelnieniaZabudowy"):
+                            l_b = False
+                            for vl in vectorLayers:
+                                if not vl.name().__contains__("ObszarUzupelnieniaZabudowy"):
+                                    l_b = True
+                                    break
+                            if not l_b:
+                                QMessageBox.critical(None,'Informacja','Wybrano warstwę ObszarUzupelnieniaZabudowy. Należy wybrać warstwę z budynkami.')
+                        elif cl_Bud.geometryType() != QgsWkbTypes.PolygonGeometry:
+                            QMessageBox.critical(None,'Informacja','Warstwa musi przechowywać obiekty typu poligon.')
+                        elif cl_Bud.featureCount() < 5:
+                            QMessageBox.critical(None,'Informacja','Warstwa musi zawierać co najmniej 5 obiektów.')
+                        elif cl_Bud.crs().authid():
+                            QMessageBox.critical(None,'Informacja','Warstwa musi mieć zdefiniowany układ współrzędnych.')
+                    
+                    for layer in vectorLayers:
+                        if not layer.name().__contains__("AktPlanowaniaPrzestrzennego") and \
+                            not layer.name().__contains__("StrefaPlanistyczna") and \
+                            not layer.name().__contains__("ObszarZabudowySrodmiejskiej") and \
+                            not layer.name().__contains__("ObszarStandardowDostepnosciInfrastrukturySpolecznej") and \
+                            not layer.name().__contains__("ObszarUzupelnieniaZabudowy") and \
+                            layer.geometryType() == QgsWkbTypes.PolygonGeometry and \
+                            layer.featureCount() >= 5 and \
+                            layer.crs().authid() != "":
+                            self.warstwaBudynki.setLayer(layer)
+                            break
+                        else:
+                            self.warstwaBudynki.setLayer(None)
             else:
-                vectorLayers = [layer for layer in QgsProject.instance().mapLayers().values() if layer.type() == QgsMapLayer.VectorLayer]
-                # komunikaty bledów
-                if not pierwszyKomunikat_Bud:
-                    if cl_Bud.name().__contains__("AktPlanowaniaPrzestrzennego"):
-                        l_b = False
-                        for vl in vectorLayers:
-                            if not vl.name().__contains__("AktPlanowaniaPrzestrzennego"):
-                                l_b = True
-                                break
-                        if not l_b:
-                            QMessageBox.critical(None,'Informacja','Wybrano warstwę AktPlanowaniaPrzestrzennego. Należy wybrać warstwę z budynkami.')
-                    elif cl_Bud.name().__contains__("StrefaPlanistyczna"):
-                        l_b = False
-                        for vl in vectorLayers:
-                            if not vl.name().__contains__("StrefaPlanistyczna"):
-                                l_b = True
-                                break
-                        if not l_b:
-                            QMessageBox.critical(None,'Informacja','Wybrano warstwę StrefaPlanistyczna. Należy wybrać warstwę z budynkami.')
-                    elif cl_Bud.name().__contains__("ObszarZabudowySrodmiejskiej"):
-                        l_b = False
-                        for vl in vectorLayers:
-                            if not vl.name().__contains__("ObszarZabudowySrodmiejskiej"):
-                                l_b = True
-                                break
-                        if not l_b:
-                            QMessageBox.critical(None,'Informacja','Wybrano warstwę ObszarZabudowySrodmiejskiej. Należy wybrać warstwę z budynkami.')
-                    elif cl_Bud.name().__contains__("ObszarStandardowDostepnosciInfrastrukturySpolecznej"):
-                        l_b = False
-                        for vl in vectorLayers:
-                            if not vl.name().__contains__("ObszarStandardowDostepnosciInfrastrukturySpolecznej"):
-                                l_b = True
-                                break
-                        if not l_b:
-                            QMessageBox.critical(None,'Informacja','Wybrano warstwę ObszarStandardowDostepnosciInfrastrukturySpolecznej. Należy wybrać warstwę z budynkami.')
-                    elif cl_Bud.name().__contains__("ObszarUzupelnieniaZabudowy"):
-                        l_b = False
-                        for vl in vectorLayers:
-                            if not vl.name().__contains__("ObszarUzupelnieniaZabudowy"):
-                                l_b = True
-                                break
-                        if not l_b:
-                            QMessageBox.critical(None,'Informacja','Wybrano warstwę ObszarUzupelnieniaZabudowy. Należy wybrać warstwę z budynkami.')
-                    elif cl_Bud.geometryType() != QgsWkbTypes.PolygonGeometry:
-                        QMessageBox.critical(None,'Informacja','Warstwa musi przechowywać obiekty typu poligon.')
-                    elif cl_Bud.featureCount() < 5:
-                        QMessageBox.critical(None,'Informacja','Warstwa musi zawierać co najmniej 5 obiektów.')
-                    elif cl_Bud.crs().authid():
-                        QMessageBox.critical(None,'Informacja','Warstwa musi mieć zdefiniowany układ współrzędnych.')
-                
-                for layer in vectorLayers:
-                    if not layer.name().__contains__("AktPlanowaniaPrzestrzennego") and \
-                        not layer.name().__contains__("StrefaPlanistyczna") and \
-                        not layer.name().__contains__("ObszarZabudowySrodmiejskiej") and \
-                        not layer.name().__contains__("ObszarStandardowDostepnosciInfrastrukturySpolecznej") and \
-                        not layer.name().__contains__("ObszarUzupelnieniaZabudowy") and \
-                        layer.geometryType() == QgsWkbTypes.PolygonGeometry and \
-                        layer.featureCount() >= 5 and \
-                        layer.crs().authid() != "":
-                        self.warstwaBudynki.setLayer(layer)
-                        break
-                    else:
-                        self.warstwaBudynki.setLayer(None)
-        else:
-            self.warstwaBudynki.setLayer(None)
+                self.warstwaBudynki.setLayer(None)
+        except Exception as e:
+            QgsMessageLog.logMessage(f"Błąd:{str(e)}", 'APP2')
 
 
     def warstwa_POG(self):
@@ -142,7 +148,6 @@ class TworzenieOUZDialog(CloseMessageDialog, FORM_CLASS, ButtonsDialog):
                cl_POG.geometryType() == QgsWkbTypes.PolygonGeometry and \
                cl_POG.featureCount() == 1 and \
                cl_POG.crs().authid() != "" and \
-               cl_POG.fields().names().__contains__("status") and \
                cl_POG.fields().names().__contains__("obowiazujeOd"):
                 pierwszyKomunikat_POG = False
                 return
@@ -173,7 +178,6 @@ class TworzenieOUZDialog(CloseMessageDialog, FORM_CLASS, ButtonsDialog):
                        layer.geometryType() == QgsWkbTypes.PolygonGeometry and \
                        layer.featureCount() == 1 and \
                        layer.crs().authid() != "" and \
-                       layer.fields().names().__contains__("status") and \
                        layer.fields().names().__contains__("obowiazujeOd"):
                         self.warstwaPOG.setLayer(layer)
                         break

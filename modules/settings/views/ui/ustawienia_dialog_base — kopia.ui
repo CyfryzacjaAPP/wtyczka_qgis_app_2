@@ -117,6 +117,16 @@
              <layout class="QVBoxLayout" name="verticalLayout_5">
               <item>
                <layout class="QGridLayout" name="gridLayout_4">
+                <item row="2" column="1">
+                 <widget class="QComboBox" name="jpt_lineEdit">
+                  <property name="editable">
+                   <bool>true</bool>
+                  </property>
+                  <property name="qgisRelation" stdset="0">
+                   <string notr="true"/>
+                  </property>
+                 </widget>
+                </item>
                 <item row="2" column="2">
                  <widget class="QLabel" name="label_3">
                   <property name="minimumSize">
@@ -370,6 +380,7 @@
   <tabstop>verticalGroupBox</tabstop>
   <tabstop>folder_btn</tabstop>
   <tabstop>verticalGroupBox_2</tabstop>
+  <tabstop>jpt_lineEdit</tabstop>
   <tabstop>edycjaILAPP</tabstop>
   <tabstop>verticalGroupBox</tabstop>
   <tabstop>verticalGroupBox</tabstop>

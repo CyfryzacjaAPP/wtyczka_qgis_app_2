@@ -8,7 +8,7 @@ import itertools
 import xml.etree.ElementTree as ET
 from .models import FormElement
 from . import dictionaries
-from qgis.core import QgsSettings
+from qgis.core import QgsSettings, QgsMessageLog
 import datetime
 import uuid
 import random
@@ -103,7 +103,7 @@ def validate_teryt(teryt, rodzaj='None'):
     elif len(teryt) == 2 and validate_teryt_voivo(teryt):  # wojewodztwo
         if rodzaj != 'PZPW' and rodzaj != 'None':
             return False
-        return True  # sprawdzić, czy rodzaj zbioru poprawny
+        return True
     elif len(teryt) == 4 and validate_teryt_county(teryt) and rodzaj != 'None':
         # if rodzaj != 'RSZM':
         #     return False
@@ -474,15 +474,7 @@ def makeXmlListElements(tag, item, element, formData, slownik={}):
                 subItem, element.type.replace('PropertyType', ''))
             for innerElement in element.innerFormElements:
                 for fd in fee.keys():
-
-                    # try:  # Sprawdzanie Nil == True
-                    #     if fee[innerElement.name+'_lineEdit_nilReason_chkbx']:
-                    #         makeNil(
-                    #             innerItem, innerElement, nilReason[fee[innerElement.name+'_lineEdit_nilReason_cmbbx']])  # fee[innerElement.name+'_lineEdit_nilReason_cmbbx'])
-                    # except:
-                    #     pass
                     if innerElement.name in fd:
-
                         if fee[fd] != '':
                             innerItem = ET.SubElement(
                                 ComplexItem, tag+innerElement.name)
@@ -646,7 +638,7 @@ def makeXML(docName, elements, formData, obrysLayer=None):
                             except:
                                 item.set('xlink:href', formData[fd])
                                 item.set('xlink:title', formData[fd])
-
+                                
                         elif element.name == 'ukladOdniesieniaPrzestrzennego':
                             slownik = dict_map[element.name]
                             item.text = slownik[formData[fd]]
@@ -658,12 +650,6 @@ def makeXML(docName, elements, formData, obrysLayer=None):
                             item2 = ET.SubElement(item1, 'gml:date')
                             item3 = ET.SubElement(item2, 'gco:Date')
                             item3.text = formData[fd].toString("yyyy-MM-dd")
-                            # item4 = ET.SubElement(item2, 'gmd:DateType')
-                            # item5 = ET.SubElement(item4, 'gmd:CI_DateTypeCode')
-                            # item5.set(
-                            #     'codeList', 'http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#CI_DateTypeCode')
-                            # item5.set('codeListValue', slownik[formData[fd]])
-                            # item5.text = formData[fd]
                         elif element.type == 'dateTime':
                             item.text = formData[fd].toString(
                                 "yyyy-MM-ddThh:mm:ss")
@@ -727,7 +713,7 @@ def checkElement(fe, element):
                     if fe.minOccurs > 0 and element.count() > 0:
                         return False
                 except:
-                    print('checkElement')
+                    pass
     return True
 
 
@@ -1520,15 +1506,18 @@ def mergeDocsToAPP(docList):  # docList z getTableContent
                 if docType == 'ObszarUzupelnieniaZabudowy' or docType == 'ObszarZabudowySrodmiejskiej':
                     newItem(root=member[0], name='plan', link=APPrelLink, ns=ns)
                 elif docType == 'ObszarStandardowDostepnosciInfrastrukturySpolecznej' or docType == 'StrefaPlanistyczna':
-                    plan = ET.Element('app:plan')
-                    plan.set('{http://www.w3.org/1999/xlink}href',APPrelLink)
-                    
+                    plan_tmp = member.find('.//app:plan', namespaces=namespace_map)
                     nazwa = member.find('.//app:geometria', namespaces=namespace_map)
                     member_all_elements = member.findall('.//', namespaces=namespace_map)
                     target_index = list(member_all_elements).index(nazwa)
                     
                     sub_member = member.find('.//app:koniecWersjiObiektu', namespaces=namespace_map)
-                    member_tmp.insert(target_index - 4, plan)
+                    if plan_tmp == None:
+                        plan = ET.Element('app:plan')
+                        plan.set('{http://www.w3.org/1999/xlink}href',APPrelLink)
+                        member_tmp.insert(target_index - 4, plan)
+                    else:
+                        plan_tmp.set('{http://www.w3.org/1999/xlink}href',APPrelLink)
                     
     # Sprawdzanie relacji Dokumentu formalnego
     l_przystapienie = len(pomijane['DokumentFormalny']['przystapienie'])
@@ -1855,15 +1844,49 @@ def setValueToListWidget(formElement, objVal):
     elif formElement.name == 'mapaPodkladowa':
         addElement(formElement, objVal)
     else:
-        # print(formElement.name)  # Nieobsłużone atrybuty
         return
 
 
 def loadItemsToForm(filePath, formElements):
+    root = None
     root = ET.parse(filePath).getroot()
     ns = dictionaries.nameSpaces
+    dokumentyFormalne = root.findall('.//app:DokumentFormalny', namespaces=ns)
+    if len(dokumentyFormalne) > 1:
+        
+        dialog = QDialog()
+        dialog.setWindowTitle("Wybierz identyfikator lokalny dokumentu formalnego")
+        layout = QVBoxLayout(dialog)
+        label = QLabel('Wybierz identyfikator lokalny dokumentu formalnego, a następnie naciśnij ok:')
+        layout.addWidget(label)
+        
+        combo_box = QComboBox()
+        combo_box.addItems([
+            dokumentFormalny.find('.//app:lokalnyId', namespaces=ns).text
+            for dokumentFormalny in dokumentyFormalne
+            if dokumentFormalny.find('.//app:lokalnyId', namespaces=ns) is not None
+        ])
+        layout.addWidget(combo_box)
+        ok_button = QPushButton("OK")
+        layout.addWidget(ok_button)
+        selected_lokalnyId = None
+        
+        def on_ok():
+            nonlocal selected_lokalnyId
+            selected_lokalnyId = combo_box.currentText()
+            dialog.accept()
+        
+        ok_button.clicked.connect(on_ok)
+        dialog.exec_()
+        
+        for dokumentFormalny in dokumentyFormalne:
+            if dokumentFormalny.find('.//app:lokalnyId', namespaces=ns).text == selected_lokalnyId:
+                root = dokumentFormalny
+                break
+    
     for prefix, uri in ns.items():
         ET.register_namespace(prefix, uri)
+    
     for fe in formElements:
         # iteruje się po xml i szuka odpowiadającego atrybutu z formularza
         element = findElementByTag(root, fe.name, None)
@@ -1908,7 +1931,10 @@ def loadItemsToForm(filePath, formElements):
                          'RysunekAktuPlanowaniaPrzestrzennego', 'DokumentFormalny']
             elements = []
             for formName in formNames:
-                elementPath = 'wfs:member/app:%s/app:%s' % (formName, fe.name)
+                if len(dokumentyFormalne) > 1:
+                    elementPath = './/app:%s' % (fe.name)
+                else:
+                    elementPath = 'wfs:member/app:%s/app:%s' % (formName, fe.name)
                 elements = root.findall(elementPath, ns)
                 if elements != []:
                     break
@@ -1953,7 +1979,7 @@ def loadItemsToForm(filePath, formElements):
                     value = innerElement.text
                     setValueToWidget(inner, value)
                 except:
-                    print('\t Nieobsługiwany atrybut: ' + inner.name + ' ' + inner.type)
+                    pass
 
 
 def setAppId(setPath):

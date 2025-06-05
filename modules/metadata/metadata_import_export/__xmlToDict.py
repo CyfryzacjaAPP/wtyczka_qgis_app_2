@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import xml.etree.ElementTree as ET
 from PyQt5.QtCore import QDateTime
+from qgis.core import QgsMessageLog
 from . import translation
 from .. import utils, dictionaries
 
@@ -83,12 +84,12 @@ def xmlToMetadataElementDict(xml):
                 thesaurus_title = thesaurus.find('.//gmd:title/gco:CharacterString', ns)
             try:
                 data['e10_lineEdit'] = thesaurus_title.text
-            except AttributeError:
-                pass
+            except Exception as e:
+                QgsMessageLog.logMessage(f"Błąd:{str(e)}", 'APP2')
             try:
                 data['xlink'] = thesaurus_title.attrib['{%s}href' % ns['xlink']]
-            except KeyError:
-                pass
+            except Exception as e:
+                QgsMessageLog.logMessage(f"Błąd:{str(e)}", 'APP2')
             date = thesaurus.find('.//gco:Date', ns)
             data['e10_dateTimeEdit'] = QDateTime.fromString(date.text, "yyyy-MM-dd")
             dateTypeCode = thesaurus.find('.//gmd:CI_DateTypeCode', ns)
