@@ -32,7 +32,7 @@ def my_form_open(dialog, layer, feature):
         global rodzajZbioru, numerZbioru, jpt, idLokalnyAPP
         global maksNadziemnaIntensywnoscZabudowy_label, maksWysokoscZabudowy_label, maksUdzialPowierzchniZabudowy_label
         global minUdzialPowierzchniBiologicznieCzynnej_label
-        global czyObiektZmieniony, czyWersjaZmieniona
+        global czyObiektZmieniony, czyWersjaZmieniona, czyZmianaJestDopuszczalna
         global kontrolaAtrybutu, kontrolaAtrybutu_CB, fid
         
         os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '1'
@@ -50,12 +50,12 @@ def my_form_open(dialog, layer, feature):
         
         warstwa = layer
         warstwa.startEditing()
-        warstwa.geometryOptions().setGeometryPrecision(0.01)
         qgis.utils.iface.setActiveLayer(warstwa)
         
         mainPath = Path(QgsApplication.qgisSettingsDirPath())/Path("python/plugins/wtyczka_qgis_app/")
         teryt_gminy = ''
         czyObiektZmieniony = False
+        czyZmianaJestDopuszczalna = False
         dataCzasTeraz = QDateTime.currentDateTimeUtc()
         kontrolaAtrybutu_CB = []
         
@@ -396,6 +396,7 @@ def my_form_open(dialog, layer, feature):
             layer.updateFeature(changed_feature)
         
         warstwa.geometryChanged.connect(on_geometry_changed)
+        czyZmianaJestDopuszczalna = True
     except Exception as e:
         pass
 
@@ -428,7 +429,7 @@ def zmianaWersjiIPoczatkuWersji():
 def wlaczenieZapisu():
     global czyObiektZmieniony, zapisz
     try:
-        if sum(listaBledowAtrybutow) == 0 and warstwa.isEditable():
+        if sum(listaBledowAtrybutow) == 0 and warstwa.isEditable() and czyZmianaJestDopuszczalna:
             zapisz.setEnabled(True)
             zapisz.setText("Zapisz")
             czyObiektZmieniony = True
@@ -440,7 +441,7 @@ def wlaczenieZapisu():
 def wylaczenieZapisu():
     global czyObiektZmieniony, zapisz
     try:
-        if sum(listaBledowAtrybutow) != 0 or not warstwa.isEditable():
+        if sum(listaBledowAtrybutow) != 0 or (not warstwa.isEditable() and not czyZmianaJestDopuszczalna):
             czyObiektZmieniony = False
             zapisz.setEnabled(False)
     except Exception as e:
@@ -958,6 +959,8 @@ def operacjeNaAtrybucie(nazwaAtrybutu):
                 'koniecWersjiObiektu':[]}
     
     def wlaczenieLubWylaczenieKontroliWszystkichWymaganychAtrybutow(isChecked):
+        global czyZmianaJestDopuszczalna
+        czyZmianaJestDopuszczalna = False
         if isChecked:
             for atrybut, operacje in atrybutOperacje.items():
                 if 1 in operacje:
@@ -970,9 +973,11 @@ def operacjeNaAtrybucie(nazwaAtrybutu):
                     wlaczenieLubWylaczenieKontroli(atrybut,0)
             for ka in kontrolaAtrybutu_CB:
                 ka.setChecked(False)
+        czyZmianaJestDopuszczalna = True
     
     def wlaczenieLubWylaczenieKontroli(atrybut,isChecked):
-        global kontrolaAtrybutu
+        global kontrolaAtrybutu, czyZmianaJestDopuszczalna
+        czyZmianaJestDopuszczalna = False
         if isChecked:
             kontrolaAtrybutu[atrybut] = 2
         else:
@@ -990,6 +995,7 @@ def operacjeNaAtrybucie(nazwaAtrybutu):
                 globals().get(atrybutKontrola[atrybut])(maksUdzialPowierzchniZabudowy.text())
             elif atrybut == 'minUdzialPowierzchniBiologicznieCzynnej':
                 globals().get(atrybutKontrola[atrybut])(minUdzialPowierzchniBiologicznieCzynnej.text())
+        czyZmianaJestDopuszczalna = True
     
     def hurtowaZmianaArybutuWRamachWarstw():
         if obj.id() < 0:
