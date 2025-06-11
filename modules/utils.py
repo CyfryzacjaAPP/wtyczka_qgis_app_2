@@ -990,33 +990,33 @@ def createXmlData(dialog, obrysLayer):
                 srsName = "http://www.opengis.net/def/crs/EPSG/0/"+epsg
     except:
         CoordinatesList = None
-
+        
     # Strefa czasowa timezone jest ustawiona na sztywno
     root_data = {
         'timeStamp': datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S")+'Z',
         'numberReturned': "1",
         'numberMatched': "unknown",
     }
-
+    
     # Przestrzenie nazw ustawione na sztywno
     namespaces = dictionaries.xmlNameSpaces
     # create the file structure
     data = ET.Element('wfs:FeatureCollection')
     datamember = ET.SubElement(data, 'wfs:member')
-
+    
     for rd in root_data.keys():
         data.set(rd, root_data[rd])
-
+        
     for ns in namespaces.keys():
         data.set(ns, namespaces[ns])
-
+        
     tag = 'app:'
     items = ET.SubElement(datamember, tag + docName)
-
+    
     itemid = ET.SubElement(items, 'gml:identifier')
     codeSpace = 'https://www.gov.pl/zagospodarowanieprzestrzenne/app'
     itemid.set('codeSpace', codeSpace)
-
+    
     for fe in dialog.formElements:
         refObject = fe.refObject
         if checkForNoValue(refObject) and fe.minOccurs < 1:
@@ -1041,7 +1041,7 @@ def createXmlData(dialog, obrysLayer):
             # itemid.text = '/'.join([codeSpace, docName, IIP.replace('_', '/')])
             itemid.text = '/'.join([codeSpace, docName, IIP.replace(
                 '_', '/').replace(__lokalnyId__.replace('_', '/'), __lokalnyId__)])
-
+            
         if fe.isComplex():
             # print(docName, fe.name, refObject)
             if fe.maxOccurs == 'unbounded':  # Element jest wielokrotny
@@ -1060,7 +1060,7 @@ def createXmlData(dialog, obrysLayer):
             continue
         else:  # Element jest elementarny
             item = ET.SubElement(items, tag + fe.name)
-
+            
         if fe.isNillable:
             refNilObject = fe.refNilObject
             nil = False
@@ -1884,6 +1884,9 @@ def loadItemsToForm(filePath, formElements):
                 root = dokumentFormalny
                 break
     
+    if len(dokumentyFormalne) == 1:
+        root = dokumentyFormalne[0]
+    
     for prefix, uri in ns.items():
         ET.register_namespace(prefix, uri)
     
@@ -1931,7 +1934,7 @@ def loadItemsToForm(filePath, formElements):
                          'RysunekAktuPlanowaniaPrzestrzennego', 'DokumentFormalny']
             elements = []
             for formName in formNames:
-                if len(dokumentyFormalne) > 1:
+                if len(dokumentyFormalne) > 0:
                     elementPath = './/app:%s' % (fe.name)
                 else:
                     elementPath = 'wfs:member/app:%s/app:%s' % (formName, fe.name)

@@ -1178,7 +1178,7 @@ class AppModule(BaseModule):
         
         defaultPath = s.value("qgis_app2/settings/defaultPath", "/")
         if not os.access(defaultPath, os.W_OK):
-            showPopup("Wygeneruj warstwę","Brak uprawnień do zapisu w katalogu "+defaultPath+". W ustawieniach wtyczki wskaż domyślną ścieżkę zapisu plików z uprawnieniami do zapisu.")
+            showPopup("Wygeneruj warstwę","Brak uprawnień do zapisu w katalogu " + defaultPath+". W ustawieniach wtyczki wskaż domyślną ścieżkę zapisu plików z uprawnieniami do zapisu.")
             return
         
         field_edycja = utils.createEditField()
@@ -2597,7 +2597,7 @@ class AppModule(BaseModule):
     def kontrolaWarstwy(self, obrysLayer):
         s = QgsSettings()
         jpt = s.value("qgis_app2/settings/jpt", "/")
-        
+        rodzajZbioru = s.value("qgis_app2/settings/rodzajZbioru", "/")
         wynikKontroli = True
         
         if not self.obrysLayer:   # brak wybranej warstwy
@@ -2656,10 +2656,11 @@ class AppModule(BaseModule):
                       "Obrys posiada niezgodny układ współrzędnych - EPSG:%s.\nDostępne CRS:\n    - %s" % (epsg, ',\n    - '.join(['%s : %s' % (a, b) for a, b in zip(dictionaries.ukladyOdniesieniaPrzestrzennego.keys(), dictionaries.ukladyOdniesieniaPrzestrzennego.values())])))
             wynikKontroli = False
         
-        if not isJPTinLayer(self.obrysLayer, jpt):
-            showPopup("Błąd warstwy obrysu",
-                      "Warstwa posiada co najmniej jeden obiekt z JPT niezgodnym z ustawieniami.")
-            wynikKontroli = False
+        if rodzajZbioru != 'MPZP':
+            if not isJPTinLayer(self.obrysLayer, jpt):
+                showPopup("Błąd warstwy obrysu",
+                          "Warstwa posiada co najmniej jeden obiekt z JPT niezgodnym z ustawieniami.")
+                wynikKontroli = False
         
         return wynikKontroli
 
@@ -2737,7 +2738,7 @@ class AppModule(BaseModule):
         # usunięcie bardzo małych powierzchnii
         pojedynczeBufory2.startEditing()
         for tmpObj in pojedynczeBufory2.getFeatures():
-            if tmpObj.geometry().area() < 0.5:
+            if tmpObj.geometry().area() < 10:
                 pojedynczeBufory2.deleteFeature(tmpObj.id())
         pojedynczeBufory2.commitChanges(False)
         

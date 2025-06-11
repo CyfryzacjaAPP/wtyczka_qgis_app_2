@@ -69,9 +69,8 @@ def isLayerInPoland(obrysLayer, layerName):
 
 def isJPTinLayer(obrysLayer, jpt):
     txt = '/' + jpt
-    
     for obj in obrysLayer.getFeatures():
-        if not txt in obj['przestrzenNazw']:
+        if obj.attribute('przestrzenNazw') == None or not txt in obj.attribute('przestrzenNazw'):
             return False
     return True
 
