@@ -646,11 +646,25 @@
            <height>20</height>
           </size>
          </property>
+         <property name="maximumTime">
+          <time>
+           <hour>0</hour>
+           <minute>0</minute>
+           <second>0</second>
+          </time>
+         </property>
+         <property name="minimumTime">
+          <time>
+           <hour>23</hour>
+           <minute>0</minute>
+           <second>0</second>
+          </time>
+         </property>
          <property name="displayFormat">
           <string>yyyy-MM-ddTHH:mm:ss</string>
          </property>
          <property name="timeSpec">
-          <enum>Qt::LocalTime</enum>
+          <enum>Qt::UTC</enum>
          </property>
         </widget>
        </item>

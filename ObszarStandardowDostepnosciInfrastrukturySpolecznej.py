@@ -16,6 +16,7 @@ from datetime import date, datetime, timezone
 from qgis.core import QgsProject, NULL, QgsSettings, QgsMessageLog
 from PyQt5.QtCore import QDateTime, QDate, QTime, QRegExp
 from qgis.utils import iface
+import wtyczka_qgis_app.resources
 
 
 def my_form_open(dialog, layer, feature):
@@ -29,7 +30,7 @@ def my_form_open(dialog, layer, feature):
         global odlegloscDoDomuPomocySpolecznej, odlegloscDoUrzadzonegoTerenuSportu, odlegloscDoPrzystanku, odlegloscDoPlacowkiPocztowej
         global odlegloscDoApteki, odlegloscDoPosterunkuPolicji, odlegloscDoPosterunkuJednostkiOchronyPrzeciwpozarowej
         global rodzajZbioru, numerZbioru, jpt, idLokalnyAPP
-        global czyObiektZmieniony, czyWersjaZmieniona, czyZmianaJestDopuszczalna
+        global tablicaZmian, czyZmianaJestDopuszczalna
         global kontrolaAtrybutu, kontrolaAtrybutu_CB, fid
         
         atrybuty = feature.attributes()
@@ -51,7 +52,6 @@ def my_form_open(dialog, layer, feature):
         
         mainPath = Path(QgsApplication.qgisSettingsDirPath())/Path("python/plugins/wtyczka_qgis_app/")
         teryt_gminy = ''
-        czyObiektZmieniony = False
         czyZmianaJestDopuszczalna = False
         dataCzasTeraz = QDateTime.currentDateTimeUtc()
         kontrolaAtrybutu_CB = []
@@ -136,6 +136,7 @@ def my_form_open(dialog, layer, feature):
         przestrzenNazw = dialog.findChild(QLineEdit,"przestrzenNazw")
         przestrzenNazw.setToolTip('')
         przestrzenNazw.setPlaceholderText(placeHolders['przestrzenNazw'])
+        przestrzenNazw.textChanged.connect(przestrzenNazw_kontrola)
         
         lokalnyId = dialog.findChild(QLineEdit,"lokalnyId")
         lokalnyId.setToolTip('')
@@ -179,106 +180,106 @@ def my_form_open(dialog, layer, feature):
         status_kontrola(status.currentText())
         
         koniecWersjiObiektu.valueChanged.connect(poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola)
-        koniecWersjiObiektu.setMaximumDate(QDate.currentDate())
         
         wylaczenieZabudowyZagrodowej = dialog.findChild(QCheckBox,"wylaczenieZabudowyZagrodowej")
         wylaczenieZabudowyZagrodowej.stateChanged.connect(wylaczenieZabudowyZagrodowej_kontrola)
         
         odlegloscDoSzkolyPodstawowej = dialog.findChild(QLineEdit,"odlegloscDoSzkolyPodstawowej")
-        odlegloscDoSzkolyPodstawowej.setValidator(QRegExpValidator(QRegExp("[1-9]\d{0,4}")))
+        odlegloscDoSzkolyPodstawowej.setValidator(QRegExpValidator(QRegExp(r"[1-9]\d{0,4}")))
         odlegloscDoSzkolyPodstawowej.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
         odlegloscDoSzkolyPodstawowej.textChanged.connect(odlegloscDoSzkolyPodstawowej_kontrola)
         odlegloscDoSzkolyPodstawowej_kontrola(odlegloscDoSzkolyPodstawowej.text())
         
         odlegloscDoObszarowZieleniPublicznej = dialog.findChild(QLineEdit,"odlegloscDoObszarowZieleniPublicznej")
-        odlegloscDoObszarowZieleniPublicznej.setValidator(QRegExpValidator(QRegExp("[1-9]\d{0,4}")))
+        odlegloscDoObszarowZieleniPublicznej.setValidator(QRegExpValidator(QRegExp(r"[1-9]\d{0,4}")))
         odlegloscDoObszarowZieleniPublicznej.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
         odlegloscDoObszarowZieleniPublicznej.textChanged.connect(odlegloscDoObszarowZieleniPublicznej_kontrola)
         odlegloscDoObszarowZieleniPublicznej_kontrola(odlegloscDoObszarowZieleniPublicznej.text())
         
         powierzchniaLacznaObszarowZieleniPublicznej = dialog.findChild(QLineEdit,"powierzchniaLacznaObszarowZieleniPublicznej")
-        powierzchniaLacznaObszarowZieleniPublicznej.setValidator(QRegExpValidator(QRegExp("[1-9][0-9]{0,5}\.([0-9]{1})?")))
+        powierzchniaLacznaObszarowZieleniPublicznej.setValidator(QRegExpValidator(QRegExp(r"[1-9][0-9]{0,5}\.([0-9]{1})?")))
         powierzchniaLacznaObszarowZieleniPublicznej.setPlaceholderText(placeHolders['powierzchnia obszarow'])
         powierzchniaLacznaObszarowZieleniPublicznej.setText(powierzchniaLacznaObszarowZieleniPublicznej.text().replace(",","."))
         powierzchniaLacznaObszarowZieleniPublicznej.textChanged.connect(powierzchniaLacznaObszarowZieleniPublicznej_kontrola)
         powierzchniaLacznaObszarowZieleniPublicznej_kontrola(powierzchniaLacznaObszarowZieleniPublicznej.text())
         
         odlegloscDoObszaruZieleniPublicznej = dialog.findChild(QLineEdit,"odlegloscDoObszaruZieleniPublicznej")
-        odlegloscDoObszaruZieleniPublicznej.setValidator(QRegExpValidator(QRegExp("[1-9]\d{0,4}")))
+        odlegloscDoObszaruZieleniPublicznej.setValidator(QRegExpValidator(QRegExp(r"[1-9]\d{0,4}")))
         odlegloscDoObszaruZieleniPublicznej.setPlaceholderText(placeHolders['minOdlegloscOdObszaruZieleniPublicznej'])
         odlegloscDoObszaruZieleniPublicznej.textChanged.connect(odlegloscDoObszaruZieleniPublicznej_kontrola)
         odlegloscDoObszaruZieleniPublicznej_kontrola(odlegloscDoObszaruZieleniPublicznej.text())
         
         powierzchniaObszaruZieleniPublicznej = dialog.findChild(QLineEdit,"powierzchniaObszaruZieleniPublicznej")
-        powierzchniaObszaruZieleniPublicznej.setValidator(QRegExpValidator(QRegExp("[1-9][0-9]{1,5}\.([0-9]{1})?")))
+        powierzchniaObszaruZieleniPublicznej.setValidator(QRegExpValidator(QRegExp(r"[1-9][0-9]{1,5}\.([0-9]{1})?")))
         powierzchniaObszaruZieleniPublicznej.setPlaceholderText(placeHolders['powierzchnia obszaru'])
         powierzchniaObszaruZieleniPublicznej.setText(powierzchniaObszaruZieleniPublicznej.text().replace(",","."))
         powierzchniaObszaruZieleniPublicznej.textChanged.connect(powierzchniaObszaruZieleniPublicznej_kontrola)
         powierzchniaObszaruZieleniPublicznej_kontrola(powierzchniaObszaruZieleniPublicznej.text())
         
         odlegloscDoPrzedszkola = dialog.findChild(QLineEdit,"odlegloscDoPrzedszkola")
-        odlegloscDoPrzedszkola.setValidator(QRegExpValidator(QRegExp("[1-9]\d{0,4}")))
+        odlegloscDoPrzedszkola.setValidator(QRegExpValidator(QRegExp(r"[1-9]\d{0,4}")))
         odlegloscDoPrzedszkola.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
         odlegloscDoPrzedszkola.textChanged.connect(odlegloscDoPrzedszkola_kontrola)
         
         odlegloscDoZlobka = dialog.findChild(QLineEdit,"odlegloscDoZlobka")
-        odlegloscDoZlobka.setValidator(QRegExpValidator(QRegExp("[1-9]\d{0,4}")))
+        odlegloscDoZlobka.setValidator(QRegExpValidator(QRegExp(r"[1-9]\d{0,4}")))
         odlegloscDoZlobka.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
         odlegloscDoZlobka.textChanged.connect(odlegloscDoZlobka_kontrola)
         
         odlegloscDoAmbulatoriumPOZ = dialog.findChild(QLineEdit,"odlegloscDoAmbulatoriumPOZ")
-        odlegloscDoAmbulatoriumPOZ.setValidator(QRegExpValidator(QRegExp("[1-9]\d{0,4}")))
+        odlegloscDoAmbulatoriumPOZ.setValidator(QRegExpValidator(QRegExp(r"[1-9]\d{0,4}")))
         odlegloscDoAmbulatoriumPOZ.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
         odlegloscDoAmbulatoriumPOZ.textChanged.connect(odlegloscDoAmbulatoriumPOZ_kontrola)
         
         odlegloscDoBiblioteki = dialog.findChild(QLineEdit,"odlegloscDoBiblioteki")
-        odlegloscDoBiblioteki.setValidator(QRegExpValidator(QRegExp("[1-9]\d{0,4}")))
+        odlegloscDoBiblioteki.setValidator(QRegExpValidator(QRegExp(r"[1-9]\d{0,4}")))
         odlegloscDoBiblioteki.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
         odlegloscDoBiblioteki.textChanged.connect(odlegloscDoBiblioteki_kontrola)
         
         odlegloscDoDomuKultury = dialog.findChild(QLineEdit,"odlegloscDoDomuKultury")
-        odlegloscDoDomuKultury.setValidator(QRegExpValidator(QRegExp("[1-9]\d{0,4}")))
+        odlegloscDoDomuKultury.setValidator(QRegExpValidator(QRegExp(r"[1-9]\d{0,4}")))
         odlegloscDoDomuKultury.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
         odlegloscDoDomuKultury.textChanged.connect(odlegloscDoDomuKultury_kontrola)
         
         odlegloscDoDomuPomocySpolecznej = dialog.findChild(QLineEdit,"odlegloscDoDomuPomocySpolecznej")
-        odlegloscDoDomuPomocySpolecznej.setValidator(QRegExpValidator(QRegExp("[1-9]\d{0,4}")))
+        odlegloscDoDomuPomocySpolecznej.setValidator(QRegExpValidator(QRegExp(r"[1-9]\d{0,4}")))
         odlegloscDoDomuPomocySpolecznej.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
         odlegloscDoDomuPomocySpolecznej.textChanged.connect(odlegloscDoDomuPomocySpolecznej_kontrola)
         
         odlegloscDoUrzadzonegoTerenuSportu = dialog.findChild(QLineEdit,"odlegloscDoUrzadzonegoTerenuSportu")
-        odlegloscDoUrzadzonegoTerenuSportu.setValidator(QRegExpValidator(QRegExp("[1-9]\d{0,4}")))
+        odlegloscDoUrzadzonegoTerenuSportu.setValidator(QRegExpValidator(QRegExp(r"[1-9]\d{0,4}")))
         odlegloscDoUrzadzonegoTerenuSportu.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
         odlegloscDoUrzadzonegoTerenuSportu.textChanged.connect(odlegloscDoUrzadzonegoTerenuSportu_kontrola)
         
         odlegloscDoPrzystanku = dialog.findChild(QLineEdit,"odlegloscDoPrzystanku")
-        odlegloscDoPrzystanku.setValidator(QRegExpValidator(QRegExp("[1-9]\d{0,4}")))
+        odlegloscDoPrzystanku.setValidator(QRegExpValidator(QRegExp(r"[1-9]\d{0,4}")))
         odlegloscDoPrzystanku.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
         odlegloscDoPrzystanku.textChanged.connect(odlegloscDoPrzystanku_kontrola)
         
         odlegloscDoPlacowkiPocztowej = dialog.findChild(QLineEdit,"odlegloscDoPlacowkiPocztowej")
-        odlegloscDoPlacowkiPocztowej.setValidator(QRegExpValidator(QRegExp("[1-9]\d{0,4}")))
+        odlegloscDoPlacowkiPocztowej.setValidator(QRegExpValidator(QRegExp(r"[1-9]\d{0,4}")))
         odlegloscDoPlacowkiPocztowej.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
         odlegloscDoPlacowkiPocztowej.textChanged.connect(odlegloscDoPlacowkiPocztowej_kontrola)
         
         odlegloscDoApteki = dialog.findChild(QLineEdit,"odlegloscDoApteki")
-        odlegloscDoApteki.setValidator(QRegExpValidator(QRegExp("[1-9]\d{0,4}")))
+        odlegloscDoApteki.setValidator(QRegExpValidator(QRegExp(r"[1-9]\d{0,4}")))
         odlegloscDoApteki.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
         odlegloscDoApteki.textChanged.connect(odlegloscDoApteki_kontrola)
         
         odlegloscDoPosterunkuPolicji = dialog.findChild(QLineEdit,"odlegloscDoPosterunkuPolicji")
-        odlegloscDoPosterunkuPolicji.setValidator(QRegExpValidator(QRegExp("[1-9]\d{0,4}")))
+        odlegloscDoPosterunkuPolicji.setValidator(QRegExpValidator(QRegExp(r"[1-9]\d{0,4}")))
         odlegloscDoPosterunkuPolicji.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
         odlegloscDoPosterunkuPolicji.textChanged.connect(odlegloscDoPosterunkuPolicji_kontrola)
         
         odlegloscDoPosterunkuJednostkiOchronyPrzeciwpozarowej = dialog.findChild(QLineEdit,"odlegloscDoPosterunkuJednostkiOchronyPrzeciwpozarowej")
-        odlegloscDoPosterunkuJednostkiOchronyPrzeciwpozarowej.setValidator(QRegExpValidator(QRegExp("[1-9]\d{0,4}")))
+        odlegloscDoPosterunkuJednostkiOchronyPrzeciwpozarowej.setValidator(QRegExpValidator(QRegExp(r"[1-9]\d{0,4}")))
         odlegloscDoPosterunkuJednostkiOchronyPrzeciwpozarowej.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
         odlegloscDoPosterunkuJednostkiOchronyPrzeciwpozarowej.textChanged.connect(odlegloscDoPosterunkuJednostkiOchronyPrzeciwpozarowej_kontrola)
         
         geometria_kontrola()
         poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola()
-        czyWersjaZmieniona = False
+        
+        tablicaZmian = [0] * len(warstwa.fields())
         
         zapisz.clicked.connect(zapis)
         zapisz.setEnabled(False)
@@ -320,6 +321,7 @@ def my_form_open(dialog, layer, feature):
         
         warstwa.geometryChanged.connect(on_geometry_changed)
         czyZmianaJestDopuszczalna = True
+        przestrzenNazw_kontrola()
     except Exception as e:
         pass
 
@@ -330,42 +332,33 @@ def komunikowanieBledu(object, txt, nazwaAtrybutu):
         if txt == '':
             listaBledowAtrybutow[warstwa.fields().indexFromName(nazwaAtrybutu)] = 0
             object.setStyleSheet("")
-            wlaczenieZapisu()
         else:
             listaBledowAtrybutow[warstwa.fields().indexFromName(nazwaAtrybutu)] = 1
             object.setStyleSheet("border: 1px solid red")
-            wylaczenieZapisu()
     except Exception as e:
         pass
 
 
 def zmianaWersjiIPoczatkuWersji():
-    dataCzasTeraz = datetime.utcnow()
-    if czyObiektZmieniony and koniecWersjiObiektu.dateTime().time().msec() != 0 and koniecWersjiObiektu.dateTime().date().year() != 1 and not czyWersjaZmieniona:
+    if sum(listaBledowAtrybutow) > 0 or not czyZmianaJestDopuszczalna or sum(tablicaZmian) == 1:
+        wersjaId.setDateTime(datetime.strptime(obj['wersjaId'], "%Y%m%dT%H%M%S"))
+    
+    KWO_dateTime = koniecWersjiObiektu.dateTime()
+    dataCzasTeraz = QDateTime.currentDateTimeUtc()
+    
+    if KWO_dateTime.time().msec() != 0 and KWO_dateTime.date().year() != 1 and sum(tablicaZmian) > 0:
         wersjaId.setDateTime(dataCzasTeraz)
-        poczatekWersjiObiektu.disconnect()
-        poczatekWersjiObiektu.setDateTime(dataCzasTeraz)
-        poczatekWersjiObiektu.dateTimeChanged.connect(poczatekWersjiObiektu_kontrola)
-        przestrzenNazw_kontrola()
+    else:
+        wlaczenieLubWylaczenieZapisu()
 
 
-def wlaczenieZapisu():
-    global czyObiektZmieniony, zapisz
+def wlaczenieLubWylaczenieZapisu():
+    global zapisz
     try:
-        if sum(listaBledowAtrybutow) == 0 and warstwa.isEditable() and czyZmianaJestDopuszczalna:
+        if sum(listaBledowAtrybutow) == 0 and warstwa.isEditable() and czyZmianaJestDopuszczalna and sum(tablicaZmian) > 0:
             zapisz.setEnabled(True)
             zapisz.setText("Zapisz")
-            czyObiektZmieniony = True
-            zmianaWersjiIPoczatkuWersji()
-    except Exception as e:
-        pass
-
-
-def wylaczenieZapisu():
-    global czyObiektZmieniony, zapisz
-    try:
-        if sum(listaBledowAtrybutow) != 0 or (not warstwa.isEditable() and not czyZmianaJestDopuszczalna):
-            czyObiektZmieniony = False
+        else:
             zapisz.setEnabled(False)
     except Exception as e:
         pass
@@ -418,8 +411,11 @@ def przestrzenNazw_kontrola():
             txt = 'PL.ZIPPZP.' + numerZbioru + '/' + jpt + '-' + rodzajZbioru
             if przestrzenNazw.text() != txt:
                 przestrzenNazw.setText(txt)
+                zmianaWTablicyZmian(txt, 'przestrzenNazw')
                 komunikowanieBledu(przestrzenNazw,'','przestrzenNazw')
             teryt_gminy = przestrzenNazw.text().split("/")[1].split("-")[0]
+        
+        zmianaWersjiIPoczatkuWersji()
     except Exception as e:
         pass
 
@@ -429,8 +425,6 @@ def lokalnyId_kontrola(txt):
         if idLokalnyAPP == '':
             lokalnyId.setPlaceholderText(placeHolders['lokalnyId'])
             komunikowanieBledu(lokalnyId,'Proszę w ustawieniach wpisać identyfikator lokalny identyfikujący jednoznacznie i unikalnie akt planowania przestrzennego w zbiorze danych przestrzennych i zapisać.','lokalnyId')
-        elif txt == '':
-            lokalnyId.setText(idLokalnyAPP)
         elif txt != idLokalnyAPP:
             lokalnyId.setText(idLokalnyAPP + "-" + oznaczenie.text())
         else:
@@ -440,22 +434,21 @@ def lokalnyId_kontrola(txt):
 
 
 def wersjaId_kontrola():
-    global czyWersjaZmieniona
     try:
+        zmianaWTablicyZmian(wersjaId.dateTime().toString("yyyyMMdd'T'hhmmss"), 'wersjaId')
         if koniecWersjiObiektu.dateTime().time().msec() != 0 and koniecWersjiObiektu.dateTime().date().year() != 1:
             poczatekWersjiObiektu.disconnect()
             poczatekWersjiObiektu.setDateTime(wersjaId.dateTime())
             poczatekWersjiObiektu.dateTimeChanged.connect(poczatekWersjiObiektu_kontrola)
+        wlaczenieLubWylaczenieZapisu()
     except Exception as e:
         pass
 
 
 def poczatekWersjiObiektu_kontrola():
-    global czyWersjaZmieniona
     try:
         if koniecWersjiObiektu.dateTime().time().msec() != 0 and koniecWersjiObiektu.dateTime().date().year() != 1:
             wersjaId.setDateTime(poczatekWersjiObiektu.dateTime())
-            czyWersjaZmieniona = True
         poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola()
     except Exception as e:
         pass
@@ -463,6 +456,7 @@ def poczatekWersjiObiektu_kontrola():
 
 def oznaczenie_kontrola(txt):
     try:
+        zmianaWTablicyZmian(txt, 'oznaczenie')
         if re.match('^[1-9][0-9]{0,4}$', txt) != None and symbol.text() != '':
             pozycjaKursora = len(txt)
             txt = str(txt) + symbol.text()
@@ -480,17 +474,22 @@ def oznaczenie_kontrola(txt):
                 oznaczenie.setPlaceholderText(placeHolders['oznaczenie'])
         if not czyWartoscAtrybutuJestUnikalna('oznaczenie',txt) and kontrolaAtrybutu['oznaczenie'] == 2:
             komunikowanieBledu(oznaczenie,'Oznaczenie nie jest unikalne w ramach warstwy.','oznaczenie')
+        
+        zmianaWersjiIPoczatkuWersji()
     except Exception as e:
         pass
 
 
 def symbol_kontrola(txt):
     try:
+        zmianaWTablicyZmian(txt, 'symbol')
         if txt == '':
             symbol.setPlaceholderText(placeHolders['symbol'])
             komunikowanieBledu(symbol,'Symbol jest polem obowiązkowym','symbol')
         else:
             komunikowanieBledu(symbol,'','symbol')
+        
+        zmianaWersjiIPoczatkuWersji()
     except Exception as e:
         pass
 
@@ -501,6 +500,7 @@ def charakterUstalenia_kontrola(txt):
 
 def status_kontrola(txt):
     try:
+        zmianaWTablicyZmian(txt, 'status')
         if txt == 'wybierz' or txt == None:
             komunikowanieBledu(status,'Należy wybrać wartość pola status','status')
             
@@ -512,6 +512,8 @@ def status_kontrola(txt):
                 komunikowanieBledu(obowiazujeDo, 'Należy wybrać datę dla "obowiązuje do"', 'obowiazujeDo')
         else:
             poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola()
+        
+        zmianaWersjiIPoczatkuWersji()
     except Exception as e:
         pass
 
@@ -520,8 +522,17 @@ def poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola():
     try:
         obowiazujeOdTxt = obowiazujeOd.dateTime().toString("H:mm")
         obowiazujeDoTxt = obowiazujeDo.dateTime().toString("H:mm")
-        poczatekWersjiObiektuTxt = poczatekWersjiObiektu.dateTime().toString("H:mm")
         koniecWersjiObiektuTxt = koniecWersjiObiektu.dateTime().toString("H:mm")
+        
+        if obowiazujeOdTxt in ['0:00','23:59']:
+            zmianaWTablicyZmian(obowiazujeOd.date(), 'obowiazujeOd')
+        else:
+            zmianaWTablicyZmian(NULL, 'obowiazujeOd')
+        
+        if obowiazujeDoTxt in ['0:00','23:59']:
+            zmianaWTablicyZmian(obowiazujeDo.date(), 'obowiazujeDo')
+        else:
+            zmianaWTablicyZmian(NULL, 'obowiazujeDo')
         
         if obowiazujeOdTxt not in ['0:00','23:59'] and kontrolaAtrybutu['obowiazujeOd'] == 2:
             komunikowanieBledu(obowiazujeOd, 'Należy wybrać datę dla "obowiązuje od"', 'obowiazujeOd')
@@ -530,7 +541,7 @@ def poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola():
                 komunikowanieBledu(obowiazujeOd, 'Atrybut "obowiązuje od" nie może być większy lub równy od "obowiązuje do".', 'obowiazujeOd')
             else:
                 komunikowanieBledu(obowiazujeOd, '', 'obowiazujeOd')
-        if koniecWersjiObiektuTxt in ['0:00','23:59'] and koniecWersjiObiektu.dateTime().date().year() != 1 and poczatekWersjiObiektu.dateTime() >= koniecWersjiObiektu.dateTime():
+        if koniecWersjiObiektu.dateTime().time().msec() == 0 and koniecWersjiObiektu.dateTime().date().year() != 1 and poczatekWersjiObiektu.dateTime() >= koniecWersjiObiektu.dateTime():
             komunikowanieBledu(poczatekWersjiObiektu,'Koniec wersji obiektu musi być późniejszy niż początek wersji obiektu','poczatekWersjiObiektu')
             komunikowanieBledu(koniecWersjiObiektu,'Koniec wersji obiektu musi być późniejszy niż początek wersji obiektu','koniecWersjiObiektu')
         else:
@@ -544,45 +555,62 @@ def poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola():
                     komunikowanieBledu(obowiazujeDo, '', 'obowiazujeDo')
             else:
                 obowiazujeDo_label.setText("obowiązuje do")
-                if (obowiazujeOd.dateTime() >= obowiazujeDo.dateTime() and obowiazujeDo.dateTime().time().msec() == 0 and obowiazujeOd.dateTime().time().msec() == 0):
+                if obowiazujeOd.dateTime() >= obowiazujeDo.dateTime() and obowiazujeDo.dateTime().time().msec() == 0 and obowiazujeOd.dateTime().time().msec() == 0 and kontrolaAtrybutu['obowiazujeOd'] == 2:
                     komunikowanieBledu(obowiazujeOd, 'Atrybut "obowiązuje od" nie może być większy lub równy od "obowiązuje do".', 'obowiazujeOd')
                 else:
                     komunikowanieBledu(obowiazujeDo, '', 'obowiazujeDo')
+        
+        if koniecWersjiObiektu.dateTime().toString("zzz") == '000' and koniecWersjiObiektu.dateTime().toString("H:mm:ss") != '0:00:00':
+            zmianaWTablicyZmian(koniecWersjiObiektu.dateTime(), 'koniecWersjiObiektu')
+        else:
+            zmianaWTablicyZmian(NULL, 'koniecWersjiObiektu')
+        
+        zmianaWersjiIPoczatkuWersji()
     except Exception as e:
         pass
 
 
 def wylaczenieZabudowyZagrodowej_kontrola(txt):
     try:
+        zmianaWTablicyZmian(txt, 'wylaczenieZabudowyZagrodowej')
         komunikowanieBledu(wylaczenieZabudowyZagrodowej,'','wylaczenieZabudowyZagrodowej')
+        
+        zmianaWersjiIPoczatkuWersji()
     except Exception as e:
         pass
 
 
 def odlegloscDoSzkolyPodstawowej_kontrola(txt):
     try:
+        zmianaWTablicyZmian(txt, 'odlegloscDoSzkolyPodstawowej')
         if txt == '' and kontrolaAtrybutu['odlegloscDoSzkolyPodstawowej'] == 2:
             komunikowanieBledu(odlegloscDoSzkolyPodstawowej,'Wartość atrybutu jest obligatoryjna.','odlegloscDoSzkolyPodstawowej')
         else:
             komunikowanieBledu(odlegloscDoSzkolyPodstawowej,'','odlegloscDoSzkolyPodstawowej')
         odlegloscDoSzkolyPodstawowej.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
+        
+        zmianaWersjiIPoczatkuWersji()
     except Exception as e:
         pass
 
 
 def odlegloscDoObszarowZieleniPublicznej_kontrola(txt):
     try:
+        zmianaWTablicyZmian(txt, 'odlegloscDoObszarowZieleniPublicznej')
         if txt == '' and kontrolaAtrybutu['odlegloscDoObszarowZieleniPublicznej'] == 2:
             komunikowanieBledu(odlegloscDoObszarowZieleniPublicznej,'Wartość atrybutu jest obligatoryjna.','odlegloscDoObszarowZieleniPublicznej')
         else:
             komunikowanieBledu(odlegloscDoObszarowZieleniPublicznej,'','odlegloscDoObszarowZieleniPublicznej')
         odlegloscDoObszarowZieleniPublicznej.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
+        
+        zmianaWersjiIPoczatkuWersji()
     except Exception as e:
         pass
 
 
 def powierzchniaLacznaObszarowZieleniPublicznej_kontrola(txt):
     try:
+        zmianaWTablicyZmian(txt, 'powierzchniaLacznaObszarowZieleniPublicznej')
         txt = txt.replace(",",".")
         if txt == '' and kontrolaAtrybutu['powierzchniaLacznaObszarowZieleniPublicznej'] == 2:
             komunikowanieBledu(powierzchniaLacznaObszarowZieleniPublicznej,'Wartość atrybutu jest obligatoryjna.','powierzchniaLacznaObszarowZieleniPublicznej')
@@ -591,23 +619,29 @@ def powierzchniaLacznaObszarowZieleniPublicznej_kontrola(txt):
         else:
             komunikowanieBledu(powierzchniaLacznaObszarowZieleniPublicznej,'','powierzchniaLacznaObszarowZieleniPublicznej')
         powierzchniaLacznaObszarowZieleniPublicznej.setPlaceholderText(placeHolders['powierzchnia obszarow'])
+        
+        zmianaWersjiIPoczatkuWersji()
     except Exception as e:
         pass
 
 
 def odlegloscDoObszaruZieleniPublicznej_kontrola(txt):
     try:
+        zmianaWTablicyZmian(txt, 'odlegloscDoObszaruZieleniPublicznej')
         if txt == '' and kontrolaAtrybutu['odlegloscDoObszaruZieleniPublicznej'] == 2:
             komunikowanieBledu(odlegloscDoObszaruZieleniPublicznej,'Wartość atrybutu jest obligatoryjna.','odlegloscDoObszaruZieleniPublicznej')
         else:
             komunikowanieBledu(odlegloscDoObszaruZieleniPublicznej,'','odlegloscDoObszaruZieleniPublicznej')
         odlegloscDoObszaruZieleniPublicznej.setPlaceholderText(placeHolders['minOdlegloscOdObszaruZieleniPublicznej'])
+        
+        zmianaWersjiIPoczatkuWersji()
     except Exception as e:
         pass
 
 
 def powierzchniaObszaruZieleniPublicznej_kontrola(txt):
     try:
+        zmianaWTablicyZmian(txt, 'powierzchniaObszaruZieleniPublicznej')
         txt = txt.replace(",",".")
         if txt == '' and kontrolaAtrybutu['powierzchniaObszaruZieleniPublicznej'] == 2:
             komunikowanieBledu(powierzchniaObszaruZieleniPublicznej,'Wartość atrybutu jest obligatoryjna.','powierzchniaObszaruZieleniPublicznej')
@@ -616,102 +650,129 @@ def powierzchniaObszaruZieleniPublicznej_kontrola(txt):
         else:
             komunikowanieBledu(powierzchniaObszaruZieleniPublicznej,'','powierzchniaObszaruZieleniPublicznej')
         powierzchniaObszaruZieleniPublicznej.setPlaceholderText(placeHolders['powierzchnia obszaru'])
+        
+        zmianaWersjiIPoczatkuWersji()
     except Exception as e:
         pass
 
 
 def odlegloscDoPrzedszkola_kontrola(txt):
     try:
+        zmianaWTablicyZmian(txt, 'odlegloscDoPrzedszkola')
         odlegloscDoPrzedszkola.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
-        komunikowanieBledu(odlegloscDoPrzedszkola,'','odlegloscDoPrzedszkola')
+        
+        zmianaWersjiIPoczatkuWersji()
     except Exception as e:
         pass
 
 
 def odlegloscDoZlobka_kontrola(txt):
     try:
+        zmianaWTablicyZmian(txt, 'odlegloscDoZlobka')
         odlegloscDoZlobka.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
-        komunikowanieBledu(odlegloscDoZlobka,'','odlegloscDoZlobka')
+        
+        zmianaWersjiIPoczatkuWersji()
     except Exception as e:
         pass
 
 
 def odlegloscDoAmbulatoriumPOZ_kontrola(txt):
     try:
+        zmianaWTablicyZmian(txt, 'odlegloscDoAmbulatoriumPOZ')
         odlegloscDoAmbulatoriumPOZ.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
-        komunikowanieBledu(odlegloscDoAmbulatoriumPOZ,'','odlegloscDoAmbulatoriumPOZ')
+        
+        zmianaWersjiIPoczatkuWersji()
     except Exception as e:
         pass
 
 
 def odlegloscDoBiblioteki_kontrola(txt):
     try:
+        zmianaWTablicyZmian(txt, 'odlegloscDoBiblioteki')
         odlegloscDoBiblioteki.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
         komunikowanieBledu(odlegloscDoBiblioteki,'','odlegloscDoBiblioteki')
+        
+        zmianaWersjiIPoczatkuWersji()
     except Exception as e:
         pass
 
 
 def odlegloscDoDomuKultury_kontrola(txt):
     try:
+        zmianaWTablicyZmian(txt, 'odlegloscDoDomuKultury')
         odlegloscDoDomuKultury.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
-        komunikowanieBledu(odlegloscDoDomuKultury,'','odlegloscDoDomuKultury')
+        
+        zmianaWersjiIPoczatkuWersji()
     except Exception as e:
         pass
 
 
 def odlegloscDoDomuPomocySpolecznej_kontrola(txt):
     try:
+        zmianaWTablicyZmian(txt, 'odlegloscDoDomuPomocySpolecznej')
         odlegloscDoDomuPomocySpolecznej.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
-        komunikowanieBledu(odlegloscDoDomuPomocySpolecznej,'','odlegloscDoDomuPomocySpolecznej')
+        
+        zmianaWersjiIPoczatkuWersji()
     except Exception as e:
         pass
 
 
 def odlegloscDoUrzadzonegoTerenuSportu_kontrola(txt):
     try:
+        zmianaWTablicyZmian(txt, 'odlegloscDoUrzadzonegoTerenuSportu')
         odlegloscDoUrzadzonegoTerenuSportu.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
-        komunikowanieBledu(odlegloscDoUrzadzonegoTerenuSportu,'','odlegloscDoUrzadzonegoTerenuSportu')
+        
+        zmianaWersjiIPoczatkuWersji()
     except Exception as e:
         pass
 
 
 def odlegloscDoPrzystanku_kontrola(txt):
     try:
+        zmianaWTablicyZmian(txt, 'odlegloscDoPrzystanku')
         odlegloscDoPrzystanku.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
-        komunikowanieBledu(odlegloscDoPrzystanku,'','odlegloscDoPrzystanku')
+        
+        zmianaWersjiIPoczatkuWersji()
     except Exception as e:
         pass
 
 
 def odlegloscDoPlacowkiPocztowej_kontrola(txt):
     try:
+        zmianaWTablicyZmian(txt, 'odlegloscDoPlacowkiPocztowej')
         odlegloscDoPlacowkiPocztowej.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
-        komunikowanieBledu(odlegloscDoPlacowkiPocztowej,'','odlegloscDoPlacowkiPocztowej')
+        
+        zmianaWersjiIPoczatkuWersji()
     except Exception as e:
         pass
 
 
 def odlegloscDoApteki_kontrola(txt):
     try:
+        zmianaWTablicyZmian(txt, 'odlegloscDoApteki')
         odlegloscDoApteki.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
-        komunikowanieBledu(odlegloscDoApteki,'','odlegloscDoApteki')
+        
+        zmianaWersjiIPoczatkuWersji()
     except Exception as e:
         pass
 
 
 def odlegloscDoPosterunkuPolicji_kontrola(txt):
     try:
+        zmianaWTablicyZmian(txt, 'odlegloscDoPosterunkuPolicji')
         odlegloscDoPosterunkuPolicji.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
-        komunikowanieBledu(odlegloscDoPosterunkuPolicji,'','odlegloscDoPosterunkuPolicji')
+        
+        zmianaWersjiIPoczatkuWersji()
     except Exception as e:
         pass
 
 
 def odlegloscDoPosterunkuJednostkiOchronyPrzeciwpozarowej_kontrola(txt):
     try:
+        zmianaWTablicyZmian(txt, 'odlegloscDoPosterunkuJednostkiOchronyPrzeciwpozarowej')
         odlegloscDoPosterunkuJednostkiOchronyPrzeciwpozarowej.setPlaceholderText(placeHolders['minimalnaOdleglosc'])
-        komunikowanieBledu(odlegloscDoPosterunkuJednostkiOchronyPrzeciwpozarowej,'','odlegloscDoPosterunkuJednostkiOchronyPrzeciwpozarowej')
+        
+        zmianaWersjiIPoczatkuWersji()
     except Exception as e:
         pass
 
@@ -886,6 +947,7 @@ def operacjeNaAtrybucie(nazwaAtrybutu):
             elif atrybut == 'powierzchniaObszaruZieleniPublicznej':
                 globals().get(atrybutKontrola[atrybut])(powierzchniaObszaruZieleniPublicznej.text())
         czyZmianaJestDopuszczalna = True
+        wlaczenieLubWylaczenieZapisu()
     
     def hurtowaZmianaArybutuWRamachWarstw():
         if obj.id() < 0:
@@ -1099,6 +1161,26 @@ Czy uspójnić "obowiązuje od" dla obiektów nowych lub zmienionych w ramach ws
             uspojnienieDatyObowiazujeOd()
 
 
+def zmianaWTablicyZmian(txt, nazwaAtrybutu):
+    global tablicaZmian
+    if czyZmianaJestDopuszczalna:
+        if txt == '':
+            txt = NULL
+        
+        if obj[nazwaAtrybutu] == '':
+            attr = NULL
+        else:
+            attr = obj[nazwaAtrybutu]
+        
+        if txt != NULL and isinstance(obj[nazwaAtrybutu], float):
+            txt = float(txt)
+        
+        if txt == attr:
+            tablicaZmian[warstwa.fields().indexFromName(nazwaAtrybutu)] = 0
+        else:
+            tablicaZmian[warstwa.fields().indexFromName(nazwaAtrybutu)] = 1
+
+
 def dialogRejected():
     try:
         global obj, dlg, warstwa, listaBledowAtrybutow, placeHolders, teryt_gminy
@@ -1110,7 +1192,7 @@ def dialogRejected():
         global odlegloscDoDomuPomocySpolecznej, odlegloscDoUrzadzonegoTerenuSportu, odlegloscDoPrzystanku, odlegloscDoPlacowkiPocztowej
         global odlegloscDoApteki, odlegloscDoPosterunkuPolicji, odlegloscDoPosterunkuJednostkiOchronyPrzeciwpozarowej
         global rodzajZbioru, numerZbioru, jpt, idLokalnyAPP
-        global czyObiektZmieniony, czyWersjaZmieniona, kontrolaAtrybutu, kontrolaAtrybutu_CB, fid
+        global tablicaZmian, kontrolaAtrybutu, kontrolaAtrybutu_CB, fid
         
         del obj, dlg, warstwa, listaBledowAtrybutow, placeHolders, teryt_gminy
         del zapisz, przestrzenNazw, koniecWersjiObiektu, lokalnyId, wersjaId, poczatekWersjiObiektu, nazwa, oznaczenie, symbol
@@ -1121,6 +1203,6 @@ def dialogRejected():
         del odlegloscDoDomuPomocySpolecznej, odlegloscDoUrzadzonegoTerenuSportu, odlegloscDoPrzystanku, odlegloscDoPlacowkiPocztowej
         del odlegloscDoApteki, odlegloscDoPosterunkuPolicji, odlegloscDoPosterunkuJednostkiOchronyPrzeciwpozarowej
         del rodzajZbioru, numerZbioru, jpt, idLokalnyAPP
-        del czyObiektZmieniony, czyWersjaZmieniona, kontrolaAtrybutu, kontrolaAtrybutu_CB, fid
+        del tablicaZmian, kontrolaAtrybutu, kontrolaAtrybutu_CB, fid
     except Exception as e:
         pass
