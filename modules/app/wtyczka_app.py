@@ -25,6 +25,8 @@ from ..tworzenieOUZ.dialogs import TworzenieOUZDialog
 from PyQt5.QtGui import QColor
 from matplotlib import cm
 from matplotlib.colors import to_hex
+from shapely.wkb import loads
+from shapely.geometry import LineString
 import numpy as np
 import os
 import os.path
@@ -707,7 +709,7 @@ class AppModule(BaseModule):
         if plik:
             formElements = self.activeDlg.formElements
             self.activeDlg.clearForm(self.activeDlg.form_scrollArea)
-            utils.loadItemsToForm(plik, formElements)
+            utils.loadItemsToForm(plik, formElements, self.activeDlg)
 
 
     def addTableContentGML(self, nr_tabeli):
@@ -1607,7 +1609,7 @@ class AppModule(BaseModule):
             showPopup("Wczytaj warstwę","Brak uprawnień do zapisu w katalogu " + defaultPath + ". W ustawieniach wtyczki wskaż domyślną ścieżkę zapisu plików z uprawnieniami do zapisu.")
             return
         
-        if epsg_code in (0, NULL, ''):
+        if epsg_code in (0, NULL, '') and rodzajZbioru == 'POG':
             showPopup("Wczytaj warstwę","Proszę uzupełnić w ustawieniach wtyczki APP wartość JPT dla rodzaju zbioru POG.")
             return
         
@@ -1815,6 +1817,30 @@ class AppModule(BaseModule):
                                     if not profile_msg:
                                         profile_msg = True
                                         showPopup("Wczytaj warstwę","Podczas wczytywania warstw, zgodnie ze zmianą rozporządzenia zmienił się profil funkcjonalny w strefach planistycznych związany z terenami ogrodów działkowych.")
+                                if field.name() == 'profilPodstawowy' and 'teren ogrodów działkowych' in wartosci:
+                                    # Odwrotna mapa: opis → kod
+                                    opis_na_kod = {v: k for k, v in dictionaries.klasaPrzeznaczeniaTerenuKod.items()}
+                                    
+                                    # Kody z wejściowej listy
+                                    kody_wejsciowe = [opis_na_kod[o] for o in wartosci if o in opis_na_kod]
+                                    
+                                    # Znajdź pasujący symbol strefy
+                                    dopasowany_symbol = None
+                                    for symbol, lista_kolejnosci in dictionaries.mapaSymbolProfilPodstawowy.items():
+                                        if all(kod in lista_kolejnosci for kod in kody_wejsciowe):
+                                            dopasowany_symbol = symbol
+                                            break
+                                        
+                                    # Jeśli nie znaleziono – zwróć oryginał
+                                    if not dopasowany_symbol:
+                                        return wartosci
+                                    
+                                    # Posortuj według tego symbolu
+                                    wartosci = [
+                                        dictionaries.klasaPrzeznaczeniaTerenuKod[kod]
+                                        for kod in dictionaries.mapaSymbolProfilPodstawowy[dopasowany_symbol]
+                                        if kod in kody_wejsciowe
+                                    ]
                                 if field.name() == 'profilDodatkowy' and 'teren ogrodów działkowych' in wartosci:
                                     wartosci.remove('teren ogrodów działkowych')
                                     new_feat.setAttribute('wersjaId', dataCzasTeraz.toString("yyyyMMddThhmmss"))
@@ -2043,6 +2069,8 @@ class AppModule(BaseModule):
                 czyWynikKontroliPozytywny = False
             if self.activeDlg != self.wektorInstrukcjaDialogPOG and not self.czyObiektyUnikalne(self.obrysLayer,'status'):
                 czyWynikKontroliPozytywny = False
+            if self.activeDlg != self.wektorInstrukcjaDialogPOG and not self.czyObiektyUnikalne(self.obrysLayer,'lokalnyId'):
+                czyWynikKontroliPozytywny = False
             if self.activeDlg == self.wektorInstrukcjaDialogOUZ and self.OUZpowyzej125procent(self.obrysLayer):
                 czyWynikKontroliPozytywny = False
             
@@ -2088,12 +2116,18 @@ class AppModule(BaseModule):
             crs_authid = self.obrysLayer.crs().authid()
             epsg_code = int(crs_authid.split(':')[1])
             
-            swapXY = processing.run("native:swapxy", {
+            wynik = processing.run("native:swapxy", {
                 'INPUT': self.obrysLayer,
                 'OUTPUT': 'memory:'
             })
             
-            for obj in swapXY['OUTPUT'].getFeatures():
+            if layerName != 'AktPlanowaniaPrzestrzennego':
+                wynik = processing.run("native:multiparttosingleparts", {
+                    'INPUT': wynik['OUTPUT'],
+                    'OUTPUT': 'memory:'
+                })
+            
+            for obj in wynik['OUTPUT'].getFeatures():
                 member = ET.fromstring(templateXML)
                 przestrzenNazw = ''
                 lokalnyId = ''
@@ -2106,10 +2140,12 @@ class AppModule(BaseModule):
                     geomWkt = obj.geometry().asWkt()
                     options = ['FORMAT=GML3']
                     geometryWkt = ogr.CreateGeometryFromWkt(geomWkt)
+                    
                     if geometryWkt.GetGeometryType() == 3:
                         geometriaGML = str(geometryWkt.ExportToGML(options=options)).replace("<gml:Polygon>",f'<gml:Polygon srsDimension="2" srsName="http://www.opengis.net/def/crs/EPSG/0/{epsg_code}" xmlns:gml="http://www.opengis.net/gml/3.2">')
                     elif geometryWkt.GetGeometryType() == 6:
                         geometriaGML = str(geometryWkt.ExportToGML(options=options)).replace("<gml:MultiSurface>",f'<gml:MultiSurface srsDimension="2" srsName="http://www.opengis.net/def/crs/EPSG/0/{epsg_code}" xmlns:gml="http://www.opengis.net/gml/3.2">')
+                    
                     if geom != None:
                         geom.append(ET.fromstring(geometriaGML))
                     elif geomAPP != None:
@@ -2154,7 +2190,7 @@ class AppModule(BaseModule):
                                 new_element = ET.Element('app:profilPodstawowy')
                                 new_element.attrib['{http://www.w3.org/1999/xlink}href'] = dictionaries.profilPodstawowyLubDodatkowyListaKodowa[profil]
                                 new_element.attrib['{http://www.w3.org/1999/xlink}title'] = profil
-                                layerMember.insert(13 + liczbaWystapienProfiluPodstawowego, new_element)
+                                layerMember.insert(14 + liczbaWystapienProfiluPodstawowego, new_element)
                                 liczbaWystapienProfiluPodstawowego += 1
                     elif attr.name() == 'profilDodatkowy':
                         profile = str(obj.attribute(attr.name()))
@@ -2292,8 +2328,8 @@ class AppModule(BaseModule):
                 
                 # usuwanie błędów typu Poligon 7 leży wewnątrz poligonu 2
                 for bledna_geometria in bledne_geometrie['ERROR_OUTPUT'].getFeatures():
-                    if re.search('Poligon \d+ leży wewnątrz poligonu \d+', bledna_geometria['opis_bledu'], re.IGNORECASE) or \
-                       re.search('Polygon \d+ inside polygon \d+', bledna_geometria['opis_bledu'], re.IGNORECASE):
+                    if re.search(r'Poligon \d+ leży wewnątrz poligonu \d+', bledna_geometria['opis_bledu'], re.IGNORECASE) or \
+                       re.search(r'Polygon \d+ inside polygon \d+', bledna_geometria['opis_bledu'], re.IGNORECASE):
                         bledne_geometrie['ERROR_OUTPUT'].deleteFeature(bledna_geometria.id())
                 
                 bledne_geometrie['ERROR_OUTPUT'].commitChanges()
@@ -2305,8 +2341,8 @@ class AppModule(BaseModule):
                     
                     # usuwanie błędów typu Poligon 7 leży wewnątrz poligonu 2
                     for bledna_geometria in bledne_geometrie['INVALID_OUTPUT'].getFeatures():
-                        if re.search('Poligon \d+ leży wewnątrz poligonu \d+', bledna_geometria['opis_bledu'], re.IGNORECASE) or \
-                           re.search('Polygon \d+ inside polygon \d+', bledna_geometria['opis_bledu'], re.IGNORECASE):
+                        if re.search(r'Poligon \d+ leży wewnątrz poligonu \d+', bledna_geometria['opis_bledu'], re.IGNORECASE) or \
+                           re.search(r'Polygon \d+ inside polygon \d+', bledna_geometria['opis_bledu'], re.IGNORECASE):
                             bledne_geometrie['INVALID_OUTPUT'].deleteFeature(bledna_geometria.id())
                     
                     bledne_geometrie['INVALID_OUTPUT'].commitChanges()
@@ -2396,8 +2432,7 @@ class AppModule(BaseModule):
                         'OUTPUT': 'memory:'
                     })
                     
-                    # Kasowanie obiektów wychodzących poza POG o powierzchni < 1 m2 oraz 
-                    # których smuklosc > 10 000
+                    # Kasowanie obiektów wychodzących poza POG o powierzchni < 1 m2 oraz których smuklosc > 10 000
                     pojedynczeObjekty['OUTPUT'].startEditing()
                     for obj in pojedynczeObjekty['OUTPUT'].getFeatures():
                         geom = obj.geometry()
@@ -2446,14 +2481,17 @@ class AppModule(BaseModule):
                         'OUTPUT': 'memory:'
                     })
                     
-                    difference2 = processing.run("qgis:difference", {
-                        'INPUT': pojedynczeObjekty['OUTPUT'],
-                        'OVERLAY': extractbylocation['OUTPUT'],
-                        'OUTPUT': 'memory:'
-                    })
+                    try:
+                        difference2 = processing.run("qgis:difference", {
+                            'INPUT': pojedynczeObjekty['OUTPUT'],
+                            'OVERLAY': extractbylocation['OUTPUT'],
+                            'OUTPUT': 'memory:'
+                        })['OUTPUT']
+                    except:
+                        difference2 = pojedynczeObjekty['OUTPUT']
                     
                     pojedynczeObjekty2 = processing.run("native:multiparttosingleparts", {
-                        'INPUT': difference2['OUTPUT'],
+                        'INPUT': difference2,
                         'OUTPUT': 'memory:'
                     })
                     
@@ -2474,40 +2512,78 @@ class AppModule(BaseModule):
                 
                 # Czy wystepują nakładające się obiekty
                 if not obrysLayerName.startswith('AktPlanowaniaPrzestrzennego'):
-                    union = processing.run("qgis:union", {
-                        'INPUT': obrysLayer,
-                        'OUTPUT': 'memory:'
-                    })
-                    
-                    usunDuplikaty = processing.run("native:deleteduplicategeometries", {
-                        'INPUT': union['OUTPUT'],
-                        'OUTPUT': 'memory:'
-                    })
-                    
-                    wynik = processing.run("native:detectvectorchanges", {
-                        'ORIGINAL': union['OUTPUT'],
-                        'REVISED': usunDuplikaty['OUTPUT'],
-                        'UNCHANGED': 'memory:',
-                        'ADDED': 'memory:',
-                        'DELETED': 'memory:'
-                    })
-                    
-                    # Kasowanie obiektów nakładających się o powierzchni < 1 m2 oraz 
-                    # których smuklosc > 10 000
-                    wynik['DELETED'].startEditing()
-                    for obj in wynik['DELETED'].getFeatures():
+                    try:
+                        union = processing.run("qgis:union", {
+                            'INPUT': obrysLayer,
+                            'OUTPUT': 'memory:'
+                        })['OUTPUT']
+                        
+                        usunDuplikaty = processing.run("native:deleteduplicategeometries", {
+                            'INPUT': union,
+                            'OUTPUT': 'memory:'
+                        })
+                        
+                        wynik = processing.run("native:detectvectorchanges", {
+                            'ORIGINAL': union,
+                            'REVISED': usunDuplikaty['OUTPUT'],
+                            'UNCHANGED': 'memory:',
+                            'ADDED': 'memory:',
+                            'DELETED': 'memory:'
+                        })['DELETED']
+                    except:
+                        # Rozwiazanie alternatywne gdy nie zadziala union
+                        
+                        geom_dict = {f.id(): f.geometry() for f in obrysLayer.getFeatures()}
+                        
+                        # Spatial index
+                        spatial_index = QgsSpatialIndex()
+                        for f in obrysLayer.getFeatures():
+                            spatial_index.addFeature(f)
+                        
+                        crs = obrysLayer.crs().toWkt()
+                        results_layer = QgsVectorLayer("Polygon?crs=" + crs, "wyniki", "memory")
+                        results_provider = results_layer.dataProvider()
+                        
+                        # Przetwarzanie unikalnych par
+                        checked_pairs = set()
+                        
+                        for i, f1 in enumerate(obrysLayer.getFeatures()):
+                            fid1 = f1.id()
+                            geom1 = geom_dict[fid1]
+                            candidate_ids = spatial_index.intersects(geom1.boundingBox())
+                            
+                            for fid2 in candidate_ids:
+                                if fid1 >= fid2 or (fid1, fid2) in checked_pairs:
+                                    continue
+                                    
+                                geom2 = geom_dict[fid2]
+                                
+                                if geom1.intersects(geom2):
+                                    intersection = geom1.intersection(geom2)
+                                    if not intersection.isEmpty() and intersection.isGeosValid():
+                                        result = QgsFeature()
+                                        result.setGeometry(intersection)
+                                        results_provider.addFeatures([result])
+                                        
+                                checked_pairs.add((fid1, fid2))
+                                
+                        wynik = results_layer
+                        
+                    # Kasowanie obiektów nakładających się o powierzchni < 1 m2 oraz których smuklosc > 10 000
+                    wynik.startEditing()
+                    for obj in wynik.getFeatures():
                         geom = obj.geometry()
                         if geom.area() < 1: # 1 m2
-                            wynik['DELETED'].deleteFeature(obj.id())
+                            wynik.deleteFeature(obj.id())
                         else:
                             smuklosc = (geom.length() ** 2) / geom.area()
                             if smuklosc > 10000:
-                                wynik['DELETED'].deleteFeature(obj.id())
-                    wynik['DELETED'].commitChanges(False)
+                                wynik.deleteFeature(obj.id())
+                    wynik.commitChanges(False)
                     
-                    if wynik['DELETED'].featureCount() > 0:
-                        wynik['DELETED'].setName("Nakładajace sie fragmenty geometrii")
-                        QgsProject.instance().addMapLayer(wynik['DELETED'])
+                    if wynik.featureCount() > 0:
+                        wynik.setName("Nakładajace sie fragmenty geometrii")
+                        QgsProject.instance().addMapLayer(wynik)
                         showPopup("Błąd warstwy obrysu","Niepoprawna geometria - Nakładające się fragmenty geometrii.")
                         czyGeometrieSaPoprawne = False
                 
@@ -2516,8 +2592,8 @@ class AppModule(BaseModule):
                     
                     bufor0 = processing.run("native:buffer", {
                         'INPUT': obrysLayer,
-                        'DISTANCE':0,
-                        'SEGMENTS':10,
+                        'DISTANCE': 0,
+                        'SEGMENTS': 10,
                         'DISSOLVE': True,
                         'OUTPUT': 'memory:'
                     })
@@ -2534,8 +2610,7 @@ class AppModule(BaseModule):
                         'OUTPUT': 'memory:'
                     })
                     
-                    # Kasowanie dziur o powierzchni < 1 m2 oraz 
-                    # których smuklosc > 10 000
+                    # Kasowanie dziur o powierzchni < 1 m2 oraz których smuklosc > 10 000
                     pojedynczeObjekty['OUTPUT'].startEditing()
                     for obj in pojedynczeObjekty['OUTPUT'].getFeatures():
                         geom = obj.geometry()
@@ -2556,6 +2631,46 @@ class AppModule(BaseModule):
                                 showPopup("Błąd warstwy obrysu", "Niepoprawna geometria - Występują dziury w SPL.")
                                 czyGeometrieSaPoprawne = False
                                 break
+                
+                # Czy występują obiekty o wspolnych bokach (styczne) w OUZ lub OZS
+                if obrysLayerName.startswith('ObszarUzupelnieniaZabudowy') or obrysLayerName.startswith('ObszarZabudowySrodmiejskiej'):
+                    
+                    features = list(obrysLayer.getFeatures())
+                    geoms = {f.id(): loads(bytes(f.geometry().asWkb())) for f in features}
+                    
+                    def get_segments(geom):
+                        coords = list(geom.exterior.coords)
+                        return [LineString([coords[i], coords[i+1]]) for i in range(len(coords) - 1)]
+                    
+                    shared_edge_ids = set()
+                    
+                    for i, feat in enumerate(obrysLayer.getFeatures()):
+                        geom1 = feat.geometry()
+                        for j, other_feat in enumerate(obrysLayer.getFeatures()):
+                            if feat.id() == other_feat.id():
+                                continue
+                            
+                            geom2 = other_feat.geometry()
+                            
+                            # Sprawdź czy geometrie się stykają
+                            if geom1.touches(geom2):
+                                intersection = geom1.intersection(geom2)
+                                
+                                # Jeżeli część wspólna jest linią, to mają wspólny bok
+                                if intersection and intersection.type() == QgsWkbTypes.LineGeometry:
+                                    shared_edge_ids.add(feat.id())
+                                    break  # Wystarczy jeden wspólny bok
+                    
+                    if len(shared_edge_ids) > 0:
+                        warstwa_wynikowa = QgsVectorLayer(f'Polygon?crs={obrysLayer.crs().authid()}', 'Obiekty o wspolnych bokach', 'memory')
+                        warstwa_wynikowa.dataProvider().addAttributes(obrysLayer.fields())
+                        warstwa_wynikowa.updateFields()
+                        warstwa_wynikowa.dataProvider().addFeatures([f for f in obrysLayer.getFeatures() if f.id() in shared_edge_ids])
+                        warstwa_wynikowa.updateExtents()
+                        QgsProject.instance().addMapLayer(warstwa_wynikowa)
+                        showPopup("Błąd warstwy obrysu",f"Niepoprawna geometria - Obiekty o wspólnych bokach w {obrysLayerName}.")
+                        czyGeometrieSaPoprawne = False
+                    
         else:
             showPopup("Błąd warstwy obrysu", "Brak obiektów na warstwie lub obiekty mają uzupełniony koniec wersji obiektu.")
             return False
@@ -2586,6 +2701,11 @@ class AppModule(BaseModule):
             if procent < 100 and atrybutDoSprawdzeniaUnikalnosci == 'oznaczenie':
                 showPopup("Błąd warstwy obrysu","Występują duplikaty w atrybucie \'oznaczenie\' warstwy " + obrysLayer.sourceName())
                 unikalnosc['DUPLICATES'].setName("Obiekty " + obrysLayer.sourceName() + " - duplikaty w atrybucie \'oznaczenie\'")
+                QgsProject.instance().addMapLayer(unikalnosc['DUPLICATES'])
+                jestOk = False
+            if procent < 100 and atrybutDoSprawdzeniaUnikalnosci == 'lokalnyId':
+                showPopup("Błąd warstwy obrysu","Występują duplikaty w atrybucie \'lokalnyId\' warstwy " + obrysLayer.sourceName())
+                unikalnosc['DUPLICATES'].setName("Obiekty " + obrysLayer.sourceName() + " - duplikaty w atrybucie \'lokalnyId\'")
                 QgsProject.instance().addMapLayer(unikalnosc['DUPLICATES'])
                 jestOk = False
             if liczbaObiektowWarstwyUnikalnych != 1 and atrybutDoSprawdzeniaUnikalnosci == 'status':
@@ -2656,7 +2776,7 @@ class AppModule(BaseModule):
                       "Obrys posiada niezgodny układ współrzędnych - EPSG:%s.\nDostępne CRS:\n    - %s" % (epsg, ',\n    - '.join(['%s : %s' % (a, b) for a, b in zip(dictionaries.ukladyOdniesieniaPrzestrzennego.keys(), dictionaries.ukladyOdniesieniaPrzestrzennego.values())])))
             wynikKontroli = False
         
-        if rodzajZbioru != 'MPZP':
+        if rodzajZbioru not in ('PZPW','SUIKZP','MPZP'):
             if not isJPTinLayer(self.obrysLayer, jpt):
                 showPopup("Błąd warstwy obrysu",
                           "Warstwa posiada co najmniej jeden obiekt z JPT niezgodnym z ustawieniami.")

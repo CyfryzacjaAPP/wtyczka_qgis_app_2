@@ -129,116 +129,120 @@ def kontrolaZaleznosciAtrybutow(obrysLayer):
     
     if obrysLayer.name().startswith("AktPlanowaniaPrzestrzennego"):
         expressions = {
-                       "if(typPlanu<>'plan ogólny gminy',1,0)":"Atrybut 'typ palnu' musi wynosić 'plan ogólny gminy'",
-                       "if(regexp_match(lokalnyId,'\\d+POG'),0,1)":"Błędny identyfikator lokalny",
-                       "if(regexp_match(przestrzenNazw,'PL.ZIPPZP\\.\\d+\\/\\d+-POG'),0,1)":"Błędna przestrzeń nazw",
-                       "if(regexp_match(wersjaId,'\\d{8}T\\d{6}'),0,1)":"Błędny identyfikator wersji",
-                       "if(length(tytul)<=12,1,0)":"Należy wpisać nazwę po słowach 'Plan ogólny'",
-                       "if(koniecWersjiObiektu is not NULL and obowiazujeDo is NULL,1,0)":"Należy wpisać datę dla 'obowiązuje do'",
-                       "if(status='nieaktualny' and obowiazujeDo is NULL,1,0)":"Należy wpisać datę dla 'obowiązuje do'",
-                       "if(obowiazujeOd>=obowiazujeDo,1,0)":"Atrybut 'obowiązuje od' nie może być większy lub równy od 'obowiązuje do'",
-                       "if(koniecWersjiObiektu<=poczatekWersjiObiektu,1,0)":"Koniec wersji obiektu musi być późniejszy niż początek wersji obiektu"
+                       r"if(typPlanu<>'plan ogólny gminy',1,0)":"Atrybut 'typ palnu' musi wynosić 'plan ogólny gminy'",
+                       r"if(regexp_match(lokalnyId,'\\d+POG'),0,1)":"Błędny identyfikator lokalny",
+                       r"if(regexp_match(przestrzenNazw,'PL.ZIPPZP\\.\\d+\\/\\d+-POG'),0,1)":"Błędna przestrzeń nazw",
+                       r"if(regexp_match(wersjaId,'\\d{8}T\\d{6}'),0,1)":"Błędny identyfikator wersji",
+                       r"if(length(tytul)<=12,1,0)":"Należy wpisać nazwę po słowach 'Plan ogólny'",
+                       r"if(koniecWersjiObiektu is not NULL and obowiazujeDo is NULL,1,0)":"Należy wpisać datę dla 'obowiązuje do'",
+                       r"if(status='nieaktualny' and obowiazujeDo is NULL,1,0)":"Należy wpisać datę dla 'obowiązuje do'",
+                       r"if(obowiazujeOd>=obowiazujeDo,1,0)":"Atrybut 'obowiązuje od' nie może być większy lub równy od 'obowiązuje do'",
+                       r"if(koniecWersjiObiektu<=poczatekWersjiObiektu,1,0)":"Koniec wersji obiektu musi być późniejszy niż początek wersji obiektu"
                       }
     elif obrysLayer.name().startswith("StrefaPlanistyczna"):
         expressions = {
-                       "if(regexp_match(oznaczenie,symbol)=0,1,0)":"Oznaczenie nie jest spójne z symbolem",
-                       "if(regexp_match(lokalnyId,'\\d+POG-\\d+S[CGHIJKNOPRUWZ]'),0,1)":"Błędny identyfikator lokalny",
-                       "if(regexp_match(przestrzenNazw,'PL.ZIPPZP\\.\\d+\\/\\d+-POG'),0,1)":"Błędna przestrzeń nazw",
-                       "if(regexp_match(wersjaId,'\\d{8}T\\d{6}'),0,1)":"Błędny identyfikator wersji",
-                       "if(symbol in ('SW','SJ','SZ','SU','SH','SP','SR') and maksNadziemnaIntensywnoscZabudowy is null,1,0)":"Należy uzupełnić maksymalną nadziemną intensywność zabudowy",
-                       "if(symbol in ('SW','SJ','SZ','SU','SH','SP','SR') and maksUdzialPowierzchniZabudowy is null,1,0)":"Należy uzupełnić maksymalny udział powierzchni zabudowy",
-                       "if(symbol in ('SW','SJ','SZ','SU','SH','SP','SR') and maksWysokoscZabudowy is null,1,0)":"Należy uzupełnić maksymalną wysokość zabudowy",
-                       "if(symbol in ('SG','SO','SK') and (minUdzialPowierzchniBiologicznieCzynnej<0 or minUdzialPowierzchniBiologicznieCzynnej>150),1,0)":"Minimalny udział powierzchni biologicznie czynnej powinien być w przedziale <0; 150>%",
-                       "if(nazwa='strefa wielofunkcyjna z zabudową mieszkaniową wielorodzinną',if(symbol='SW',0,1),0)":"Symbol strefy jest niezgodny z jego nazwą",
-                       "if(nazwa='strefa wielofunkcyjna z zabudową mieszkaniową jednorodzinną',if(symbol='SJ',0,1),0)":"Symbol strefy jest niezgodny z jego nazwą",
-                       "if(nazwa='strefa wielofunkcyjna z zabudową zagrodową',if(symbol='SZ',0,1),0)":"Symbol strefy jest niezgodny z jego nazwą",
-                       "if(nazwa='strefa usługowa',if(symbol='SU',0,1),0)":"Symbol strefy jest niezgodny z jego nazwą",
-                       "if(nazwa='strefa handlu wielkopowierzchniowego',if(symbol='SH',0,1),0)":"Symbol strefy jest niezgodny z jego nazwą",
-                       "if(nazwa='strefa gospodarcza',if(symbol='SP',0,1),0)":"Symbol strefy jest niezgodny z jego nazwą",
-                       "if(nazwa='strefa produkcji rolniczej',if(symbol='SR',0,1),0)":"Symbol strefy jest niezgodny z jego nazwą",
-                       "if(nazwa='strefa infrastrukturalna',if(symbol='SI',0,1),0)":"Symbol strefy jest niezgodny z jego nazwą",
-                       "if(nazwa='strefa zieleni i rekreacji',if(symbol='SN',0,1),0)":"Symbol strefy jest niezgodny z jego nazwą",
-                       "if(nazwa='strefa cmentarzy',if(symbol='SC',0,1),0)":"Symbol strefy jest niezgodny z jego nazwą",
-                       "if(nazwa='strefa górnictwa',if(symbol='SG',0,1),0)":"Symbol strefy jest niezgodny z jego nazwą",
-                       "if(nazwa='strefa otwarta',if(symbol='SO',0,1),0)":"Symbol strefy jest niezgodny z jego nazwą",
-                       "if(nazwa='strefa komunikacyjna',if(symbol='SK',0,1),0)":"Symbol strefy jest niezgodny z jego nazwą",
-                       "if(koniecWersjiObiektu is not NULL and obowiazujeDo is NULL,1,0)":"Koniec wersji obiektu jest uzupełniony, należy wpisać datę dla 'obowiązuje do'",
-                       "if(status='nieaktualny' and obowiazujeDo is NULL,1,0)":"Należy wpisać datę dla 'obowiązuje do'",
-                       "if(obowiazujeOd>=obowiazujeDo,1,0)":"Atrybut 'obowiązuje od' nie może być większy lub równy od 'obowiązuje do'",
-                       "if(koniecWersjiObiektu<=poczatekWersjiObiektu,1,0)":"Koniec wersji obiektu musi być późniejszy niż początek wersji obiektu",
-                       "if(symbol='SW' and profilPodstawowy != 'teren zabudowy mieszkaniowej wielorodzinnej,teren usług,teren komunikacji,teren zieleni urządzonej,teren ogrodów działkowych,teren infrastruktury technicznej',1,0)":"Błędny profil podstawowy",
-                       "if(symbol='SJ' and profilPodstawowy != 'teren zabudowy mieszkaniowej jednorodzinnej,teren usług,teren komunikacji,teren zieleni urządzonej,teren ogrodów działkowych,teren infrastruktury technicznej',1,0)":"Błędny profil podstawowy",
-                       "if(symbol='SZ' and profilPodstawowy != 'teren zabudowy zagrodowej,teren produkcji w gospodarstwach rolnych,teren akwakultury i obsługi rybactwa,teren komunikacji,teren zieleni urządzonej,teren ogrodów działkowych,teren infrastruktury technicznej',1,0)":"Błędny profil podstawowy",
-                       "if(symbol='SU' and profilPodstawowy != 'teren usług,teren komunikacji,teren zieleni urządzonej,teren ogrodów działkowych,teren infrastruktury technicznej',1,0)":"Błędny profil podstawowy",
-                       "if(symbol='SH' and profilPodstawowy != 'teren handlu wielkopowierzchniowego,teren komunikacji,teren zieleni urządzonej,teren ogrodów działkowych,teren infrastruktury technicznej',1,0)":"Błędny profil podstawowy",
-                       "if(symbol='SP' and profilPodstawowy != 'teren produkcji,teren komunikacji,teren zieleni urządzonej,teren ogrodów działkowych,teren infrastruktury technicznej',1,0)":"Błędny profil podstawowy",
-                       "if(symbol='SR' and profilPodstawowy != 'teren produkcji w gospodarstwach rolnych,teren wielkotowarowej produkcji rolnej,teren akwakultury i obsługi rybactwa,teren komunikacji,teren ogrodów działkowych,teren infrastruktury technicznej',1,0)":"Błędny profil podstawowy",
-                       "if(symbol='SI' and profilPodstawowy != 'teren infrastruktury technicznej,teren komunikacji,teren ogrodów działkowych',1,0)":"Błędny profil podstawowy",
-                       "if(symbol='SN' and profilPodstawowy != 'teren zieleni urządzonej,teren plaży,teren wód,teren komunikacji,teren ogrodów działkowych,teren infrastruktury technicznej',1,0)":"Błędny profil podstawowy",
-                       "if(symbol='SC' and profilPodstawowy != 'teren cmentarza,teren komunikacji,teren zieleni urządzonej,teren ogrodów działkowych,teren infrastruktury technicznej',1,0)":"Błędny profil podstawowy",
-                       "if(symbol='SG' and profilPodstawowy != 'teren górnictwa i wydobycia,teren komunikacji,teren ogrodów działkowych,teren infrastruktury technicznej',1,0)":"Błędny profil podstawowy",
-                       "if(symbol='SO' and profilPodstawowy != 'teren rolnictwa z zakazem zabudowy,teren lasu,teren zieleni naturalnej,teren wód,teren komunikacji,teren ogrodów działkowych,teren infrastruktury technicznej',1,0)":"Błędny profil podstawowy",
-                       "if(symbol='SK' and profilPodstawowy != 'teren autostrady,teren drogi ekspresowej,teren drogi głównej ruchu przyspieszonego,teren drogi głównej,teren komunikacji kolejowej i szynowej,teren komunikacji kolei linowej,teren komunikacji wodnej,teren komunikacji lotniczej,teren obsługi komunikacji,teren ogrodów działkowych,teren infrastruktury technicznej',1,0)":"Błędny profil podstawowy"
+                       r"if(regexp_match(oznaczenie,symbol)=0,1,0)":"Oznaczenie nie jest spójne z symbolem",
+                       r"if(regexp_match(lokalnyId,'\\d+POG-\\d+S[CGHIJKNOPRUWZ]')=0,1,0)":"Błędny identyfikator lokalny",
+                       r"if(regexp_match(przestrzenNazw,'PL.ZIPPZP\\.\\d+\\/\\d+-POG'),0,1)":"Błędna przestrzeń nazw",
+                       r"if(regexp_match(wersjaId,'\\d{8}T\\d{6}'),0,1)":"Błędny identyfikator wersji",
+                       r"if(symbol in ('SW','SJ','SZ','SU','SH','SP','SR') and maksNadziemnaIntensywnoscZabudowy is null,1,0)":"Należy uzupełnić maksymalną nadziemną intensywność zabudowy",
+                       r"if(symbol in ('SW','SJ','SZ','SU','SH','SP','SR') and maksUdzialPowierzchniZabudowy is null,1,0)":"Należy uzupełnić maksymalny udział powierzchni zabudowy",
+                       r"if(symbol in ('SW','SJ','SZ','SU','SH','SP','SR') and maksWysokoscZabudowy is null,1,0)":"Należy uzupełnić maksymalną wysokość zabudowy",
+                       r"if(symbol in ('SG','SO','SK') and (minUdzialPowierzchniBiologicznieCzynnej<0 or minUdzialPowierzchniBiologicznieCzynnej>150),1,0)":"Minimalny udział powierzchni biologicznie czynnej powinien być w przedziale <0; 150>%",
+                       r"if(nazwa='strefa wielofunkcyjna z zabudową mieszkaniową wielorodzinną',if(symbol='SW',0,1),0)":"Symbol strefy jest niezgodny z jego nazwą",
+                       r"if(nazwa='strefa wielofunkcyjna z zabudową mieszkaniową jednorodzinną',if(symbol='SJ',0,1),0)":"Symbol strefy jest niezgodny z jego nazwą",
+                       r"if(nazwa='strefa wielofunkcyjna z zabudową zagrodową',if(symbol='SZ',0,1),0)":"Symbol strefy jest niezgodny z jego nazwą",
+                       r"if(nazwa='strefa usługowa',if(symbol='SU',0,1),0)":"Symbol strefy jest niezgodny z jego nazwą",
+                       r"if(nazwa='strefa handlu wielkopowierzchniowego',if(symbol='SH',0,1),0)":"Symbol strefy jest niezgodny z jego nazwą",
+                       r"if(nazwa='strefa gospodarcza',if(symbol='SP',0,1),0)":"Symbol strefy jest niezgodny z jego nazwą",
+                       r"if(nazwa='strefa produkcji rolniczej',if(symbol='SR',0,1),0)":"Symbol strefy jest niezgodny z jego nazwą",
+                       r"if(nazwa='strefa infrastrukturalna',if(symbol='SI',0,1),0)":"Symbol strefy jest niezgodny z jego nazwą",
+                       r"if(nazwa='strefa zieleni i rekreacji',if(symbol='SN',0,1),0)":"Symbol strefy jest niezgodny z jego nazwą",
+                       r"if(nazwa='strefa cmentarzy',if(symbol='SC',0,1),0)":"Symbol strefy jest niezgodny z jego nazwą",
+                       r"if(nazwa='strefa górnictwa',if(symbol='SG',0,1),0)":"Symbol strefy jest niezgodny z jego nazwą",
+                       r"if(nazwa='strefa otwarta',if(symbol='SO',0,1),0)":"Symbol strefy jest niezgodny z jego nazwą",
+                       r"if(nazwa='strefa komunikacyjna',if(symbol='SK',0,1),0)":"Symbol strefy jest niezgodny z jego nazwą",
+                       r"if(koniecWersjiObiektu is not NULL and obowiazujeDo is NULL,1,0)":"Koniec wersji obiektu jest uzupełniony, należy wpisać datę dla 'obowiązuje do'",
+                       r"if(status='nieaktualny' and obowiazujeDo is NULL,1,0)":"Należy wpisać datę dla 'obowiązuje do'",
+                       r"if(obowiazujeOd>=obowiazujeDo,1,0)":"Atrybut 'obowiązuje od' nie może być większy lub równy od 'obowiązuje do'",
+                       r"if(koniecWersjiObiektu<=poczatekWersjiObiektu,1,0)":"Koniec wersji obiektu musi być późniejszy niż początek wersji obiektu",
+                       r"if(symbol='SW' and profilPodstawowy != 'teren zabudowy mieszkaniowej wielorodzinnej,teren usług,teren komunikacji,teren zieleni urządzonej,teren ogrodów działkowych,teren infrastruktury technicznej',1,0)":"Błędny profil podstawowy",
+                       r"if(symbol='SJ' and profilPodstawowy != 'teren zabudowy mieszkaniowej jednorodzinnej,teren usług,teren komunikacji,teren zieleni urządzonej,teren ogrodów działkowych,teren infrastruktury technicznej',1,0)":"Błędny profil podstawowy",
+                       r"if(symbol='SZ' and profilPodstawowy != 'teren zabudowy zagrodowej,teren produkcji w gospodarstwach rolnych,teren akwakultury i obsługi rybactwa,teren komunikacji,teren zieleni urządzonej,teren ogrodów działkowych,teren infrastruktury technicznej',1,0)":"Błędny profil podstawowy",
+                       r"if(symbol='SU' and profilPodstawowy != 'teren usług,teren komunikacji,teren zieleni urządzonej,teren ogrodów działkowych,teren infrastruktury technicznej',1,0)":"Błędny profil podstawowy",
+                       r"if(symbol='SH' and profilPodstawowy != 'teren handlu wielkopowierzchniowego,teren komunikacji,teren zieleni urządzonej,teren ogrodów działkowych,teren infrastruktury technicznej',1,0)":"Błędny profil podstawowy",
+                       r"if(symbol='SP' and profilPodstawowy != 'teren produkcji,teren komunikacji,teren zieleni urządzonej,teren ogrodów działkowych,teren infrastruktury technicznej',1,0)":"Błędny profil podstawowy",
+                       r"if(symbol='SR' and profilPodstawowy != 'teren produkcji w gospodarstwach rolnych,teren wielkotowarowej produkcji rolnej,teren akwakultury i obsługi rybactwa,teren komunikacji,teren ogrodów działkowych,teren infrastruktury technicznej',1,0)":"Błędny profil podstawowy",
+                       r"if(symbol='SI' and profilPodstawowy != 'teren infrastruktury technicznej,teren komunikacji,teren ogrodów działkowych',1,0)":"Błędny profil podstawowy",
+                       r"if(symbol='SN' and profilPodstawowy != 'teren zieleni urządzonej,teren plaży,teren wód,teren komunikacji,teren ogrodów działkowych,teren infrastruktury technicznej',1,0)":"Błędny profil podstawowy",
+                       r"if(symbol='SC' and profilPodstawowy != 'teren cmentarza,teren komunikacji,teren zieleni urządzonej,teren ogrodów działkowych,teren infrastruktury technicznej',1,0)":"Błędny profil podstawowy",
+                       r"if(symbol='SG' and profilPodstawowy != 'teren górnictwa i wydobycia,teren komunikacji,teren ogrodów działkowych,teren infrastruktury technicznej',1,0)":"Błędny profil podstawowy",
+                       r"if(symbol='SO' and profilPodstawowy != 'teren rolnictwa z zakazem zabudowy,teren lasu,teren zieleni naturalnej,teren wód,teren komunikacji,teren ogrodów działkowych,teren infrastruktury technicznej',1,0)":"Błędny profil podstawowy",
+                       r"if(symbol='SK' and profilPodstawowy != 'teren autostrady,teren drogi ekspresowej,teren drogi głównej ruchu przyspieszonego,teren drogi głównej,teren komunikacji kolejowej i szynowej,teren komunikacji kolei linowej,teren komunikacji wodnej,teren komunikacji lotniczej,teren obsługi komunikacji,teren ogrodów działkowych,teren infrastruktury technicznej',1,0)":"Błędny profil podstawowy",
+                       r"if(regexp_match(maksNadziemnaIntensywnoscZabudowy,'\\.\\d{2,}'),1,0)":"Wartość atrybutu maksNadziemnaIntensywnoscZabudowy musi być zapisana z precyzją jednego miejsca po przecinku",
+                       r"if(regexp_match(maksUdzialPowierzchniZabudowy,'\\.\\d{2,}'),1,0)":"Wartość atrybutu maksUdzialPowierzchniZabudowy musi być zapisana z precyzją jednego miejsca po przecinku",
+                       r"if(regexp_match(maksWysokoscZabudowy,'\\.\\d{2,}'),1,0)":"Wartość atrybutu maksWysokoscZabudowy musi być zapisana z precyzją jednego miejsca po przecinku",
+                       r"if(regexp_match(minUdzialPowierzchniBiologicznieCzynnej,'\\.\\d{2,}'),1,0)":"Wartość atrybutu minUdzialPowierzchniBiologicznieCzynnej musi być zapisana z precyzją jednego miejsca po przecinku"
                       }
-    
     elif obrysLayer.name().startswith("ObszarUzupelnieniaZabudowy"):
         expressions = {
-                       "if(regexp_match(oznaczenie,symbol)=0,1,0)":"Oznaczenie nie jest spójne z symbolem",
-                       "if(regexp_match(lokalnyId,'\\d+POG-\\d+OUZ'),0,1)":"Błędny identyfikator lokalny",
-                       "if(regexp_match(przestrzenNazw,'PL.ZIPPZP\\.\\d+\\/\\d+-POG'),0,1)":"Błędna przestrzeń nazw",
-                       "if(regexp_match(wersjaId,'\\d{8}T\\d{6}'),0,1)":"Błędny identyfikator wersji",
-                       "if(status='nieaktualny' and obowiazujeDo is NULL,1,0)":"Należy wpisać datę dla 'obowiązuje do'",
-                       "if(koniecWersjiObiektu is not NULL and obowiazujeDo is NULL,1,0)":"Należy wpisać datę dla 'obowiązuje do'",
-                       "if(symbol<>'OUZ',1,0)":"Symbol musi wynosić 'OUZ'",
-                       "if(obowiazujeOd>=obowiazujeDo,1,0)":"Atrybut 'obowiązuje od' nie może być większy lub równy od 'obowiązuje do'",
-                       "if(koniecWersjiObiektu<=poczatekWersjiObiektu,1,0)":"Koniec wersji obiektu musi być późniejszy niż początek wersji obiektu"
+                       r"if(regexp_match(oznaczenie,symbol)=0,1,0)":"Oznaczenie nie jest spójne z symbolem",
+                       r"if(regexp_match(lokalnyId,'\\d+POG-\\d+OUZ'),0,1)":"Błędny identyfikator lokalny",
+                       r"if(regexp_match(przestrzenNazw,'PL.ZIPPZP\\.\\d+\\/\\d+-POG'),0,1)":"Błędna przestrzeń nazw",
+                       r"if(regexp_match(wersjaId,'\\d{8}T\\d{6}'),0,1)":"Błędny identyfikator wersji",
+                       r"if(status='nieaktualny' and obowiazujeDo is NULL,1,0)":"Należy wpisać datę dla 'obowiązuje do'",
+                       r"if(koniecWersjiObiektu is not NULL and obowiazujeDo is NULL,1,0)":"Należy wpisać datę dla 'obowiązuje do'",
+                       r"if(symbol<>'OUZ',1,0)":"Symbol musi wynosić 'OUZ'",
+                       r"if(obowiazujeOd>=obowiazujeDo,1,0)":"Atrybut 'obowiązuje od' nie może być większy lub równy od 'obowiązuje do'",
+                       r"if(koniecWersjiObiektu<=poczatekWersjiObiektu,1,0)":"Koniec wersji obiektu musi być późniejszy niż początek wersji obiektu"
                       }
     elif obrysLayer.name().startswith("ObszarZabudowySrodmiejskiej"):
         expressions = {
-                       "if(regexp_match(oznaczenie,symbol)=0,1,0)":"Oznaczenie nie jest spójne z symbolem",
-                       "if(regexp_match(lokalnyId,'\\d+POG-\\d+OZS'),0,1)":"Błędny identyfikator lokalny",
-                       "if(regexp_match(przestrzenNazw,'PL.ZIPPZP\\.\\d+\\/\\d+-POG'),0,1)":"Błędna przestrzeń nazw",
-                       "if(regexp_match(wersjaId,'\\d{8}T\\d{6}'),0,1)":"Błędny identyfikator wersji",
-                       "if(status='nieaktualny' and obowiazujeDo is NULL,1,0)":"Należy wpisać datę dla 'obowiązuje do'",
-                       "if(koniecWersjiObiektu is not NULL and obowiazujeDo is NULL,1,0)":"Należy wpisać datę dla 'obowiązuje do'",
-                       "if(symbol<>'OZS',1,0)":"Symbol musi wynosić 'OZS'",
-                       "if(obowiazujeOd>=obowiazujeDo,1,0)":"Atrybut 'obowiązuje od' nie może być większy lub równy od 'obowiązuje do'",
-                       "if(koniecWersjiObiektu<=poczatekWersjiObiektu,1,0)":"Koniec wersji obiektu musi być późniejszy niż początek wersji obiektu"
+                       r"if(regexp_match(oznaczenie,symbol)=0,1,0)":"Oznaczenie nie jest spójne z symbolem",
+                       r"if(regexp_match(lokalnyId,'\\d+POG-\\d+OZS'),0,1)":"Błędny identyfikator lokalny",
+                       r"if(regexp_match(przestrzenNazw,'PL.ZIPPZP\\.\\d+\\/\\d+-POG'),0,1)":"Błędna przestrzeń nazw",
+                       r"if(regexp_match(wersjaId,'\\d{8}T\\d{6}'),0,1)":"Błędny identyfikator wersji",
+                       r"if(status='nieaktualny' and obowiazujeDo is NULL,1,0)":"Należy wpisać datę dla 'obowiązuje do'",
+                       r"if(koniecWersjiObiektu is not NULL and obowiazujeDo is NULL,1,0)":"Należy wpisać datę dla 'obowiązuje do'",
+                       r"if(symbol<>'OZS',1,0)":"Symbol musi wynosić 'OZS'",
+                       r"if(obowiazujeOd>=obowiazujeDo,1,0)":"Atrybut 'obowiązuje od' nie może być większy lub równy od 'obowiązuje do'",
+                       r"if(koniecWersjiObiektu<=poczatekWersjiObiektu,1,0)":"Koniec wersji obiektu musi być późniejszy niż początek wersji obiektu"
                       }
     elif obrysLayer.name().startswith("ObszarStandardowDostepnosciInfrastrukturySpolecznej"):
         expressions = {
-                       "if(odlegloscDoSzkolyPodstawowej>0,0,1)":"Należy wpisać odleglość do szkoły podstawowej",
-                       "if(regexp_match(lokalnyId,'\\d+POG-\\d+OSD'),0,1)":"Błędny identyfikator lokalny",
-                       "if(regexp_match(przestrzenNazw,'PL.ZIPPZP\\.\\d+\\/\\d+-POG'),0,1)":"Błędna przestrzeń nazw",
-                       "if(regexp_match(wersjaId,'\\d{8}T\\d{6}'),0,1)":"Błędny identyfikator wersji",
-                       "if(odlegloscDoObszarowZieleniPublicznej>0,0,1)":"Należy wpisać odleglość do obszarów zieleni publicznej",
-                       "if(powierzchniaLacznaObszarowZieleniPublicznej>=1.5,0,1)":"Należy wpisać łączną powierzchnię obszarów zieleni publicznej >= 1.5",
-                       "if(odlegloscDoObszaruZieleniPublicznej>0,0,1)":"Należy wpisać odleglość do obszaru zieleni publicznej",
-                       "if(powierzchniaObszaruZieleniPublicznej>=10,0,1)":"Należy wpisać powierzchnię obszaru zieleni publicznej >= 10",
-                       "if(regexp_match(oznaczenie,symbol)=0,1,0)":"Oznaczenie nie jest spójne z symbolem",
-                       "if(status='nieaktualny' and obowiazujeDo is NULL,1,0)":"Należy wpisać datę dla 'obowiązuje do'",
-                       "if(koniecWersjiObiektu is not NULL and obowiazujeDo is NULL,1,0)":"Należy wpisać datę dla 'obowiązuje do'",
-                       "if(symbol<>'OSD',1,0)":"Symbol musi wynosić 'OSD'",
-                       "if(obowiazujeOd>=obowiazujeDo,1,0)":"Atrybut 'obowiązuje od' nie może być większy lub równy od 'obowiązuje do'",
-                       "if(koniecWersjiObiektu<=poczatekWersjiObiektu,1,0)":"Koniec wersji obiektu musi być późniejszy niż początek wersji obiektu",
-                       "if(odlegloscDoPrzedszkola>0 or odlegloscDoPrzedszkola is NULL,0,1)":"Wartoć musi być większa od 0",
-                       "if(odlegloscDoZlobka>0 or odlegloscDoZlobka is NULL,0,1)":"Wartoć musi być większa od 0",
-                       "if(odlegloscDoAmbulatoriumPOZ>0 or odlegloscDoAmbulatoriumPOZ is NULL,0,1)":"Wartoć musi być większa od 0",
-                       "if(odlegloscDoBiblioteki>0 or odlegloscDoBiblioteki is NULL,0,1)":"Wartoć musi być większa od 0",
-                       "if(odlegloscDoDomuKultury>0 or odlegloscDoDomuKultury is NULL,0,1)":"Wartoć musi być większa od 0",
-                       "if(odlegloscDoDomuPomocySpolecznej>0 or odlegloscDoDomuPomocySpolecznej is NULL,0,1)":"Wartoć musi być większa od 0",
-                       "if(odlegloscDoUrzadzonegoTerenuSportu>0 or odlegloscDoUrzadzonegoTerenuSportu is NULL,0,1)":"Wartoć musi być większa od 0",
-                       "if(odlegloscDoPrzystanku>0 or odlegloscDoPrzystanku is NULL,0,1)":"Wartoć musi być większa od 0",
-                       "if(odlegloscDoPlacowkiPocztowej>0 or odlegloscDoPlacowkiPocztowej is NULL,0,1)":"Wartoć musi być większa od 0",
-                       "if(odlegloscDoApteki>0 or odlegloscDoApteki is NULL,0,1)":"Wartoć musi być większa od 0",
-                       "if(odlegloscDoPosterunkuPolicji>0 or odlegloscDoPosterunkuPolicji is NULL,0,1)":"Wartoć musi być większa od 0",
-                       "if(odlegloscDoPosterunkuJednostkiOchronyPrzeciwpozarowej>0 or odlegloscDoPosterunkuJednostkiOchronyPrzeciwpozarowej is NULL,0,1)":"Wartoć musi być większa od 0"
+                       r"if(odlegloscDoSzkolyPodstawowej>0,0,1)":"Należy wpisać odleglość do szkoły podstawowej",
+                       r"if(regexp_match(lokalnyId,'\\d+POG-\\d+OSD'),0,1)":"Błędny identyfikator lokalny",
+                       r"if(regexp_match(przestrzenNazw,'PL.ZIPPZP\\.\\d+\\/\\d+-POG'),0,1)":"Błędna przestrzeń nazw",
+                       r"if(regexp_match(wersjaId,'\\d{8}T\\d{6}'),0,1)":"Błędny identyfikator wersji",
+                       r"if(odlegloscDoObszarowZieleniPublicznej>0,0,1)":"Należy wpisać odleglość do obszarów zieleni publicznej",
+                       r"if(powierzchniaLacznaObszarowZieleniPublicznej>=1.5,0,1)":"Należy wpisać łączną powierzchnię obszarów zieleni publicznej >= 1.5",
+                       r"if(odlegloscDoObszaruZieleniPublicznej>0,0,1)":"Należy wpisać odleglość do obszaru zieleni publicznej",
+                       r"if(powierzchniaObszaruZieleniPublicznej>=10,0,1)":"Należy wpisać powierzchnię obszaru zieleni publicznej >= 10",
+                       r"if(regexp_match(oznaczenie,symbol)=0,1,0)":"Oznaczenie nie jest spójne z symbolem",
+                       r"if(status='nieaktualny' and obowiazujeDo is NULL,1,0)":"Należy wpisać datę dla 'obowiązuje do'",
+                       r"if(koniecWersjiObiektu is not NULL and obowiazujeDo is NULL,1,0)":"Należy wpisać datę dla 'obowiązuje do'",
+                       r"if(symbol<>'OSD',1,0)":"Symbol musi wynosić 'OSD'",
+                       r"if(obowiazujeOd>=obowiazujeDo,1,0)":"Atrybut 'obowiązuje od' nie może być większy lub równy od 'obowiązuje do'",
+                       r"if(koniecWersjiObiektu<=poczatekWersjiObiektu,1,0)":"Koniec wersji obiektu musi być późniejszy niż początek wersji obiektu",
+                       r"if(odlegloscDoPrzedszkola>0 or odlegloscDoPrzedszkola is NULL,0,1)":"Wartoć musi być większa od 0",
+                       r"if(odlegloscDoZlobka>0 or odlegloscDoZlobka is NULL,0,1)":"Wartoć musi być większa od 0",
+                       r"if(odlegloscDoAmbulatoriumPOZ>0 or odlegloscDoAmbulatoriumPOZ is NULL,0,1)":"Wartoć musi być większa od 0",
+                       r"if(odlegloscDoBiblioteki>0 or odlegloscDoBiblioteki is NULL,0,1)":"Wartoć musi być większa od 0",
+                       r"if(odlegloscDoDomuKultury>0 or odlegloscDoDomuKultury is NULL,0,1)":"Wartoć musi być większa od 0",
+                       r"if(odlegloscDoDomuPomocySpolecznej>0 or odlegloscDoDomuPomocySpolecznej is NULL,0,1)":"Wartoć musi być większa od 0",
+                       r"if(odlegloscDoUrzadzonegoTerenuSportu>0 or odlegloscDoUrzadzonegoTerenuSportu is NULL,0,1)":"Wartoć musi być większa od 0",
+                       r"if(odlegloscDoPrzystanku>0 or odlegloscDoPrzystanku is NULL,0,1)":"Wartoć musi być większa od 0",
+                       r"if(odlegloscDoPlacowkiPocztowej>0 or odlegloscDoPlacowkiPocztowej is NULL,0,1)":"Wartoć musi być większa od 0",
+                       r"if(odlegloscDoApteki>0 or odlegloscDoApteki is NULL,0,1)":"Wartoć musi być większa od 0",
+                       r"if(odlegloscDoPosterunkuPolicji>0 or odlegloscDoPosterunkuPolicji is NULL,0,1)":"Wartoć musi być większa od 0",
+                       r"if(odlegloscDoPosterunkuJednostkiOchronyPrzeciwpozarowej>0 or odlegloscDoPosterunkuJednostkiOchronyPrzeciwpozarowej is NULL,0,1)":"Wartoć musi być większa od 0"
                       }
     else:
         expressions= {"":""}
     
     for expression in expressions:
-        request = QgsFeatureRequest(QgsExpression(expression))
+        qgs_expression = QgsExpression(expression)
+        request = QgsFeatureRequest(qgs_expression)
         requestFeatures = obrysLayer.getFeatures(request)
         
         for requestFeature in requestFeatures:
@@ -250,6 +254,10 @@ def kontrolaZaleznosciAtrybutow(obrysLayer):
     layer.commitChanges()
     if layer.featureCount() > 0:
         QgsProject.instance().addMapLayer(layer)
+        config = layer.attributeTableConfig()
+        index = layer.fields().indexFromName('Opis_bledu')
+        config.setColumnWidth(index, 300)
+        layer.setAttributeTableConfig(config)
         return False
     return True
 
@@ -284,6 +292,10 @@ def kontrolaProfiliDodatkowych(obrysLayer):
     layer.commitChanges()
     if layer.featureCount() > 0:
         QgsProject.instance().addMapLayer(layer)
+        config = layer.attributeTableConfig()
+        index = layer.fields().indexFromName('Opis_bledu')
+        config.setColumnWidth(index, 300)
+        layer.setAttributeTableConfig(config)
         return False
     
     return True

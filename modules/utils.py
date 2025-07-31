@@ -105,11 +105,9 @@ def validate_teryt(teryt, rodzaj='None'):
             return False
         return True
     elif len(teryt) == 4 and validate_teryt_county(teryt) and rodzaj != 'None':
-        # if rodzaj != 'RSZM':
-        #     return False
         return True  # sprawdzić, czy rodzaj zbioru poprawny
     elif len(teryt) == 6 and validate_teryt_county(teryt):
-        if rodzaj != 'MPZP' and rodzaj != 'SUIKZP' and rodzaj != 'POG' and rodzaj != 'None':
+        if rodzaj not in ['MPZP','SUIKZP','POG','None']:
             return False
         if 0 < int(teryt[4:6]) < 100:
             return True
@@ -126,12 +124,13 @@ def validate_IIP(przestrzenNazw):
         numer = przestrzenNazw.split('.')[2].split('/')[0]
         rodzaj = przestrzenNazw.split('-')[1]
         teryt = przestrzenNazw.split('/')[1].split('-')[0]
-        
     except:
         return False
+    
     if not numer.isdigit():
         return False  # numer porządkowy nie jest liczbą całkowitą
     rodzaj_list = ['PZPW', 'SUIKZP', 'MPZP','POG']
+    
     if rodzaj not in rodzaj_list:
         return False
     
@@ -1096,7 +1095,7 @@ def createXmlData(dialog, obrysLayer):
             item.text = refObject.dateTime().toString("yyyy-MM-dd")
         elif fe.type == 'dateTime':
             item.text = refObject.dateTime().toString(
-                "yyyy-MM-ddThh:mm:ss")
+                "yyyy-MM-ddThh:mm:ssZ")
         elif 'ReferenceType' in fe.type:
             try:
                 item.set('xlink:href', (link+slownik[refObject.text()]))
@@ -1775,13 +1774,14 @@ def addToComboBox(formElement, value, formDict):
 def setValueToWidget(formElement, value):
     """Dodawanie wartości do elementu w formularzu"""
     widgetType = type(formElement.refObject).__name__
-    # print(formElement.name+' '+formElement.type+' '+widgetType)
     if widgetType == 'QgsFilterLineEdit':
         formElement.refObject.setText(value)
     if widgetType == 'NoScrollQgsDateTimeEdit' and formElement.type == 'dateTime':
         try:
             dateValue = value.replace('T', ' ')
-            date_time_obj = datetime.datetime.strptime(dateValue, '%Y-%m-%d %H:%M:%S')
+            if not "Z" in dateValue:
+                dateValue += "Z"
+            date_time_obj = datetime.datetime.strptime(dateValue, '%Y-%m-%d %H:%M:%SZ')
             formElement.refObject.setDateTime(date_time_obj)
         except:
             formElement.refObject.setDateTime(value)
@@ -1822,8 +1822,6 @@ def setValueToListWidget(formElement, objVal):
             
             if objName == 'data_dateTimeEdit':
                 data[objVal.objectName()] = objVal.date()
-                # textList.append(objVal.dateTime().date().toString())
-                
                 objValue = objVal.dateTime().date().toString("dd-MM-yyyy")
                 textList.append(objValue)
             else:
@@ -1847,25 +1845,55 @@ def setValueToListWidget(formElement, objVal):
         return
 
 
-def loadItemsToForm(filePath, formElements):
+def loadItemsToForm(filePath, formElements, activeDlg):
     root = None
     root = ET.parse(filePath).getroot()
     ns = dictionaries.nameSpaces
-    dokumentyFormalne = root.findall('.//app:DokumentFormalny', namespaces=ns)
-    if len(dokumentyFormalne) > 1:
+    dokumentyFormalne = []
+    rysunki = []
+    
+    if 'RasterFormularzDialog' in str(activeDlg):
+        rysunki = root.findall('.//app:RysunekAktuPlanowaniaPrzestrzennego', namespaces=ns)
+        if len(rysunki) == 0:
+            return
+    
+    if 'WektorFormularzDialog' in str(activeDlg):
+        aktPlanowaniaPrzestrzennego = root.findall('.//app:AktPlanowaniaPrzestrzennego', namespaces=ns)
+        if len(aktPlanowaniaPrzestrzennego) == 0:
+            return
+    
+    if 'DokumentyFormularzDialog' in str(activeDlg):
+        dokumentyFormalne = root.findall('.//app:DokumentFormalny', namespaces=ns)
+        if len(dokumentyFormalne) == 0:
+            return
+    
+    if len(dokumentyFormalne) > 1 or len(rysunki) > 1:
         
         dialog = QDialog()
-        dialog.setWindowTitle("Wybierz identyfikator lokalny dokumentu formalnego")
+        if len(dokumentyFormalne) > 1:
+            dialog.setWindowTitle("Wybierz identyfikator lokalny dokumentu formalnego")
+            label = QLabel('Wybierz identyfikator lokalny dokumentu formalnego, a następnie naciśnij ok:')
+        if len(rysunki) > 1:
+            dialog.setWindowTitle("Wybierz identyfikator lokalny rysunku aktu planowania przestrzennego")
+            label = QLabel('Wybierz identyfikator lokalny rysunku aktu planowania przestrzennego, a następnie naciśnij ok:')
+            
         layout = QVBoxLayout(dialog)
-        label = QLabel('Wybierz identyfikator lokalny dokumentu formalnego, a następnie naciśnij ok:')
         layout.addWidget(label)
         
         combo_box = QComboBox()
-        combo_box.addItems([
-            dokumentFormalny.find('.//app:lokalnyId', namespaces=ns).text
-            for dokumentFormalny in dokumentyFormalne
-            if dokumentFormalny.find('.//app:lokalnyId', namespaces=ns) is not None
-        ])
+        if len(dokumentyFormalne) > 1:
+            combo_box.addItems([
+                dokumentFormalny.find('.//app:lokalnyId', namespaces=ns).text
+                for dokumentFormalny in dokumentyFormalne
+                if dokumentFormalny.find('.//app:lokalnyId', namespaces=ns) is not None
+            ])
+        if len(rysunki) > 1:
+            combo_box.addItems([
+                rysunek.find('.//app:lokalnyId', namespaces=ns).text
+                for rysunek in rysunki
+                if rysunek.find('.//app:lokalnyId', namespaces=ns) is not None
+            ])
+        
         layout.addWidget(combo_box)
         ok_button = QPushButton("OK")
         layout.addWidget(ok_button)
@@ -1883,9 +1911,17 @@ def loadItemsToForm(filePath, formElements):
             if dokumentFormalny.find('.//app:lokalnyId', namespaces=ns).text == selected_lokalnyId:
                 root = dokumentFormalny
                 break
+        
+        for rysunek in rysunki:
+            if rysunek.find('.//app:lokalnyId', namespaces=ns).text == selected_lokalnyId:
+                root = rysunek
+                break
     
     if len(dokumentyFormalne) == 1:
         root = dokumentyFormalne[0]
+    
+    if len(rysunki) == 1:
+        root = rysunki[0]
     
     for prefix, uri in ns.items():
         ET.register_namespace(prefix, uri)
@@ -1934,7 +1970,7 @@ def loadItemsToForm(filePath, formElements):
                          'RysunekAktuPlanowaniaPrzestrzennego', 'DokumentFormalny']
             elements = []
             for formName in formNames:
-                if len(dokumentyFormalne) > 0:
+                if len(dokumentyFormalne) > 0 or len(rysunki) > 0:
                     elementPath = './/app:%s' % (fe.name)
                 else:
                     elementPath = 'wfs:member/app:%s/app:%s' % (formName, fe.name)

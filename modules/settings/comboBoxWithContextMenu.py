@@ -1,7 +1,4 @@
 # -*- coding: utf-8 -*-
-# from . import (UstawieniaDialog, PomocDialog, ustawieniaDialog, PLUGIN_VERSION)
-# from .. import BaseModule, dictionaries
-# from ..utils import showPopup, getWidgetByName, settingsValidateDatasetId, validate_IIP, validateEmailAddress, validate_ILAPP
 from qgis.PyQt import QtWidgets
 from PyQt5.QtWidgets import QFileDialog, QTableWidgetItem, QMessageBox
 from PyQt5.QtCore import Qt, QEvent, QVariant, QRegExp, pyqtSignal

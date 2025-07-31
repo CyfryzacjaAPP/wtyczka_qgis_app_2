@@ -125,11 +125,11 @@ class MetadaneDialog(CloseMessageDialog, FORM_CLASS, ButtonsDialog):
 
         # prostokat ograniczajacy
         input = utils.getWidgetByName(self, QLineEdit, "e11_lineEdit")
-        input.setValidator(QRegExpValidator(QRegExp("[0-9.,]*")))
+        input.setValidator(QRegExpValidator(QRegExp(r"[0-9.,]*")))
 
         # rozdzielczość przestrzenna
         input = utils.getWidgetByName(self, QLineEdit, "e16_lineEdit")
-        input.setValidator(QRegExpValidator(QRegExp("[0-9]*")))
+        input.setValidator(QRegExpValidator(QRegExp(r"[0-9]*")))
 
         # czyszczenie QgsDateTimeEdit
         for dateTimeEdit in utils.getWidgetsByType(self, QDateTimeEdit):
