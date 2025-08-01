@@ -1,0 +1,366 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Dialog</class>
+ <widget class="QDialog" name="Dialog">
+  <property name="enabled">
+   <bool>true</bool>
+  </property>
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>500</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Dialog</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout_3">
+   <item row="0" column="0">
+    <layout class="QVBoxLayout" name="verticalLayout">
+     <item>
+      <widget class="QLabel" name="title_lbl">
+       <property name="font">
+        <font>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Przygotowanie formularza atrybutów dla dokumentów formalnych</string>
+       </property>
+       <property name="margin">
+        <number>7</number>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QScrollArea" name="instruction_scrollArea">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="widgetResizable">
+        <bool>true</bool>
+       </property>
+       <widget class="QWidget" name="scrollAreaWidgetContents">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>0</y>
+          <width>461</width>
+          <height>643</height>
+         </rect>
+        </property>
+        <layout class="QGridLayout" name="gridLayout">
+         <item row="0" column="0">
+          <widget class="QLabel" name="instruction_lbl">
+           <property name="font">
+            <font>
+             <stylestrategy>PreferDefault</stylestrategy>
+            </font>
+           </property>
+           <property name="text">
+            <string>&lt;p&gt;Dane przestrzenne tworzone dla POG &lt;b&gt;obejmują&lt;/b&gt; m.in. &lt;b&gt;dane o dokumentach powiązanych z aktem&lt;/b&gt;. Jeżeli z aktem powiązanych jest&lt;b&gt; kilka dokument&amp;oacute;w formalnych&lt;/b&gt; to niezbędne będzie &lt;b&gt;wypełnienie poniższego formularza dla każdego z nich&lt;/b&gt;.&lt;/p&gt;&lt;hr /&gt;&lt;p&gt;W zależności od aktualnego stanu prac, wybierz jedną z opcji:&lt;/p&gt;&lt;ol&gt;&lt;li&gt;&lt;p&gt;W przypadku uzupełniania formularza atrybut&amp;oacute;w dla pierwszego dokumentu formalnego:&lt;/p&gt;&lt;ol style=&quot;list-style-type: lower-alpha;&quot;&gt;&lt;li&gt;wypełnij atrybuty o dokumencie formalnym poprzez edycję formularza,&lt;br&gt;&lt;table style=&quot;border-collapse: collapse; width: 100%;&quot; border=&quot;1&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td style=&quot;width: 100%;&quot;&gt;&lt;p&gt;&lt;span style=&quot;color: #ff0000;&quot;&gt;UWAGA:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Wypełnij formularz atrybut&amp;oacute;w zgodnie z informacjami zawartymi w podpowiedzi do każdego atrybutu (ikona znaku zapytania po prawej stronie).&amp;nbsp;Uzupełnienie p&amp;oacute;l oznaczonych gwiazdką jest obowiązkowe. Dodatkowo pola wymagane do wypełnienia zaznaczane są czerwoną ramką.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt;po wypełnieniu formularza kliknij przycisk&lt;b&gt; Zapisz aktualny formularz&lt;/b&gt;, żeby zapisać plik na dysku.&lt;/li&gt;&lt;/ol&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;W przypadku uzupełniania formularza atrybut&amp;oacute;w dla kolejnego dokumentu formalnego, wybierz jedną z opcji:&lt;/p&gt;&lt;ol style=&quot;list-style-type: lower-alpha;&quot;&gt;&lt;li&gt;zmień wpisane w formularzu dane tak, aby odnosiły się one do kolejnego dokumentu, a następnie ponownie kliknij przycisk &lt;b&gt;Zapisz aktualny formularz&lt;/b&gt;,&lt;br&gt;&lt;/li&gt;&lt;li&gt;wypełnij formularz na nowo, klikając przycisk &lt;b&gt;Wyczyść formularz&lt;/b&gt; &amp;ndash; wszystkie wprowadzone wcześniej dane zostaną usunięte,&lt;br&gt;&lt;/li&gt;&lt;li&gt;skorzystaj z wcześniej wypełnionego i zapisanego formularza, klikając przycisk &lt;b&gt;Pobierz wartości z istniejącego formularza&lt;/b&gt; &amp;ndash; wtyczka odczyta plik GML i uzupełni w formularzu wartości atrybut&amp;oacute;w. Sprawdź i w razie potrzeby zmień wpisane w formularzu dane tak, aby odnosiły się one do kolejnego dokumentu formalnego. Potem kliknij przycisk &lt;b&gt;Zapisz aktualny formularz&lt;/b&gt;, żeby zapisać plik na dysku.&lt;br&gt;&lt;/li&gt;&lt;/ol&gt;&lt;/li&gt;&lt;/ol&gt;&lt;table style=&quot;border-collapse: collapse; width: 100%;&quot; border=&quot;1&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td style=&quot;width: 100%;&quot;&gt;&lt;p&gt;&lt;span style=&quot;color: #000080;&quot;&gt;INFORMACJA:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Podczas kroku 7 z 7 &amp;ndash; Generowanie GML dla APP wgraj wszystkie (&lt;b&gt;co najmniej jeden&lt;/b&gt;) formularze dla dokument&amp;oacute;w formalnych.&lt;/p&gt;Możesz pominąć krok 6. W tym celu kliknij przycisk &lt;b&gt;Pomiń.&lt;/b&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignJustify|Qt::AlignVCenter</set>
+           </property>
+           <property name="wordWrap">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </widget>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <item>
+        <widget class="QPushButton" name="getValues_btn">
+         <property name="text">
+          <string>Pobierz wartości z istniejącego formularza</string>
+         </property>
+         <property name="autoDefault">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="clear_btn">
+         <property name="text">
+          <string>Wyczyść formularz</string>
+         </property>
+         <property name="autoDefault">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <widget class="QLabel" name="titleForm_lbl">
+       <property name="font">
+        <font>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Formularz atrybutów:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QScrollArea" name="form_scrollArea">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="widgetResizable">
+        <bool>true</bool>
+       </property>
+       <widget class="QWidget" name="scrollAreaWidgetContents_2">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>0</y>
+          <width>461</width>
+          <height>157</height>
+         </rect>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_2">
+         <item row="0" column="4">
+          <widget class="QPushButton" name="idHelp_btn">
+           <property name="font">
+            <font>
+             <pointsize>7</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>?</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="tytul_lbl">
+           <property name="text">
+            <string>tytul</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="0">
+          <widget class="QLabel" name="dziennikUrzedowy_lbl">
+           <property name="text">
+            <string>dziennikUrzedowy</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="4">
+          <widget class="QPushButton" name="nazwaSkroconaHelp_btn">
+           <property name="font">
+            <font>
+             <pointsize>7</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>?</string>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="4">
+          <widget class="QPushButton" name="laczeHelp_btn">
+           <property name="font">
+            <font>
+             <pointsize>7</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>?</string>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="0">
+          <widget class="QLabel" name="lacze_lbl">
+           <property name="text">
+            <string>lacze</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="0">
+          <widget class="QLabel" name="nazwaSkrocona_lbl">
+           <property name="text">
+            <string>nazwaSkrocona</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="4">
+          <widget class="QPushButton" name="tytulHelp_btn">
+           <property name="font">
+            <font>
+             <pointsize>7</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>?</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0">
+          <widget class="QLabel" name="id_lbl">
+           <property name="text">
+            <string>idIIP</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="4">
+          <widget class="QPushButton" name="dziennikUrzedowyHelp_btn">
+           <property name="font">
+            <font>
+             <pointsize>7</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>?</string>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="1">
+          <widget class="QLineEdit" name="lacze_lineEdit">
+           <property name="font">
+            <font>
+             <pointsize>7</pointsize>
+            </font>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="1">
+          <widget class="QLineEdit" name="dziennikUrzedowy_lineEdit">
+           <property name="font">
+            <font>
+             <pointsize>7</pointsize>
+            </font>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="1">
+          <widget class="QLineEdit" name="nazwaSkrocona_lineEdit">
+           <property name="font">
+            <font>
+             <pointsize>7</pointsize>
+            </font>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QLineEdit" name="tytul_lineEdit">
+           <property name="font">
+            <font>
+             <pointsize>7</pointsize>
+            </font>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QLineEdit" name="id_lineEdit">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>7</pointsize>
+            </font>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="requiredFields_lbl">
+       <property name="text">
+        <string>*pola wymagane</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_2">
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <item>
+        <widget class="QPushButton" name="prev_btn">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
+         <property name="text">
+          <string>Wstecz</string>
+         </property>
+         <property name="autoDefault">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer_2">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QPushButton" name="saveForm_btn">
+         <property name="text">
+          <string>Zapisz aktualny formularz</string>
+         </property>
+         <property name="autoDefault">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="skip_btn">
+         <property name="text">
+          <string>Pomiń</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="next_btn">
+         <property name="text">
+          <string>Dalej</string>
+         </property>
+         <property name="autoDefault">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

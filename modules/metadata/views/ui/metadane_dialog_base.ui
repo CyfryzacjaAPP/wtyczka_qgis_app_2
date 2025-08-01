@@ -1,0 +1,2711 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Dialog</class>
+ <widget class="QDialog" name="Dialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>748</width>
+    <height>642</height>
+   </rect>
+  </property>
+  <property name="font">
+   <font>
+    <kerning>true</kerning>
+   </font>
+  </property>
+  <property name="windowTitle">
+   <string>Dialog</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout_3">
+   <item row="0" column="0">
+    <layout class="QVBoxLayout" name="verticalLayout">
+     <item>
+      <widget class="QLabel" name="title_lbl">
+       <property name="font">
+        <font>
+         <weight>75</weight>
+         <bold>true</bold>
+         <kerning>true</kerning>
+        </font>
+       </property>
+       <property name="text">
+        <string>Metadane</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="empty3_lbl">
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;table border=&quot;1&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; border-collapse:collapse;&quot; cellspacing=&quot;2&quot; cellpadding=&quot;0&quot;&gt;&lt;tr&gt;&lt;td&gt;&lt;p&gt;&lt;span style=&quot; color:#ff0000;&quot;&gt;UWAGA:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Upewnij się, że wczytywane poniżej pliki są poprawne. Możesz to zrobić, korzystając z wbudowanej funkcji Wtyczki APP 2. W tym celu rozwiń menu wtyczki na pasku narzędzi QGIS, a następnie wybierz&lt;span style=&quot; font-weight:600;&quot;&gt; Walidacja danych planistycznych &lt;/span&gt;i postępuj zgodnie ze wskazówkami na ekranie. Wczytanie niepoprawnego pliku może powodować błędy przy generowaniu pliku XML metadanych.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p/&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+       <property name="textFormat">
+        <enum>Qt::RichText</enum>
+       </property>
+       <property name="wordWrap">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_2">
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <layout class="QGridLayout" name="gridLayout_5">
+       <item row="0" column="1">
+        <widget class="QgsFileWidget" name="chooseFile_widget"/>
+       </item>
+       <item row="1" column="1">
+        <widget class="QgsFileWidget" name="chooseSet_widget"/>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="addSet_lbl">
+         <property name="text">
+          <string>Wybierz plik GML dla zbioru APP (opcjonalne)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QLabel" name="existingMetadata_lbl">
+         <property name="text">
+          <string>Wczytaj istniejący plik z metadanymi (opcjonalne)    </string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayoukt">
+       <item>
+        <spacer name="horizontalSpacer_11">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QPushButton" name="clearForm_btn">
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
+         <property name="text">
+          <string>Wyczyść formularz</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <widget class="Line" name="horizontal_line">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="titleForm_lbl">
+       <property name="font">
+        <font>
+         <weight>75</weight>
+         <bold>true</bold>
+         <kerning>true</kerning>
+        </font>
+       </property>
+       <property name="text">
+        <string>Formularz metadanych:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QScrollArea" name="form_scrollArea">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="widgetResizable">
+        <bool>true</bool>
+       </property>
+       <widget class="QWidget" name="scrollAreaWidgetContents_2">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>0</y>
+          <width>709</width>
+          <height>1452</height>
+         </rect>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_2">
+         <item row="1" column="0" colspan="2">
+          <widget class="QgsCollapsibleGroupBox" name="mGroupBox">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>1</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="title">
+            <string>Identyfikacja*</string>
+           </property>
+           <property name="checkable">
+            <bool>false</bool>
+           </property>
+           <property name="collapsed">
+            <bool>false</bool>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_2">
+            <property name="sizeConstraint">
+             <enum>QLayout::SetDefaultConstraint</enum>
+            </property>
+            <item>
+             <layout class="QHBoxLayout">
+              <item>
+               <widget class="QLabel" name="e1_lbl">
+                <property name="text">
+                 <string>Tytuł zbioru*</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QgsFilterLineEdit" name="e1_lineEdit">
+                <property name="text">
+                 <string>Zbiór danych przestrzennych dla &lt;typ_planu&gt; &lt;typ_jednostki&gt; &lt;nazwa_jednostki&gt;</string>
+                </property>
+                <property name="placeholderText">
+                 <string/>
+                </property>
+                <property name="qgisRelation" stdset="0">
+                 <string notr="true"/>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="e1_tooltip">
+                <property name="toolTip">
+                 <string>Nazwa zbioru danych przestrzennych. 
+&lt;br&gt;
+Nazwa zbioru danych przestrzennych musi być skonstruowana zgodnie ze wzorem dla:
+&lt;br&gt;1)	planu zagospodarowania przestrzennego województwa: „Zbiór danych przestrzennych dla planu zagospodarowania przestrzennego województwa &amp;lt;nazwa jednostki podziału administracyjnego kraju&amp;gt;”;
+&lt;br&gt;2)	studium uwarunkowań i kierunków zagospodarowania przestrzennego: „Zbiór danych przestrzennych dla studium uwarunkowań i kierunków zagospodarowania przestrzennego &amp;lt;typ jednostki podziału administracyjnego kraju&amp;gt; &amp;lt;nazwa jednostki podziału administracyjnego kraju&amp;gt;”,
+&lt;br&gt;3)	miejscowych planów, w tym miejscowych planów zagospodarowania przestrzennego, miejscowych planów odbudowy oraz miejscowych planów rewitalizacji: „Zbiór danych przestrzennych dla miejscowych planów &amp;lt;typ jednostki podziału administracyjnego kraju&amp;gt; &amp;lt;nazwa jednostki podziału administracyjnego kraju&amp;gt;”.
+</string>
+                </property>
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="pixmap">
+                 <pixmap>../../../../../../../../../../../../../../../img/info1.png</pixmap>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout">
+              <item>
+               <widget class="QLabel" name="e2_lbl">
+                <property name="text">
+                 <string>Streszczenie*</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QgsFilterLineEdit" name="e2_lineEdit">
+                <property name="qgisRelation" stdset="0">
+                 <string notr="true"/>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="e2_tooltip">
+                <property name="toolTip">
+                 <string>Zwięzły opis zawartości zbioru danych przestrzennych.</string>
+                </property>
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="pixmap">
+                 <pixmap>../../../../../../../../../../../../../../../img/info1.png</pixmap>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout">
+              <item>
+               <widget class="QLabel" name="e3_lbl">
+                <property name="text">
+                 <string>Typ zbioru danych przestrzennych*</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QgsFilterLineEdit" name="e3_lineEdit">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="text">
+                 <string>dataset</string>
+                </property>
+                <property name="qgisRelation" stdset="0">
+                 <string notr="true"/>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="e3_tooltip">
+                <property name="toolTip">
+                 <string>Typ zbioru danych przestrzennych opisywanego przez metadane. 
+
+Wartości elementu metadanych zawsze jest równa: zbiór danych przestrzennych („dataset”).
+</string>
+                </property>
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="pixmap">
+                 <pixmap>../../../../../../../../../../../../../../../img/info1.png</pixmap>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <widget class="QGroupBox" name="verticalGroupBox">
+              <layout class="QVBoxLayout" name="verticalLayout_3">
+               <item>
+                <layout class="QHBoxLayout">
+                 <item>
+                  <widget class="QLabel" name="e4_lbl">
+                   <property name="text">
+                    <string>Adres zbioru danych przestrzennych*</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QgsFilterLineEdit" name="e4_lineEdit">
+                   <property name="qgisRelation" stdset="0">
+                    <string notr="true"/>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="e4_tooltip">
+                   <property name="toolTip">
+                    <string>Adres zbioru danych przestrzennych określa odnośnik (odnośniki) do tego zbioru lub odnośnik do dodatkowych informacji na jego temat.
+
+Adres zbioru danych przestrzennych  musi być wyspecyfikowany w formie adresu URI:
+1)	usługi sieciowej udostępniającej zbiór danych przestrzennych;
+2)	strony internetowej zawierającej dodatkowe informacje na temat zbioru danych przestrzennych, lub jeżeli jest on niedostępny
+3)	strony internetowej organizacji odpowiedzialnej za zbiór danych przestrzennych.
+</string>
+                   </property>
+                   <property name="text">
+                    <string/>
+                   </property>
+                   <property name="pixmap">
+                    <pixmap>../../../../../../../../../../../../../../../img/info1.png</pixmap>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QHBoxLayout">
+                 <item>
+                  <widget class="QPushButton" name="e4_add_btn">
+                   <property name="text">
+                    <string>Dodaj</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="e4_remove_btn">
+                   <property name="text">
+                    <string>Usuń</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <widget class="QListWidget" name="e4_listWidget">
+                 <property name="sortingEnabled">
+                  <bool>false</bool>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <widget class="QGroupBox" name="verticalGroupBox">
+              <layout class="QVBoxLayout" name="verticalLayout_3">
+               <item>
+                <layout class="QHBoxLayout">
+                 <item>
+                  <widget class="QLabel" name="e5_lbl">
+                   <property name="text">
+                    <string>Unikalny identyfikator zbioru danych przestrzennych*</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QgsFilterLineEdit" name="e5_lineEdit">
+                   <property name="qgisRelation" stdset="0">
+                    <string notr="true"/>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="e5_tooltip">
+                   <property name="toolTip">
+                    <string>Wartość, o której mowa w §4 rozporządzenia, identyfikująca dany zbiór danych przestrzennych w unikalny sposób.</string>
+                   </property>
+                   <property name="text">
+                    <string/>
+                   </property>
+                   <property name="pixmap">
+                    <pixmap>../../../../../../../../../../../../../../../img/info1.png</pixmap>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QHBoxLayout">
+                 <item>
+                  <widget class="QPushButton" name="e5_add_btn">
+                   <property name="text">
+                    <string>Dodaj</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="e5_remove_btn">
+                   <property name="text">
+                    <string>Usuń</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <widget class="QListWidget" name="e5_listWidget">
+                 <property name="sortingEnabled">
+                  <bool>false</bool>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <widget class="QGroupBox" name="verticalGroupBox">
+              <layout class="QVBoxLayout" name="verticalLayout_3">
+               <item>
+                <layout class="QHBoxLayout">
+                 <item>
+                  <widget class="QLabel" name="e6_lbl">
+                   <property name="text">
+                    <string>Język zbioru danych przestrzennych*</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="horizontalSpacer_10">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item>
+                  <widget class="QComboBox" name="e6_cmbbx">
+                   <property name="focusPolicy">
+                    <enum>Qt::WheelFocus</enum>
+                   </property>
+                   <item>
+                    <property name="text">
+                     <string>polski</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>angielski</string>
+                    </property>
+                   </item>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="e6_tooltip">
+                   <property name="toolTip">
+                    <string>Język stosowany w zbiorze danych przestrzennych.</string>
+                   </property>
+                   <property name="text">
+                    <string/>
+                   </property>
+                   <property name="pixmap">
+                    <pixmap>../../../../../../../../../../../../../../../img/info1.png</pixmap>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QHBoxLayout">
+                 <item>
+                  <widget class="QPushButton" name="e6_add_btn">
+                   <property name="text">
+                    <string>Dodaj</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="e6_remove_btn">
+                   <property name="text">
+                    <string>Usuń</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <widget class="QListWidget" name="e6_listWidget">
+                 <property name="sortingEnabled">
+                  <bool>false</bool>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <widget class="QGroupBox" name="verticalGroupBox">
+              <layout class="QVBoxLayout" name="verticalLayout_3">
+               <item>
+                <layout class="QHBoxLayout">
+                 <item>
+                  <widget class="QLabel" name="e7_lbl">
+                   <property name="text">
+                    <string>Kodowanie znaków</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="horizontalSpacer_3">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item>
+                  <widget class="QComboBox" name="e7_cmbbx">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <item>
+                    <property name="text">
+                     <string/>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>ucs2</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>ucs4</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>utf7</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>utf8</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>utf16</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>8859część1</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>8859część2</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>8859część3</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>8859część4</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>8859część5</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>8859część9</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>8859część10</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>8859część13</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>8859część14</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>8859część15</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>8859część16</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>usAscii</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>ebcdic</string>
+                    </property>
+                   </item>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="e7_tooltip">
+                   <property name="toolTip">
+                    <string>Nazwa sposobu kodowania znaków (informacji tekstowej) użytego w zbiorze danych przestrzennych.</string>
+                   </property>
+                   <property name="text">
+                    <string/>
+                   </property>
+                   <property name="pixmap">
+                    <pixmap>../../../../../../../../../../../../../../../img/info1.png</pixmap>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QHBoxLayout">
+                 <item>
+                  <widget class="QPushButton" name="e7_add_btn">
+                   <property name="text">
+                    <string>Dodaj</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="e7_remove_btn">
+                   <property name="text">
+                    <string>Usuń</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <widget class="QListWidget" name="e7_listWidget">
+                 <property name="sortingEnabled">
+                  <bool>false</bool>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item row="2" column="0" colspan="2">
+          <widget class="QgsCollapsibleGroupBox" name="mGroupBox_2">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>1</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="title">
+            <string>Klasyfikacja danych przestrzennych*</string>
+           </property>
+           <property name="collapsed">
+            <bool>false</bool>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_2">
+            <property name="sizeConstraint">
+             <enum>QLayout::SetDefaultConstraint</enum>
+            </property>
+            <item>
+             <layout class="QHBoxLayout">
+              <item>
+               <widget class="QLabel" name="e8_lbl">
+                <property name="text">
+                 <string>Kategoria tematyczna*</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QgsFilterLineEdit" name="e8_lineEdit">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="text">
+                 <string>Planowanie/Kataster (planningCadastre)</string>
+                </property>
+                <property name="qgisRelation" stdset="0">
+                 <string notr="true"/>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="e8_tooltip">
+                <property name="toolTip">
+                 <string>Klasyfikacja zbioru danych przestrzennych, opisana z użyciem wysokiego poziomu schematu klasyfikacyjnego wspomagającego grupowanie i ukierunkowane tematycznie wyszukiwanie dostępnych zbiorów danych przestrzennych.
+
+Wartość elementu metadanych zawsze jest równa: „Planowanie/Kataster” („planningCadastre”).
+</string>
+                </property>
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="pixmap">
+                 <pixmap>../../../../../../../../../../../../../../../img/info1.png</pixmap>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item row="3" column="0" colspan="2">
+          <widget class="QgsCollapsibleGroupBox" name="qgsCollapsibleGroupBox">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>1</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="title">
+            <string>Słowo kluczowe*</string>
+           </property>
+           <property name="collapsed">
+            <bool>true</bool>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_2">
+            <property name="sizeConstraint">
+             <enum>QLayout::SetDefaultConstraint</enum>
+            </property>
+            <item>
+             <widget class="QGroupBox" name="verticalGroupBox">
+              <layout class="QVBoxLayout" name="verticalLayout_3">
+               <item>
+                <layout class="QHBoxLayout">
+                 <item>
+                  <widget class="QLabel" name="e9_lbl">
+                   <property name="text">
+                    <string>Wartość słowa kluczowego*</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QgsFilterLineEdit" name="e9_lineEdit">
+                   <property name="qgisRelation" stdset="0">
+                    <string notr="true"/>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="e9_tooltip">
+                   <property name="toolTip">
+                    <string>Słowo potocznie używane, słowo sformalizowane lub fraza stosowana do opisu danego tematu; podczas gdy kategorie tematyczne są zbyt ogólne dla zapytań szczegółowych, słowa kluczowe pomagają uszczegółowić wyszukiwanie pełnych tekstów oraz umożliwiają wyszukiwanie strukturalnych słów kluczowych.
+
+Obowiązkowo należy podać  słowa kluczowe:
+•	opisujące odpowiedni temat danych przestrzennych i pozyskane z ogólnego wielojęzycznego tezaurusa środowiskowego (GEMET). Słowo to musi być równe: „Zagospodarowanie przestrzenne”,
+•	opisujące poziom administracyjny, który zbiór danych przestrzennych obejmuje (zakres przestrzenny),
+•	opisujące typ zbioru danych przestrzennych, w formie neutralnego językowo słowa równego: „PlannedLandUse”.
+•	opisujące poziom jednostki administracyjnej objętej aktem planowania przestrzennego. Słowo to musi być równe zdefiniowanym w liście kodowej „Poziom planu zagospodarowania przestrzennego” zdefiniowanej w tabeli 2.7 w załączniku nr 1 do rozporządzenia.
+</string>
+                   </property>
+                   <property name="text">
+                    <string/>
+                   </property>
+                   <property name="pixmap">
+                    <pixmap>../../../../../../../../../../../../../../../img/info1.png</pixmap>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QHBoxLayout">
+                 <item>
+                  <widget class="QLabel" name="e10_lbl">
+                   <property name="text">
+                    <string>Standardowy słownik źródłowy</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QgsFilterLineEdit" name="e10_lineEdit">
+                   <property name="qgisRelation" stdset="0">
+                    <string notr="true"/>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QgsDateTimeEdit" name="e10_dateTimeEdit">
+                   <property name="minimumSize">
+                    <size>
+                     <width>150</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="displayFormat">
+                    <string>dd.MM.yyyy</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QComboBox" name="e10_cmbbx">
+                   <item>
+                    <property name="text">
+                     <string>Data utworzenia</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>Data ostatniej aktualizacji</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>Data opublikowania</string>
+                    </property>
+                   </item>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="e10_tooltip">
+                   <property name="toolTip">
+                    <string extracomment="Nazwa kontrolowanego słownika (tezaurusa, ontologii) lub podobnego wiarygodnego źródła słów kluczowych.  Wartość elementu jest określana dla pojedynczego słowa kluczowego lub grupy słów kluczowych, które pochodzą z jednego kontrolowanego słownika. ">Nazwa sposobu kodowania znaków (informacji tekstowej) użytego w zbiorze danych.</string>
+                   </property>
+                   <property name="text">
+                    <string/>
+                   </property>
+                   <property name="pixmap">
+                    <pixmap>../../../../../../../../../../../../../../../img/info1.png</pixmap>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QHBoxLayout">
+                 <item>
+                  <widget class="QPushButton" name="e9_add_btn">
+                   <property name="text">
+                    <string>Dodaj</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="e9_remove_btn">
+                   <property name="text">
+                    <string>Usuń</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <widget class="QListWidget" name="e9_listWidget">
+                 <property name="sortingEnabled">
+                  <bool>false</bool>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item row="4" column="0" colspan="2">
+          <widget class="QgsCollapsibleGroupBox" name="mGroupBox_4">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>1</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="title">
+            <string>Położenie geograficzne*</string>
+           </property>
+           <property name="collapsed">
+            <bool>false</bool>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_2">
+            <property name="sizeConstraint">
+             <enum>QLayout::SetDefaultConstraint</enum>
+            </property>
+            <item>
+             <widget class="QGroupBox" name="verticalGroupBox">
+              <layout class="QVBoxLayout" name="verticalLayout_3">
+               <item>
+                <layout class="QHBoxLayout">
+                 <item>
+                  <widget class="QLabel" name="e11_lbl">
+                   <property name="text">
+                    <string>Geograficzny prostokąt ograniczający*</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QgsFilterLineEdit" name="e11_lineEdit">
+                   <property name="toolTip">
+                    <string>Prostokąt zdefiniowany jako &lt;xmin&gt;,&lt;xmax&gt;,&lt;ymin&gt;,&lt;ymax&gt; np.: 13.9000,23.9000,49.2300,54.7000</string>
+                   </property>
+                   <property name="placeholderText">
+                    <string>np.: 13.9000,23.9000,49.2300,54.7000</string>
+                   </property>
+                   <property name="qgisRelation" stdset="0">
+                    <string notr="true"/>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="e11_tooltip">
+                   <property name="toolTip">
+                    <string>Zasięg zbioru danych przestrzennych w przestrzeni geograficznej, wyrażony za pomocą prostokąta ograniczającego, opisanego za pomocą południków granicy zachodniej i granicy wschodniej obszaru oraz równoleżników granicy południowej i granicy północnej wyrażonych w częściach dziesiętnych stopnia, z dokładnością do co najmniej czterech cyfr dziesiętnych.
+
+Jeżeli zbiór danych charakteryzuje się brakiem ciągłości przestrzennej, można określić więcej niż jeden prostokąt ograniczający.
+
+Współrzędne należy podać w Światowym Systemie Geodezyjnym 1984 (WGS84).
+</string>
+                   </property>
+                   <property name="text">
+                    <string/>
+                   </property>
+                   <property name="pixmap">
+                    <pixmap>../../../../../../../../../../../../../../../img/info1.png</pixmap>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QHBoxLayout">
+                 <item>
+                  <widget class="QPushButton" name="e11_add_btn">
+                   <property name="text">
+                    <string>Dodaj</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="e11_remove_btn">
+                   <property name="text">
+                    <string>Usuń</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <widget class="QListWidget" name="e11_listWidget">
+                 <property name="sortingEnabled">
+                  <bool>false</bool>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <widget class="QGroupBox" name="verticalGroupBox">
+              <layout class="QVBoxLayout" name="verticalLayout_3">
+               <item>
+                <layout class="QHBoxLayout">
+                 <item>
+                  <widget class="QLabel" name="e12_lbl">
+                   <property name="text">
+                    <string>System odniesienia za pomocą współrzędnych*</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="horizontalSpacer">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item>
+                  <widget class="QComboBox" name="e12_cmbbx">
+                   <item>
+                    <property name="text">
+                     <string>http://www.opengis.net/def/crs/EPSG/0/2180</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>http://www.opengis.net/def/crs/EPSG/0/2176</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>http://www.opengis.net/def/crs/EPSG/0/2177</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>http://www.opengis.net/def/crs/EPSG/0/2178</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>http://www.opengis.net/def/crs/EPSG/0/2179</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>http://www.opengis.net/def/crs/EPSG/0/4258</string>
+                    </property>
+                   </item>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="e12_tooltip">
+                   <property name="toolTip">
+                    <string>System odniesienia za pomocą współrzędnych zastosowany dla zbioru danych przestrzennych.
+
+Należy podać identyfikator systemu odniesienia w EPSG Geodetic Parameter Registry.
+</string>
+                   </property>
+                   <property name="text">
+                    <string/>
+                   </property>
+                   <property name="pixmap">
+                    <pixmap>../../../../../../../../../../../../../../../img/info1.png</pixmap>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QHBoxLayout">
+                 <item>
+                  <widget class="QPushButton" name="e12_add_btn">
+                   <property name="text">
+                    <string>Dodaj</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="e12_remove_btn">
+                   <property name="text">
+                    <string>Usuń</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <widget class="QListWidget" name="e12_listWidget">
+                 <property name="sortingEnabled">
+                  <bool>false</bool>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item row="5" column="0" colspan="2">
+          <widget class="QgsCollapsibleGroupBox" name="mGroupBox_5">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>1</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="title">
+            <string>Odniesienie czasowe*</string>
+           </property>
+           <property name="collapsed">
+            <bool>false</bool>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_2">
+            <property name="sizeConstraint">
+             <enum>QLayout::SetDefaultConstraint</enum>
+            </property>
+            <item>
+             <layout class="QHBoxLayout">
+              <item>
+               <widget class="QLabel" name="e13_lbl">
+                <property name="text">
+                 <string>Data utworzenia*</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="horizontalSpacer_5">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item>
+               <widget class="QgsDateTimeEdit" name="e13_dateTimeEdit">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>150</width>
+                  <height>0</height>
+                 </size>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QComboBox" name="e13_cmbbx">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <item>
+                 <property name="text">
+                  <string>Data utworzenia</string>
+                 </property>
+                </item>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="e13_tooltip">
+                <property name="toolTip">
+                 <string>Data utworzenia zbioru danych przestrzennych.
+
+Wartość elementu musi  wyrażać co najmniej datę dzienną, która  może być rozszerzona o wskazanie czasu (godzina, minuta, sekunda).
+</string>
+                </property>
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="pixmap">
+                 <pixmap>../../../../../../../../../../../../../../../img/info1.png</pixmap>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout">
+              <item>
+               <widget class="QLabel" name="e14_lbl">
+                <property name="text">
+                 <string>Data opublikowania</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="horizontalSpacer_6">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item>
+               <widget class="QgsDateTimeEdit" name="e14_dateTimeEdit">
+                <property name="minimumSize">
+                 <size>
+                  <width>150</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="date">
+                 <date>
+                  <year>2020</year>
+                  <month>7</month>
+                  <day>28</day>
+                 </date>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QComboBox" name="e14_cmbbx">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <item>
+                 <property name="text">
+                  <string>Data opublikowania</string>
+                 </property>
+                </item>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="e14_tooltip">
+                <property name="toolTip">
+                 <string>Data udostępnienia zbioru danych przestrzennych za pośrednictwem usług sieciowych.
+Wartość elementu musi  wyrażać co najmniej datę dzienną, która  może być rozszerzona o wskazanie czasu (godzina, minuta, sekunda).
+</string>
+                </property>
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="pixmap">
+                 <pixmap>../../../../../../../../../../../../../../../img/info1.png</pixmap>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item row="6" column="0" colspan="2">
+          <widget class="QgsCollapsibleGroupBox" name="mGroupBox_6">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>1</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="title">
+            <string>Jakość i ważność*</string>
+           </property>
+           <property name="collapsed">
+            <bool>true</bool>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_2">
+            <property name="sizeConstraint">
+             <enum>QLayout::SetDefaultConstraint</enum>
+            </property>
+            <item>
+             <layout class="QHBoxLayout">
+              <item>
+               <widget class="QLabel" name="e15_lbl">
+                <property name="text">
+                 <string>Pochodzenie*</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QgsFilterLineEdit" name="e15_lineEdit">
+                <property name="qgisRelation" stdset="0">
+                 <string notr="true"/>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="e15_tooltip">
+                <property name="toolTip">
+                 <string>Opis historii procesu tworzenia lub ogólnej jakości zbioru danych przestrzennych. W stosownych przypadkach może zawierać stwierdzenie, czy zbiór danych przestrzennych był przedmiotem procesu kontroli lub oceny jakości, czy stanowi wersję urzędową i czy posiada moc prawną.</string>
+                </property>
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="pixmap">
+                 <pixmap>../../../../../../../../../../../../../../../img/info1.png</pixmap>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <widget class="QGroupBox" name="verticalGroupBox">
+              <layout class="QVBoxLayout" name="verticalLayout_3">
+               <item>
+                <layout class="QHBoxLayout">
+                 <item>
+                  <widget class="QLabel" name="e16_lbl">
+                   <property name="text">
+                    <string>Rozdzielczość przestrzenna*</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QgsFilterLineEdit" name="e16_lineEdit">
+                   <property name="qgisRelation" stdset="0">
+                    <string notr="true"/>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="e16_tooltip">
+                   <property name="toolTip">
+                    <string>Wielkość opisująca poziom szczegółowości zbioru danych przestrzennych, podawana jako skala równorzędna, wyrażona za pomocą liczby całkowitej stanowiącej mianownik skali.</string>
+                   </property>
+                   <property name="text">
+                    <string/>
+                   </property>
+                   <property name="pixmap">
+                    <pixmap>../../../../../../../../../../../../../../../img/info1.png</pixmap>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QHBoxLayout">
+                 <item>
+                  <widget class="QPushButton" name="e16_add_btn">
+                   <property name="text">
+                    <string>Dodaj</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="e16_remove_btn">
+                   <property name="text">
+                    <string>Usuń</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <widget class="QListWidget" name="e16_listWidget">
+                 <property name="sortingEnabled">
+                  <bool>false</bool>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <widget class="QGroupBox" name="verticalGroupBox">
+              <layout class="QVBoxLayout" name="verticalLayout_3">
+               <item>
+                <layout class="QHBoxLayout">
+                 <item>
+                  <widget class="QLabel" name="e17_lbl">
+                   <property name="text">
+                    <string>Typ reprezentacji przestrzennej*</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QgsFilterLineEdit" name="e17_lineEdit">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
+                   <property name="text">
+                    <string/>
+                   </property>
+                   <property name="qgisRelation" stdset="0">
+                    <string notr="true"/>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="e17_tooltip">
+                   <property name="toolTip">
+                    <string>Metoda przestrzennej reprezentacji danych zbioru danych przestrzennych.
+
+Element metadanych zawsze przyjmuje wartości: wektor („Vector”) oraz siatka („Grid”).
+</string>
+                   </property>
+                   <property name="text">
+                    <string/>
+                   </property>
+                   <property name="pixmap">
+                    <pixmap>../../../../../../../../../../../../../../../img/info1.png</pixmap>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QHBoxLayout">
+                 <item>
+                  <widget class="QPushButton" name="e17_add_btn">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
+                   <property name="text">
+                    <string>Dodaj</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="e17_remove_btn">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
+                   <property name="text">
+                    <string>Usuń</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <widget class="QListWidget" name="e17_listWidget">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
+                 <property name="sortingEnabled">
+                  <bool>false</bool>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item row="7" column="0" colspan="2">
+          <widget class="QgsCollapsibleGroupBox" name="mGroupBox_7">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>1</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="title">
+            <string>Zgodność*</string>
+           </property>
+           <property name="collapsed">
+            <bool>true</bool>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_2">
+            <property name="sizeConstraint">
+             <enum>QLayout::SetDefaultConstraint</enum>
+            </property>
+            <item>
+             <widget class="QGroupBox" name="verticalGroupBox">
+              <layout class="QVBoxLayout" name="verticalLayout_3">
+               <item>
+                <layout class="QHBoxLayout">
+                 <item>
+                  <widget class="QLabel" name="e18_lbl">
+                   <property name="text">
+                    <string>Specyfikacja*</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QgsFilterLineEdit" name="e18_lineEdit">
+                   <property name="qgisRelation" stdset="0">
+                    <string notr="true"/>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QgsDateTimeEdit" name="e18_dateTimeEdit">
+                   <property name="minimumSize">
+                    <size>
+                     <width>150</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="maximumDate">
+                    <date>
+                     <year>2100</year>
+                     <month>12</month>
+                     <day>31</day>
+                    </date>
+                   </property>
+                   <property name="minimumDate">
+                    <date>
+                     <year>1900</year>
+                     <month>1</month>
+                     <day>1</day>
+                    </date>
+                   </property>
+                   <property name="displayFormat">
+                    <string>dd.MM.yyyy</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QComboBox" name="e18_cmbbx">
+                   <item>
+                    <property name="text">
+                     <string>Data utworzenia</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>Data opublikowania</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>Data ostatniej aktualizacji</string>
+                    </property>
+                   </item>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="e18_tooltip">
+                   <property name="toolTip">
+                    <string>Przytoczenie przepisów lub innej specyfikacji, której odpowiada zbiór danych przestrzennych. 
+&lt;br&gt;
+Przytoczenie powinno obejmować co najmniej:
+&lt;br&gt;•	tytuł,
+&lt;br&gt;•	datę odniesienia.
+&lt;br&gt;
+&lt;br&gt;Należy przytoczyć co najmniej: 
+&lt;br&gt;1.	Rozporządzenie Komisji (UE) Nr 1089/2010 z dnia 23 listopada 2010 r. w sprawie wykonania dyrektywy 2007/2/WE Parlamentu Europejskiego i Rady w zakresie interoperacyjności zbiorów i usług danych przestrzennych z późn. zm.
+&lt;br&gt;2.	Specyfikację danych dla tematu „zagospodarowanie przestrzenne” - D2.8.III.4 Data Specification on Land Use – Technical Guidelines
+&lt;br&gt;3.	Rozporządzenie Ministra Rozwoju w sprawie zbiorów danych przestrzennych oraz metadanych w zakresie zagospodarowania przestrzennego.
+&lt;br&gt;4.	Specyfikację danych „Planowanie przestrzenne”
+</string>
+                   </property>
+                   <property name="text">
+                    <string/>
+                   </property>
+                   <property name="pixmap">
+                    <pixmap>../../../../../../../../../../../../../../../img/info1.png</pixmap>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QHBoxLayout">
+                 <item>
+                  <widget class="QLabel" name="e19_lbl">
+                   <property name="text">
+                    <string>Stopień*</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="horizontalSpacer_7">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item>
+                  <widget class="QComboBox" name="e19_cmbbx">
+                   <item>
+                    <property name="text">
+                     <string>Zgodny (conformant)</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>Niezgodny (notConformant)</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>Brak oceny zgodności (notEvaluated)</string>
+                    </property>
+                   </item>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="e19_tooltip">
+                   <property name="toolTip">
+                    <string>Stopień zgodności zbioru danych przestrzennych z przepisami przytoczonymi w ramach elementu E18 (specyfikacja).</string>
+                   </property>
+                   <property name="text">
+                    <string/>
+                   </property>
+                   <property name="pixmap">
+                    <pixmap>../../../../../../../../../../../../../../../img/info1.png</pixmap>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QHBoxLayout">
+                 <item>
+                  <widget class="QPushButton" name="e18_add_btn">
+                   <property name="text">
+                    <string>Dodaj</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="e18_remove_btn">
+                   <property name="text">
+                    <string>Usuń</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <widget class="QListWidget" name="e18_listWidget">
+                 <property name="sortingEnabled">
+                  <bool>false</bool>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item row="8" column="0" colspan="2">
+          <widget class="QgsCollapsibleGroupBox" name="mGroupBox_8">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>1</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="title">
+            <string>Wymogi dotyczące dostępu i użytkowania*</string>
+           </property>
+           <property name="collapsed">
+            <bool>true</bool>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_2">
+            <property name="sizeConstraint">
+             <enum>QLayout::SetDefaultConstraint</enum>
+            </property>
+            <item>
+             <widget class="QGroupBox" name="verticalGroupBox">
+              <layout class="QVBoxLayout" name="verticalLayout_3">
+               <item>
+                <layout class="QHBoxLayout">
+                 <item>
+                  <widget class="QLabel" name="e20_lbl">
+                   <property name="text">
+                    <string>Warunki dotyczące dostępu i użytkowania*</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QgsFilterLineEdit" name="e20_lineEdit">
+                   <property name="qgisRelation" stdset="0">
+                    <string notr="true"/>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="e20_tooltip">
+                   <property name="toolTip">
+                    <string>Warunki dostępu do zbiorów danych przestrzennych, a w stosownych przypadkach - również informacje o odpowiednich opłatach.
+
+Wartość elementu metadanych zawsze jest równa: Brak warunków dostępu i użytkowania.
+</string>
+                   </property>
+                   <property name="text">
+                    <string/>
+                   </property>
+                   <property name="pixmap">
+                    <pixmap>../../../../../../../../../../../../../../../img/info1.png</pixmap>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QHBoxLayout">
+                 <item>
+                  <widget class="QPushButton" name="e20_add_btn">
+                   <property name="text">
+                    <string>Dodaj</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="e20_remove_btn">
+                   <property name="text">
+                    <string>Usuń</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <widget class="QListWidget" name="e20_listWidget">
+                 <property name="sortingEnabled">
+                  <bool>false</bool>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <layout class="QHBoxLayout">
+              <item>
+               <widget class="QLabel" name="e21_lbl_2">
+                <property name="text">
+                 <string>Ograniczenia w publicznym dostępie*</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QgsFilterLineEdit" name="e21_lineEdit">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="text">
+                 <string>Brak ograniczeń w publicznym dostępie</string>
+                </property>
+                <property name="qgisRelation" stdset="0">
+                 <string notr="true"/>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="e20_tooltip_2">
+                <property name="toolTip">
+                 <string>Informacje dotyczące ograniczeń publicznego dostępu do zbioru danych przestrzennych.
+
+Wartość elementu metadanych zawsze jest równa: Brak ograniczeń w publicznym dostępie.
+</string>
+                </property>
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="pixmap">
+                 <pixmap>../../../../../../../../../../../../../../../img/info1.png</pixmap>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item row="9" column="0" colspan="2">
+          <widget class="QgsCollapsibleGroupBox" name="mGroupBox_9">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>1</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="title">
+            <string>Organizacje odpowiedzialne*</string>
+           </property>
+           <property name="collapsed">
+            <bool>true</bool>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_2">
+            <property name="sizeConstraint">
+             <enum>QLayout::SetDefaultConstraint</enum>
+            </property>
+            <item>
+             <widget class="QGroupBox" name="verticalGroupBox">
+              <layout class="QVBoxLayout" name="verticalLayout_3">
+               <item>
+                <layout class="QHBoxLayout">
+                 <item>
+                  <widget class="QLabel" name="e22_lbl">
+                   <property name="text">
+                    <string>Jednostka odpowiedzialna*</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QgsFilterLineEdit" name="e22_name_lineEdit">
+                   <property name="toolTip">
+                    <string>nazwa jednostki</string>
+                   </property>
+                   <property name="placeholderText">
+                    <string>nazwa jednostki</string>
+                   </property>
+                   <property name="qgisRelation" stdset="0">
+                    <string notr="true"/>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QgsFilterLineEdit" name="e22_mail_lineEdit">
+                   <property name="maximumSize">
+                    <size>
+                     <width>150</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="toolTip">
+                    <string>adres email</string>
+                   </property>
+                   <property name="placeholderText">
+                    <string>adres email</string>
+                   </property>
+                   <property name="qgisRelation" stdset="0">
+                    <string notr="true"/>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="e22_tooltip">
+                   <property name="toolTip">
+                    <string>Opis organizacji odpowiedzialnej za tworzenie, przechowywanie, rozpowszechnianie zbioru danych przestrzennych oraz zarządzanie nim, pozwalający na identyfikację, nawiązanie kontaktu i komunikację z organizacją lub osobami związanymi ze zbiorem danych przestrzennych.
+
+Opis powinien obejmować co najmniej:
+•	nazwę organizacji,
+•	dane kontaktowe (adres poczty elektronicznej).
+
+Co najmniej należy wyspecyfikować jednostkę odpowiedzialną, pełniącą w stosunku do zbioru danych przestrzennych rolę „Administrator”, o której mowa w punkcie 13.5.
+</string>
+                   </property>
+                   <property name="text">
+                    <string/>
+                   </property>
+                   <property name="pixmap">
+                    <pixmap>../../../../../../../../../../../../../../../img/info1.png</pixmap>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QHBoxLayout">
+                 <item>
+                  <widget class="QLabel" name="e23_lbl">
+                   <property name="text">
+                    <string>Rola jednostki odpowiedzialnej*</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="horizontalSpacer_8">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item>
+                  <widget class="QComboBox" name="e23_cmbbx">
+                   <item>
+                    <property name="text">
+                     <string>Administrator (custodian)</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>Dostawca zasobu (resourceProvider)</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>Właściciel (owner)</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>Użytkownik (user)</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>Dystrybutor (distributor)</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>Twórca (originator)</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>Punkt kontaktowy (pointOfContact)</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>Główny badacz (principalInvestigator)</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>Jednostka przetwarzająca (processor)</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>Wydawca (publisher)</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>Autor (author)</string>
+                    </property>
+                   </item>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="e23_tooltip">
+                   <property name="toolTip">
+                    <string>Rola pełniona przez jednostkę odpowiedzialną w stosunku do zbioru danych przestrzennych.</string>
+                   </property>
+                   <property name="text">
+                    <string/>
+                   </property>
+                   <property name="pixmap">
+                    <pixmap>../../../../../../../../../../../../../../../img/info1.png</pixmap>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QHBoxLayout">
+                 <item>
+                  <widget class="QPushButton" name="e22_add_btn">
+                   <property name="text">
+                    <string>Dodaj</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="e22_remove_btn">
+                   <property name="text">
+                    <string>Usuń</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <widget class="QListWidget" name="e22_listWidget">
+                 <property name="sortingEnabled">
+                  <bool>false</bool>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item row="10" column="0" colspan="2">
+          <widget class="QgsCollapsibleGroupBox" name="mGroupBox_10">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>1</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="title">
+            <string>Kodowanie*</string>
+           </property>
+           <property name="collapsed">
+            <bool>true</bool>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_2">
+            <property name="sizeConstraint">
+             <enum>QLayout::SetDefaultConstraint</enum>
+            </property>
+            <item>
+             <widget class="QGroupBox" name="verticalGroupBox">
+              <layout class="QVBoxLayout" name="verticalLayout_3">
+               <item>
+                <layout class="QHBoxLayout">
+                 <item>
+                  <widget class="QLabel" name="e24_lbl">
+                   <property name="text">
+                    <string>Nazwa formatu*</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QgsFilterLineEdit" name="e24_lineEdit">
+                   <property name="qgisRelation" stdset="0">
+                    <string notr="true"/>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="e24_tooltip">
+                   <property name="toolTip">
+                    <string>Nazwa formatu danych, w jakim dokonuje się dystrybucji zbioru danych przestrzennych.</string>
+                   </property>
+                   <property name="text">
+                    <string/>
+                   </property>
+                   <property name="pixmap">
+                    <pixmap>../../../../../../../../../../../../../../../img/info1.png</pixmap>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QHBoxLayout">
+                 <item>
+                  <widget class="QLabel" name="e25_lbl">
+                   <property name="text">
+                    <string>Wersja formatu*</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QgsFilterLineEdit" name="e25_lineEdit">
+                   <property name="qgisRelation" stdset="0">
+                    <string notr="true"/>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="e25_tooltip">
+                   <property name="toolTip">
+                    <string>Wersja formatu danych, w jakim dokonuje się dystrybucji zbioru danych przestrzennych.</string>
+                   </property>
+                   <property name="text">
+                    <string/>
+                   </property>
+                   <property name="pixmap">
+                    <pixmap>../../../../../../../../../../../../../../../img/info1.png</pixmap>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QHBoxLayout">
+                 <item>
+                  <widget class="QPushButton" name="e24_add_btn">
+                   <property name="text">
+                    <string>Dodaj</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="e24_remove_btn">
+                   <property name="text">
+                    <string>Usuń</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <widget class="QListWidget" name="e24_listWidget">
+                 <property name="sortingEnabled">
+                  <bool>false</bool>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item row="11" column="0" colspan="2">
+          <widget class="QgsCollapsibleGroupBox" name="mGroupBox_11">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>1</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="title">
+            <string>Informacje o utrzymaniu zbioru*</string>
+           </property>
+           <property name="collapsed">
+            <bool>true</bool>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_2">
+            <property name="sizeConstraint">
+             <enum>QLayout::SetDefaultConstraint</enum>
+            </property>
+            <item>
+             <layout class="QHBoxLayout">
+              <item>
+               <widget class="QLabel" name="e26_lbl">
+                <property name="text">
+                 <string>Częstotliwość aktualizacji*</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QgsFilterLineEdit" name="e26_lineEdit">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="text">
+                 <string>według potrzeb</string>
+                </property>
+                <property name="qgisRelation" stdset="0">
+                 <string notr="true"/>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="e26_tooltip">
+                <property name="toolTip">
+                 <string>Częstotliwość, z jaką dokonywane są zmiany w zbiorze danych przestrzennych, po tym jak zbiór danych przestrzennych został skompletowany.
+
+Wartości elementu metadanych zawsze jest równa: według potrzeb („asNeeded”).
+</string>
+                </property>
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="pixmap">
+                 <pixmap>../../../../../../../../../../../../../../../img/info1.png</pixmap>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <widget class="QGroupBox" name="verticalGroupBox">
+              <layout class="QVBoxLayout" name="verticalLayout_3">
+               <item>
+                <layout class="QHBoxLayout">
+                 <item>
+                  <widget class="QLabel" name="e27_lbl">
+                   <property name="text">
+                    <string>Informacja o szczegółowych wymaganiach dotyczących utrzymania*</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QgsFilterLineEdit" name="e27_lineEdit">
+                   <property name="qgisRelation" stdset="0">
+                    <string notr="true"/>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="e27_tooltip">
+                   <property name="toolTip">
+                    <string>Szczegółowe informacje dotyczące sposobu przeprowadzania aktualizacji zbioru danych przestrzennych. </string>
+                   </property>
+                   <property name="text">
+                    <string/>
+                   </property>
+                   <property name="pixmap">
+                    <pixmap>../../../../../../../../../../../../../../../img/info1.png</pixmap>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QHBoxLayout">
+                 <item>
+                  <widget class="QPushButton" name="e27_add_btn">
+                   <property name="text">
+                    <string>Dodaj</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="e27_remove_btn">
+                   <property name="text">
+                    <string>Usuń</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <widget class="QListWidget" name="e27_listWidget">
+                 <property name="sortingEnabled">
+                  <bool>false</bool>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <layout class="QHBoxLayout">
+              <item>
+               <widget class="QLabel" name="e28_lbl">
+                <property name="text">
+                 <string>Zakres danych*</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QgsFilterLineEdit" name="e28_lineEdit">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="text">
+                 <string>Zbiór danych przestrzennych (dataset)</string>
+                </property>
+                <property name="qgisRelation" stdset="0">
+                 <string notr="true"/>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="e28_tooltip">
+                <property name="toolTip">
+                 <string>Zakres danych, wobec których stosowana jest aktualizacja.
+
+Wartości elementu metadanych zawsze jest równa: zbiór danych przestrzennych („dataset”).
+</string>
+                </property>
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="pixmap">
+                 <pixmap>../../../../../../../../../../../../../../../img/info1.png</pixmap>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item row="12" column="0" colspan="2">
+          <widget class="QgsCollapsibleGroupBox" name="mGroupBox_12">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>1</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="title">
+            <string>Metadane na temat metadanych*</string>
+           </property>
+           <property name="collapsed">
+            <bool>true</bool>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_2">
+            <property name="sizeConstraint">
+             <enum>QLayout::SetDefaultConstraint</enum>
+            </property>
+            <item>
+             <widget class="QGroupBox" name="verticalGroupBox">
+              <layout class="QVBoxLayout" name="verticalLayout_3">
+               <item>
+                <layout class="QHBoxLayout">
+                 <item>
+                  <widget class="QLabel" name="e29_lbl">
+                   <property name="text">
+                    <string>Punkt kontaktowy metadanych*</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QgsFilterLineEdit" name="e29_name_lineEdit">
+                   <property name="toolTip">
+                    <string>nazwa organizacji</string>
+                   </property>
+                   <property name="placeholderText">
+                    <string>nazwa organizacji</string>
+                   </property>
+                   <property name="qgisRelation" stdset="0">
+                    <string notr="true"/>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QComboBox" name="e29_cmbbx">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
+                   <property name="editable">
+                    <bool>false</bool>
+                   </property>
+                   <item>
+                    <property name="text">
+                     <string>Punkt kontaktowy (pointOfContact)</string>
+                    </property>
+                   </item>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QgsFilterLineEdit" name="e29_mail_lineEdit">
+                   <property name="toolTip">
+                    <string>adres email</string>
+                   </property>
+                   <property name="placeholderText">
+                    <string>adres email</string>
+                   </property>
+                   <property name="qgisRelation" stdset="0">
+                    <string notr="true"/>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="e29_tooltip">
+                   <property name="toolTip">
+                    <string>Opis organizacji odpowiedzialnej za tworzenie i przechowywanie metadanych.
+Opis powinien obejmować co najmniej:
+•	nazwę organizacji,
+•	rolę organizacji,
+•	dane kontaktowe (adres poczty elektronicznej).
+
+Wartość elementu metadanych rola jednostki zawsze jest równa: punkt kontaktowy („contactPoint”).
+</string>
+                   </property>
+                   <property name="text">
+                    <string/>
+                   </property>
+                   <property name="pixmap">
+                    <pixmap>../../../../../../../../../../../../../../../img/info1.png</pixmap>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QHBoxLayout">
+                 <item>
+                  <widget class="QPushButton" name="e29_add_btn">
+                   <property name="text">
+                    <string>Dodaj</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="e29_remove_btn">
+                   <property name="text">
+                    <string>Usuń</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <widget class="QListWidget" name="e29_listWidget">
+                 <property name="sortingEnabled">
+                  <bool>false</bool>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <layout class="QHBoxLayout">
+              <item>
+               <widget class="QLabel" name="e30_lbl">
+                <property name="text">
+                 <string>Data metadanych*</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="horizontalSpacer_9">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item>
+               <widget class="QgsDateTimeEdit" name="e30_dateTimeEdit">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>150</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="displayFormat">
+                 <string>dd.MM.yyyy</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="e30_tooltip">
+                <property name="toolTip">
+                 <string>Data określająca, kiedy utworzono lub zaktualizowano rekord metadanych.
+
+Wartość elementu należy podać z dokładnością dzienną (data dzienna).
+</string>
+                </property>
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="pixmap">
+                 <pixmap>../../../../../../../../../../../../../../../img/info1.png</pixmap>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout">
+              <item>
+               <widget class="QLabel" name="e31_lbl">
+                <property name="text">
+                 <string>Język metadanych*</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QgsFilterLineEdit" name="e31_lineEdit">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="text">
+                 <string>polski</string>
+                </property>
+                <property name="qgisRelation" stdset="0">
+                 <string notr="true"/>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="e31_tooltip">
+                <property name="toolTip">
+                 <string>Język, w którym wyrażone są elementy metadanych.
+
+Wartość elementu metadanych zawsze jest równa: polski.
+</string>
+                </property>
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="pixmap">
+                 <pixmap>../../../../../../../../../../../../../../../img/info1.png</pixmap>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout">
+              <item>
+               <widget class="QLabel" name="e32_lbl">
+                <property name="text">
+                 <string>Unikalny identyfikator rekordu (pliku) metadanych*</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QgsFilterLineEdit" name="e32_lineEdit">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="qgisRelation" stdset="0">
+                 <string notr="true"/>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="e32_btn">
+                <property name="toolTip">
+                 <string>W przypadku nadpisywania (edycji) istniejącego pliku metadanych należy zostawić automatycznie zaczytany identyfikator</string>
+                </property>
+                <property name="text">
+                 <string>Generuj nowy (tylko dla nowych plików)</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="e32_tooltip">
+                <property name="toolTip">
+                 <string>Wartość identyfikująca rekord metadanych w unikalny sposób.
+
+Wartość elementu musi być równa identyfikatorowi UUID.
+</string>
+                </property>
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="pixmap">
+                 <pixmap>../../../../../../../../../../../../../../../img/info1.png</pixmap>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <widget class="QgsCollapsibleGroupBox" name="mGroupBox_12_5">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                <horstretch>1</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="title">
+               <string>Standard metadanych*</string>
+              </property>
+              <layout class="QVBoxLayout" name="verticalLayout_2">
+               <property name="sizeConstraint">
+                <enum>QLayout::SetDefaultConstraint</enum>
+               </property>
+               <item>
+                <layout class="QHBoxLayout">
+                 <item>
+                  <widget class="QLabel" name="e33_lbl">
+                   <property name="text">
+                    <string>Nazwa standardu metadanych*</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QgsFilterLineEdit" name="e33_lineEdit">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
+                   <property name="text">
+                    <string>ISO 19115</string>
+                   </property>
+                   <property name="qgisRelation" stdset="0">
+                    <string notr="true"/>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="e33_tooltip">
+                   <property name="toolTip">
+                    <string>Nazwa standardu metadanych użytego do opisu zbioru danych przestrzennych.</string>
+                   </property>
+                   <property name="text">
+                    <string/>
+                   </property>
+                   <property name="pixmap">
+                    <pixmap>../../../../../../../../../../../../../../../img/info1.png</pixmap>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QHBoxLayout">
+                 <item>
+                  <widget class="QLabel" name="e34_lbl">
+                   <property name="text">
+                    <string>Wersja standardu metadanych*</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QgsFilterLineEdit" name="e34_lineEdit">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
+                   <property name="text">
+                    <string>2005/Amd 1:2008</string>
+                   </property>
+                   <property name="qgisRelation" stdset="0">
+                    <string notr="true"/>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="e34_tooltip">
+                   <property name="toolTip">
+                    <string>Wersja standardu metadanych użytego do opisu zbioru.</string>
+                   </property>
+                   <property name="text">
+                    <string/>
+                   </property>
+                   <property name="pixmap">
+                    <pixmap>../../../../../../../../../../../../../../../img/info1.png</pixmap>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+              </layout>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="empty1_lbl">
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <layout class="QGridLayout" name="gridLayout"/>
+     </item>
+     <item>
+      <widget class="QLabel" name="empty2_lbl">
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_3">
+       <item>
+        <widget class="QPushButton" name="prev_btn">
+         <property name="text">
+          <string>Wstecz</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer_4">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QPushButton" name="validateAndSave_btn">
+         <property name="text">
+          <string>Generuj</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="close_btn">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
+         <property name="text">
+          <string>Zakończ</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QgsCollapsibleGroupBox</class>
+   <extends>QGroupBox</extends>
+   <header>qgscollapsiblegroupbox.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>QgsDateTimeEdit</class>
+   <extends>QDateTimeEdit</extends>
+   <header>qgsdatetimeedit.h</header>
+  </customwidget>
+  <customwidget>
+   <class>QgsFileWidget</class>
+   <extends>QWidget</extends>
+   <header>qgsfilewidget.h</header>
+  </customwidget>
+  <customwidget>
+   <class>QgsFilterLineEdit</class>
+   <extends>QLineEdit</extends>
+   <header>qgsfilterlineedit.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>
