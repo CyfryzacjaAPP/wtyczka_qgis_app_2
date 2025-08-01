@@ -53,12 +53,10 @@ class WtyczkaAPP(AppModule, MetadataModule, ValidatorModule, TworzenieOUZModule,
     """QGIS Plugin Implementation."""
 
     def __init__(self, iface):
-        global numerZbioru, jpt, parametrUstawienMakr, komunikatMakr
+        global numerZbioru, jpt
         s = QgsSettings()
         numerZbioru = s.value("qgis_app2/settings/numerZbioru", "")
         jpt = s.value("qgis_app2/settings/jpt", "")
-        parametrUstawienMakr = s.value("qgis/enableMacros")
-        komunikatMakr = "Wtyczka wymaga używania makr. Szczegółowe informacje na ten temat znajdziesz w instrukcji użytkownika.\nPo zmianie ustawień QGIS wyłącz i włącz program QGIS lub użyj wtyczki \"Plugin Reloader\" w celu zastosowania zmian."
         
         # wczytanie modułów
         AppModule.__init__(self, iface)
@@ -203,62 +201,34 @@ class WtyczkaAPP(AppModule, MetadataModule, ValidatorModule, TworzenieOUZModule,
     """Action handlers"""
     # region action handlers
     def run_app(self):
-        if parametrUstawienMakr in ['Never','NotForThisSession']:
-            showPopup("Informacja", komunikatMakr)
-            return
-        
         if self.czyPoprawneUstawienia():
             self.openNewDialog(self.pytanieAppDialog)
 
 
     def run_metadata(self):
-        if parametrUstawienMakr in ['Never','NotForThisSession']:
-            showPopup("Informacja", komunikatMakr)
-            return
-        
         if self.czyPoprawneUstawienia():
             self.openNewDialog(self.metadaneDialog)
             self.metadaneDialog.prev_btn.setEnabled(False)
 
 
     def run_settings(self):
-        if parametrUstawienMakr in ['Never','NotForThisSession']:
-            showPopup("Informacja", komunikatMakr)
-            return
-        
         self.openNewDialog(self.ustawieniaDialog)
 
 
     def run_help(self):
-        if parametrUstawienMakr in ['Never','NotForThisSession']:
-            showPopup("Informacja", komunikatMakr)
-            return
-        
         self.openNewDialog(self.pomocDialog)
 
 
     def run_validator(self):
-        if parametrUstawienMakr in ['Never','NotForThisSession']:
-            showPopup("Informacja", komunikatMakr)
-            return
-            
         self.openNewDialog(self.walidacjaDialog)
 
 
     def run_analizy(self):
-        if parametrUstawienMakr in ['Never','NotForThisSession']:
-            showPopup("Informacja", komunikatMakr)
-            return
-        
         if self.czyPoprawneUstawienia():
             self.openNewDialog(self.analizyDialog)
 
 
     def run_OUZ(self):
-        if parametrUstawienMakr in ['Never','NotForThisSession']:
-            showPopup("Informacja", komunikatMakr)
-            return
-        
         if self.czyPoprawneUstawienia():
             ouz_dlg = self.tworzenieOUZDialog
             self.openNewDialog(ouz_dlg)

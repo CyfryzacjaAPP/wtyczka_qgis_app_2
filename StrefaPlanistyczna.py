@@ -19,7 +19,6 @@ from PyQt5.QtCore import QDateTime, QDate, QTime, QRegExp
 import locale
 from qgis.utils import iface
 import os
-import wtyczka_qgis_app.resources
 
 
 def my_form_open(dialog, layer, feature):
@@ -33,7 +32,7 @@ def my_form_open(dialog, layer, feature):
         global rodzajZbioru, numerZbioru, jpt, idLokalnyAPP
         global maksNadziemnaIntensywnoscZabudowy_label, maksWysokoscZabudowy_label, maksUdzialPowierzchniZabudowy_label
         global minUdzialPowierzchniBiologicznieCzynnej_label
-        global tablicaZmian, czyZmianaJestDopuszczalna
+        global czyObiektZmieniony, czyWersjaZmieniona, czyZmianaJestDopuszczalna
         global kontrolaAtrybutu, kontrolaAtrybutu_CB, fid
         
         os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '1'
@@ -46,8 +45,8 @@ def my_form_open(dialog, layer, feature):
             return
         
         dlg.parent().setWindowTitle("Atrybuty SP, nazwa warstwy: " + layer.name())
-        dlg.parent().setMaximumWidth(850)
-        dlg.parent().setMaximumHeight(570)
+        dlg.parent().setMaximumWidth(780)
+        dlg.parent().setMaximumHeight(550)
         
         warstwa = layer
         warstwa.startEditing()
@@ -55,6 +54,7 @@ def my_form_open(dialog, layer, feature):
         
         mainPath = Path(QgsApplication.qgisSettingsDirPath())/Path("python/plugins/wtyczka_qgis_app/")
         teryt_gminy = ''
+        czyObiektZmieniony = False
         czyZmianaJestDopuszczalna = False
         dataCzasTeraz = QDateTime.currentDateTimeUtc()
         kontrolaAtrybutu_CB = []
@@ -240,7 +240,6 @@ def my_form_open(dialog, layer, feature):
         przestrzenNazw = dialog.findChild(QLineEdit,"przestrzenNazw")
         przestrzenNazw.setToolTip('')
         przestrzenNazw.setPlaceholderText(placeHolders['przestrzenNazw'])
-        przestrzenNazw.textChanged.connect(przestrzenNazw_kontrola)
         
         lokalnyId = dialog.findChild(QLineEdit,"lokalnyId")
         lokalnyId.setToolTip('')
@@ -285,6 +284,7 @@ def my_form_open(dialog, layer, feature):
         status_kontrola(status.currentText())
         
         koniecWersjiObiektu.dateTimeChanged.connect(poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola)
+        koniecWersjiObiektu.setMaximumDate(QDate.currentDate())
         
         nazwa.currentTextChanged.connect(nazwa_kontrola)
         if obj.id() < 0 and obj['nazwa'] == None:
@@ -319,7 +319,7 @@ def my_form_open(dialog, layer, feature):
         wlaczenieWylaczenieProfiliDoEdycji()
         
         maksNadziemnaIntensywnoscZabudowy = dialog.findChild(QLineEdit,"maksNadziemnaIntensywnoscZabudowy")
-        maksNadziemnaIntensywnoscZabudowy.setValidator(QRegExpValidator(QRegExp(r"(?!0\d)\d{0,3}(?:[\.]\d)?$"),))
+        maksNadziemnaIntensywnoscZabudowy.setValidator(QRegExpValidator(QRegExp("(?!0\d)\d{0,3}(?:[\.]\d)?$"),))
         maksNadziemnaIntensywnoscZabudowy_label = dialog.findChild(QLabel,"maksNadziemnaIntensywnoscZabudowy_label")
         maksNadziemnaIntensywnoscZabudowy.setPlaceholderText(placeHolders['maksNadziemnaIntensywnoscZabudowy'])
         maksNadziemnaIntensywnoscZabudowy.setText(maksNadziemnaIntensywnoscZabudowy.text().replace(",","."))
@@ -327,7 +327,7 @@ def my_form_open(dialog, layer, feature):
         maksNadziemnaIntensywnoscZabudowy.textChanged.connect(maksNadziemnaIntensywnoscZabudowy_kontrola)
         
         maksUdzialPowierzchniZabudowy = dialog.findChild(QLineEdit,"maksUdzialPowierzchniZabudowy")
-        maksUdzialPowierzchniZabudowy.setValidator(QRegExpValidator(QRegExp(r"^(?!0\d)\d{0,2}(?:\.\d)?|100(?:\.0)?$")))
+        maksUdzialPowierzchniZabudowy.setValidator(QRegExpValidator(QRegExp("^(?!0\d)\d{0,2}(?:\.\d)?|100(?:\.0)?$")))
         maksUdzialPowierzchniZabudowy_label = dialog.findChild(QLabel,"maksUdzialPowierzchniZabudowy_label")
         maksUdzialPowierzchniZabudowy.setPlaceholderText(placeHolders['maksUdzialPowierzchniZabudowy'])
         maksUdzialPowierzchniZabudowy.setText(maksUdzialPowierzchniZabudowy.text().replace(",","."))
@@ -335,7 +335,7 @@ def my_form_open(dialog, layer, feature):
         maksUdzialPowierzchniZabudowy.textChanged.connect(maksUdzialPowierzchniZabudowy_kontrola)
         
         maksWysokoscZabudowy = dialog.findChild(QLineEdit,"maksWysokoscZabudowy")
-        maksWysokoscZabudowy.setValidator(QRegExpValidator(QRegExp(r"^(?!0\d)\d{0,3}(?:[\.]\d)?$")))
+        maksWysokoscZabudowy.setValidator(QRegExpValidator(QRegExp("^(?!0\d)\d{0,3}(?:[\.]\d)?$")))
         maksWysokoscZabudowy_label = dialog.findChild(QLabel,"maksWysokoscZabudowy_label")
         maksWysokoscZabudowy.setPlaceholderText(placeHolders['maksWysokoscZabudowy'])
         maksWysokoscZabudowy.setText(maksWysokoscZabudowy.text().replace(",","."))
@@ -343,7 +343,7 @@ def my_form_open(dialog, layer, feature):
         maksWysokoscZabudowy.textChanged.connect(maksWysokoscZabudowy_kontrola)
         
         minUdzialPowierzchniBiologicznieCzynnej = dialog.findChild(QLineEdit,"minUdzialPowierzchniBiologicznieCzynnej")
-        minUdzialPowierzchniBiologicznieCzynnej.setValidator(QRegExpValidator(QRegExp(r"^(?:[1-9]\d?|0|1[0-4]\d?|150)(?:[\.]\d)?$")))
+        minUdzialPowierzchniBiologicznieCzynnej.setValidator(QRegExpValidator(QRegExp("^(?:[1-9]\d?|0|1[0-4]\d?|150)(?:[\.]\d)?$")))
         minUdzialPowierzchniBiologicznieCzynnej_label = dialog.findChild(QLabel,"minUdzialPowierzchniBiologicznieCzynnej_label")
         minUdzialPowierzchniBiologicznieCzynnej.setPlaceholderText(placeHolders['minUdzialPowierzchniBiologicznieCzynnej'])
         minUdzialPowierzchniBiologicznieCzynnej.setText(minUdzialPowierzchniBiologicznieCzynnej.text().replace(",","."))
@@ -353,7 +353,7 @@ def my_form_open(dialog, layer, feature):
         geometria_kontrola()
         poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola()
         
-        tablicaZmian = [0] * len(warstwa.fields())
+        czyWersjaZmieniona = False
         
         zapisz.clicked.connect(zapis)
         zapisz.setEnabled(False)
@@ -397,7 +397,6 @@ def my_form_open(dialog, layer, feature):
         
         warstwa.geometryChanged.connect(on_geometry_changed)
         czyZmianaJestDopuszczalna = True
-        przestrzenNazw_kontrola()
     except Exception as e:
         pass
 
@@ -408,33 +407,42 @@ def komunikowanieBledu(object, txt, nazwaAtrybutu):
         if txt == '':
             listaBledowAtrybutow[warstwa.fields().indexFromName(nazwaAtrybutu)] = 0
             object.setStyleSheet("")
+            wlaczenieZapisu()
         else:
             listaBledowAtrybutow[warstwa.fields().indexFromName(nazwaAtrybutu)] = 1
             object.setStyleSheet("border: 1px solid red")
+            wylaczenieZapisu()
     except Exception as e:
         pass
 
 
 def zmianaWersjiIPoczatkuWersji():
-    if sum(listaBledowAtrybutow) > 0 or not czyZmianaJestDopuszczalna or sum(tablicaZmian) == 1:
-        wersjaId.setDateTime(datetime.strptime(obj['wersjaId'], "%Y%m%dT%H%M%S"))
-    
-    KWO_dateTime = koniecWersjiObiektu.dateTime()
     dataCzasTeraz = QDateTime.currentDateTimeUtc()
-    
-    if KWO_dateTime.time().msec() != 0 and KWO_dateTime.date().year() != 1 and sum(tablicaZmian) > 0:
+    if czyObiektZmieniony and koniecWersjiObiektu.dateTime().time().msec() != 0 and koniecWersjiObiektu.dateTime().date().year() != 1 and not czyWersjaZmieniona:
         wersjaId.setDateTime(dataCzasTeraz)
-    else:
-        wlaczenieLubWylaczenieZapisu()
+        poczatekWersjiObiektu.disconnect()
+        poczatekWersjiObiektu.setDateTime(dataCzasTeraz)
+        poczatekWersjiObiektu.dateTimeChanged.connect(poczatekWersjiObiektu_kontrola)
+        przestrzenNazw_kontrola()
 
 
-def wlaczenieLubWylaczenieZapisu():
-    global zapisz
+def wlaczenieZapisu():
+    global czyObiektZmieniony, zapisz
     try:
-        if sum(listaBledowAtrybutow) == 0 and warstwa.isEditable() and czyZmianaJestDopuszczalna and sum(tablicaZmian) > 0:
+        if sum(listaBledowAtrybutow) == 0 and warstwa.isEditable() and czyZmianaJestDopuszczalna:
             zapisz.setEnabled(True)
             zapisz.setText("Zapisz")
-        else:
+            czyObiektZmieniony = True
+            zmianaWersjiIPoczatkuWersji()
+    except Exception as e:
+        pass
+
+
+def wylaczenieZapisu():
+    global czyObiektZmieniony, zapisz
+    try:
+        if sum(listaBledowAtrybutow) != 0 or (not warstwa.isEditable() and not czyZmianaJestDopuszczalna):
+            czyObiektZmieniony = False
             zapisz.setEnabled(False)
     except Exception as e:
         pass
@@ -487,11 +495,8 @@ def przestrzenNazw_kontrola():
             txt = 'PL.ZIPPZP.' + numerZbioru + '/' + jpt + '-' + rodzajZbioru
             if przestrzenNazw.text() != txt:
                 przestrzenNazw.setText(txt)
-                zmianaWTablicyZmian(txt, 'przestrzenNazw')
                 komunikowanieBledu(przestrzenNazw,'','przestrzenNazw')
             teryt_gminy = przestrzenNazw.text().split("/")[1].split("-")[0]
-        
-        zmianaWersjiIPoczatkuWersji()
     except Exception as e:
         pass
 
@@ -510,21 +515,22 @@ def lokalnyId_kontrola(txt):
 
 
 def wersjaId_kontrola():
+    global czyWersjaZmieniona
     try:
-        zmianaWTablicyZmian(wersjaId.dateTime().toString("yyyyMMdd'T'hhmmss"), 'wersjaId')
         if koniecWersjiObiektu.dateTime().time().msec() != 0 and koniecWersjiObiektu.dateTime().date().year() != 1:
             poczatekWersjiObiektu.disconnect()
             poczatekWersjiObiektu.setDateTime(wersjaId.dateTime())
             poczatekWersjiObiektu.dateTimeChanged.connect(poczatekWersjiObiektu_kontrola)
-        wlaczenieLubWylaczenieZapisu()
     except Exception as e:
         pass
 
 
 def poczatekWersjiObiektu_kontrola():
+    global czyWersjaZmieniona
     try:
         if koniecWersjiObiektu.dateTime().time().msec() != 0 and koniecWersjiObiektu.dateTime().date().year() != 1:
             wersjaId.setDateTime(poczatekWersjiObiektu.dateTime())
+            czyWersjaZmieniona = True
         poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola()
     except Exception as e:
         pass
@@ -532,7 +538,6 @@ def poczatekWersjiObiektu_kontrola():
 
 def oznaczenie_kontrola(txt):
     try:
-        zmianaWTablicyZmian(txt, 'oznaczenie')
         if re.match('^[1-9][0-9]{0,4}$', txt) != None and symbol.currentText() != 'wybierz':
             pozycjaKursora = len(txt)
             txt = str(txt) + symbol.currentText()
@@ -552,8 +557,6 @@ def oznaczenie_kontrola(txt):
                 komunikowanieBledu(oznaczenie,'','oznaczenie')
         if not czyWartoscAtrybutuJestUnikalna('oznaczenie',txt) and kontrolaAtrybutu['oznaczenie'] == 2:
             komunikowanieBledu(oznaczenie,'Oznaczenie nie jest unikalne w ramach warstwy.','oznaczenie')
-        
-        zmianaWersjiIPoczatkuWersji()
     except Exception as e:
         pass
 
@@ -561,7 +564,6 @@ def oznaczenie_kontrola(txt):
 def symbol_kontrola(txt):
     global symbolTXT
     try:
-        zmianaWTablicyZmian(txt, 'symbol')
         if txt == 'wybierz':
             komunikowanieBledu(symbol,'Symbol jest polem obowiązkowym','symbol')
             komunikowanieBledu(profilPodstawowy_QCCB,'Należy wybrać symbol lub nazwę','profilPodstawowy')
@@ -588,10 +590,6 @@ def symbol_kontrola(txt):
         maksUdzialPowierzchniZabudowy_kontrola(maksUdzialPowierzchniZabudowy.text())
         maksWysokoscZabudowy_kontrola(maksWysokoscZabudowy.text())
         minUdzialPowierzchniBiologicznieCzynnej_kontrola(minUdzialPowierzchniBiologicznieCzynnej.text())
-        
-        if tablicaZmian[warstwa.fields().indexFromName('symbol')] == 0:
-            profilDodatkowy_reader()
-            oznaczenie.setText(obj['oznaczenie'])
     except:
         pass
 
@@ -605,7 +603,6 @@ def charakterUstalenia_kontrola(txt):
 
 def status_kontrola(txt):
     try:
-        zmianaWTablicyZmian(txt, 'status')
         if txt == 'wybierz' or txt == None:
             komunikowanieBledu(status,'Należy wybrać wartość pola status','status')
         else:
@@ -616,8 +613,6 @@ def status_kontrola(txt):
                 komunikowanieBledu(obowiazujeDo, 'Należy wybrać datę dla "obowiązuje do"', 'obowiazujeDo')
         else:
             poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola()
-        
-        zmianaWersjiIPoczatkuWersji()
     except Exception as e:
         pass
 
@@ -628,16 +623,6 @@ def poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola():
         obowiazujeDoTxt = obowiazujeDo.dateTime().toString("H:mm")
         koniecWersjiObiektuTxt = koniecWersjiObiektu.dateTime().toString("H:mm")
         
-        if obowiazujeOdTxt in ['0:00','23:59']:
-            zmianaWTablicyZmian(obowiazujeOd.date(), 'obowiazujeOd')
-        else:
-            zmianaWTablicyZmian(NULL, 'obowiazujeOd')
-        
-        if obowiazujeDoTxt in ['0:00','23:59']:
-            zmianaWTablicyZmian(obowiazujeDo.date(), 'obowiazujeDo')
-        else:
-            zmianaWTablicyZmian(NULL, 'obowiazujeDo')
-        
         if obowiazujeOdTxt not in ['0:00','23:59'] and kontrolaAtrybutu['obowiazujeOd'] == 2:
             komunikowanieBledu(obowiazujeOd, 'Należy wybrać datę dla "obowiązuje od"', 'obowiazujeOd')
         else:
@@ -645,7 +630,7 @@ def poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola():
                 komunikowanieBledu(obowiazujeOd, 'Atrybut "obowiązuje od" nie może być większy lub równy od "obowiązuje do".', 'obowiazujeOd')
             else:
                 komunikowanieBledu(obowiazujeOd, '', 'obowiazujeOd')
-        if koniecWersjiObiektu.dateTime().time().msec() == 0 and koniecWersjiObiektu.dateTime().date().year() != 1 and poczatekWersjiObiektu.dateTime() >= koniecWersjiObiektu.dateTime():
+        if koniecWersjiObiektuTxt in ['0:00','23:59'] and koniecWersjiObiektu.dateTime().date().year() != 1 and poczatekWersjiObiektu.dateTime() >= koniecWersjiObiektu.dateTime():
             komunikowanieBledu(poczatekWersjiObiektu,'Koniec wersji obiektu musi być późniejszy niż początek wersji obiektu','poczatekWersjiObiektu')
             komunikowanieBledu(koniecWersjiObiektu,'Koniec wersji obiektu musi być późniejszy niż początek wersji obiektu','koniecWersjiObiektu')
         else:
@@ -663,13 +648,6 @@ def poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola():
                     komunikowanieBledu(obowiazujeOd, 'Atrybut "obowiązuje od" nie może być większy lub równy od "obowiązuje do".', 'obowiazujeOd')
                 else:
                     komunikowanieBledu(obowiazujeDo, '', 'obowiazujeDo')
-        
-        if koniecWersjiObiektu.dateTime().toString("zzz") == '000' and koniecWersjiObiektu.dateTime().toString("H:mm:ss") != '0:00:00':
-            zmianaWTablicyZmian(koniecWersjiObiektu.dateTime(), 'koniecWersjiObiektu')
-        else:
-            zmianaWTablicyZmian(NULL, 'koniecWersjiObiektu')
-        
-        zmianaWersjiIPoczatkuWersji()
     except Exception as e:
         pass
 
@@ -688,9 +666,8 @@ def nazwa_kontrola(txt):
 
 def nazwaAlternatywna_kontrola(txt):
     try:
-        zmianaWTablicyZmian(txt, 'nazwaAlternatywna')
         nazwaAlternatywna.setPlaceholderText(placeHolders['nazwaAlternatywna'])
-        zmianaWersjiIPoczatkuWersji()
+        komunikowanieBledu(nazwaAlternatywna,'','nazwaAlternatywna')
     except Exception as e:
         pass
 
@@ -737,8 +714,7 @@ def profilDodatkowy_QCCB_kontrola(lista):
             profilDodatkowy.setText(','.join(lista))
         else:
             profilDodatkowy.setText('')
-        zmianaWTablicyZmian(profilDodatkowy.text(), 'profilDodatkowy')
-        zmianaWersjiIPoczatkuWersji()
+        komunikowanieBledu(profilDodatkowy_QCCB,'','profilDodatkowy_QCCB')
     except Exception as e:
         pass
 
@@ -770,7 +746,6 @@ def profilDodatkowy_createList():
 
 def maksNadziemnaIntensywnoscZabudowy_kontrola(txt):
     try:
-        zmianaWTablicyZmian(txt, 'maksNadziemnaIntensywnoscZabudowy')
         separator_dziesietny = locale.localeconv()['decimal_point']
         txt = txt.replace(",", separator_dziesietny)
         if (txt != '' and not symbol.currentText() in ['SW','SJ','SZ','SU','SH','SP','SR'] and not 0 <= float(txt) <= 350) and kontrolaAtrybutu['maksNadziemnaIntensywnoscZabudowy'] == 2:
@@ -785,15 +760,12 @@ def maksNadziemnaIntensywnoscZabudowy_kontrola(txt):
             maksNadziemnaIntensywnoscZabudowy_label.setText("maksymalna nadziemna intensywność zabudowy*")
         else:
             maksNadziemnaIntensywnoscZabudowy_label.setText("maksymalna nadziemna intensywność zabudowy")
-        
-        zmianaWersjiIPoczatkuWersji()
     except Exception as e:
         pass
 
 
 def maksUdzialPowierzchniZabudowy_kontrola(txt):
     try:
-        zmianaWTablicyZmian(txt, 'maksUdzialPowierzchniZabudowy')
         separator_dziesietny = locale.localeconv()['decimal_point']
         txt = txt.replace(",", separator_dziesietny)
         if (txt != '' and not symbol.currentText() in ['SW','SJ','SZ','SU','SH','SP','SR'] and not 0 <= float(txt) <= 100) and kontrolaAtrybutu['maksUdzialPowierzchniZabudowy'] == 2:
@@ -810,15 +782,12 @@ Wartość musi być podana dla: ' + nazwa.currentText(),'maksUdzialPowierzchniZa
             maksUdzialPowierzchniZabudowy_label.setText("maksymalny udział powierzchnii zabudowy*")
         else:
             maksUdzialPowierzchniZabudowy_label.setText("maksymalny udział powierzchnii zabudowy")
-        
-        zmianaWersjiIPoczatkuWersji()
     except Exception as e:
         pass
 
 
 def maksWysokoscZabudowy_kontrola(txt):
     try:
-        zmianaWTablicyZmian(txt, 'maksWysokoscZabudowy')
         if symbol.currentText() in ['SW','SJ','SZ','SU','SH','SP','SR'] and txt == '' and kontrolaAtrybutu['maksWysokoscZabudowy'] == 2:
             komunikowanieBledu(maksWysokoscZabudowy,'Wartość atrybutu podaje się z dokładnością do pierwszego miejsca po przecinku. Wartość musi być podana dla: ' + nazwa.currentText(),'maksWysokoscZabudowy')
         else:
@@ -829,18 +798,14 @@ def maksWysokoscZabudowy_kontrola(txt):
             maksWysokoscZabudowy_label.setText("maksymalna wysokość zabudowy*")
         else:
             maksWysokoscZabudowy_label.setText("maksymalna wysokość zabudowy")
-        
-        zmianaWersjiIPoczatkuWersji()
     except Exception as e:
         pass
 
 
 def minUdzialPowierzchniBiologicznieCzynnej_kontrola(txt):
     try:
-        zmianaWTablicyZmian(txt, 'minUdzialPowierzchniBiologicznieCzynnej')
-        if txt != '':
-            separator_dziesietny = locale.localeconv()['decimal_point']
-            txt = txt.replace(",", separator_dziesietny)
+        separator_dziesietny = locale.localeconv()['decimal_point']
+        txt = txt.replace(",", separator_dziesietny)
         if not (symbol.currentText() in ['SG','SO','SK','wybierz']) and (txt == '' or not 0 <= float(txt) <= 150) and kontrolaAtrybutu['minUdzialPowierzchniBiologicznieCzynnej'] == 2:
             komunikowanieBledu(minUdzialPowierzchniBiologicznieCzynnej,'Minimalny udział powierzchni biologicznie czynnej powinien być w przedziale <0; 150>%.','minUdzialPowierzchniBiologicznieCzynnej')
         else:
@@ -851,8 +816,6 @@ def minUdzialPowierzchniBiologicznieCzynnej_kontrola(txt):
             minUdzialPowierzchniBiologicznieCzynnej_label.setText("minimalny udział powierzchni biologicznie czynnej*")
         else:
             minUdzialPowierzchniBiologicznieCzynnej_label.setText("minimalny udział powierzchni biologicznie czynnej")
-        
-        zmianaWersjiIPoczatkuWersji()
     except Exception as e:
         pass
 
@@ -1033,7 +996,6 @@ def operacjeNaAtrybucie(nazwaAtrybutu):
             elif atrybut == 'minUdzialPowierzchniBiologicznieCzynnej':
                 globals().get(atrybutKontrola[atrybut])(minUdzialPowierzchniBiologicznieCzynnej.text())
         czyZmianaJestDopuszczalna = True
-        wlaczenieLubWylaczenieZapisu()
     
     def hurtowaZmianaArybutuWRamachWarstw():
         if obj.id() < 0:
@@ -1247,26 +1209,6 @@ Czy uspójnić "obowiązuje od" dla obiektów nowych lub zmienionych w ramach ws
             uspojnienieDatyObowiazujeOd()
 
 
-def zmianaWTablicyZmian(txt, nazwaAtrybutu):
-    global tablicaZmian
-    if czyZmianaJestDopuszczalna:
-        if txt == '':
-            txt = NULL
-        
-        if obj[nazwaAtrybutu] == '':
-            attr = NULL
-        else:
-            attr = obj[nazwaAtrybutu]
-        
-        if txt != NULL and isinstance(obj[nazwaAtrybutu], float):
-            txt = float(txt)
-        
-        if txt == attr:
-            tablicaZmian[warstwa.fields().indexFromName(nazwaAtrybutu)] = 0
-        else:
-            tablicaZmian[warstwa.fields().indexFromName(nazwaAtrybutu)] = 1
-
-
 def dialogRejected():
     try:
         global obj, dlg, warstwa, listaBledowAtrybutow, placeHolders, teryt_gminy, mapaNazwaSymbol, mapaSymbolProfilDodatkowy
@@ -1278,7 +1220,7 @@ def dialogRejected():
         global rodzajZbioru, numerZbioru, jpt, idLokalnyAPP
         global maksNadziemnaIntensywnoscZabudowy_label, maksWysokoscZabudowy_label, maksUdzialPowierzchniZabudowy_label
         global minUdzialPowierzchniBiologicznieCzynnej_label
-        global tablicaZmian, kontrolaAtrybutu, kontrolaAtrybutu_CB, fid
+        global czyObiektZmieniony, czyWersjaZmieniona, kontrolaAtrybutu, kontrolaAtrybutu_CB, fid
         
         del obj, dlg, warstwa, listaBledowAtrybutow, placeHolders, teryt_gminy, mapaNazwaSymbol, mapaSymbolProfilDodatkowy
         del zapisz, przestrzenNazw, koniecWersjiObiektu, lokalnyId, wersjaId, poczatekWersjiObiektu, nazwa, oznaczenie, symbol, symbolTXT
@@ -1289,6 +1231,6 @@ def dialogRejected():
         del rodzajZbioru, numerZbioru, jpt, idLokalnyAPP
         del maksNadziemnaIntensywnoscZabudowy_label, maksWysokoscZabudowy_label, maksUdzialPowierzchniZabudowy_label
         del minUdzialPowierzchniBiologicznieCzynnej_label
-        del tablicaZmian, kontrolaAtrybutu, kontrolaAtrybutu_CB, fid
+        del czyObiektZmieniony, czyWersjaZmieniona, kontrolaAtrybutu, kontrolaAtrybutu_CB, fid
     except Exception as e:
         pass

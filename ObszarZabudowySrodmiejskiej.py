@@ -17,7 +17,6 @@ from qgis.core import QgsProject, NULL, QgsSettings, QgsMessageLog
 from PyQt5.QtCore import QDateTime, QDate, QTime
 import ctypes
 from qgis.utils import iface
-import wtyczka_qgis_app.resources
 
 
 def my_form_open(dialog, layer, feature):
@@ -26,7 +25,7 @@ def my_form_open(dialog, layer, feature):
         global zapisz, przestrzenNazw, koniecWersjiObiektu, lokalnyId, wersjaId, poczatekWersjiObiektu, nazwa, oznaczenie, symbol
         global charakterUstalenia, status, obowiazujeOd, obowiazujeDo, obowiazujeOd_label, obowiazujeDo_label
         global rodzajZbioru, numerZbioru, jpt, idLokalnyAPP
-        global tablicaZmian, czyZmianaJestDopuszczalna
+        global czyObiektZmieniony, czyWersjaZmieniona, czyZmianaJestDopuszczalna
         global kontrolaAtrybutu, kontrolaAtrybutu_CB, fid
         
         atrybuty = feature.attributes()
@@ -38,7 +37,7 @@ def my_form_open(dialog, layer, feature):
             return
         
         dlg.parent().setWindowTitle("Atrybuty OZS, nazwa warstwy: " + layer.name())
-        dlg.parent().setMaximumWidth(500)
+        dlg.parent().setMaximumWidth(423)
         dlg.parent().setMaximumHeight(380)
         
         warstwa = layer
@@ -47,6 +46,7 @@ def my_form_open(dialog, layer, feature):
         
         mainPath = Path(QgsApplication.qgisSettingsDirPath())/Path("python/plugins/wtyczka_qgis_app/")
         teryt_gminy = ''
+        czyObiektZmieniony = False
         czyZmianaJestDopuszczalna = False
         dataCzasTeraz = QDateTime.currentDateTimeUtc()
         kontrolaAtrybutu_CB = []
@@ -106,7 +106,6 @@ def my_form_open(dialog, layer, feature):
         przestrzenNazw = dialog.findChild(QLineEdit,"przestrzenNazw")
         przestrzenNazw.setToolTip('')
         przestrzenNazw.setPlaceholderText(placeHolders['przestrzenNazw'])
-        przestrzenNazw.textChanged.connect(przestrzenNazw_kontrola)
         
         lokalnyId = dialog.findChild(QLineEdit,"lokalnyId")
         lokalnyId.setToolTip('')
@@ -149,11 +148,11 @@ def my_form_open(dialog, layer, feature):
         status_kontrola(status.currentText())
         
         koniecWersjiObiektu.valueChanged.connect(poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola)
+        koniecWersjiObiektu.setMaximumDate(QDate.currentDate())
         
         geometria_kontrola()
         poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola()
-        
-        tablicaZmian = [0] * len(warstwa.fields())
+        czyWersjaZmieniona = False
         
         zapisz.clicked.connect(zapis)
         zapisz.setEnabled(False)
@@ -190,7 +189,6 @@ def my_form_open(dialog, layer, feature):
         
         warstwa.geometryChanged.connect(on_geometry_changed)
         czyZmianaJestDopuszczalna = True
-        przestrzenNazw_kontrola()
     except Exception as e:
         pass
 
@@ -201,33 +199,42 @@ def komunikowanieBledu(object, txt, nazwaAtrybutu):
         if txt == '':
             listaBledowAtrybutow[warstwa.fields().indexFromName(nazwaAtrybutu)] = 0
             object.setStyleSheet("")
+            wlaczenieZapisu()
         else:
             listaBledowAtrybutow[warstwa.fields().indexFromName(nazwaAtrybutu)] = 1
             object.setStyleSheet("border: 1px solid red")
+            wylaczenieZapisu()
     except Exception as e:
         pass
 
 
 def zmianaWersjiIPoczatkuWersji():
-    if sum(listaBledowAtrybutow) > 0 or not czyZmianaJestDopuszczalna or sum(tablicaZmian) == 1:
-        wersjaId.setDateTime(datetime.strptime(obj['wersjaId'], "%Y%m%dT%H%M%S"))
-    
-    KWO_dateTime = koniecWersjiObiektu.dateTime()
-    dataCzasTeraz = QDateTime.currentDateTimeUtc()
-    
-    if KWO_dateTime.time().msec() != 0 and KWO_dateTime.date().year() != 1 and sum(tablicaZmian) > 0:
+    dataCzasTeraz = datetime.utcnow()
+    if czyObiektZmieniony and koniecWersjiObiektu.dateTime().time().msec() != 0 and koniecWersjiObiektu.dateTime().date().year() != 1 and not czyWersjaZmieniona:
         wersjaId.setDateTime(dataCzasTeraz)
-    else:
-        wlaczenieLubWylaczenieZapisu()
+        poczatekWersjiObiektu.disconnect()
+        poczatekWersjiObiektu.setDateTime(dataCzasTeraz)
+        poczatekWersjiObiektu.dateTimeChanged.connect(poczatekWersjiObiektu_kontrola)
+        przestrzenNazw_kontrola()
 
 
-def wlaczenieLubWylaczenieZapisu():
-    global zapisz
+def wlaczenieZapisu():
+    global czyObiektZmieniony, zapisz
     try:
-        if sum(listaBledowAtrybutow) == 0 and warstwa.isEditable() and czyZmianaJestDopuszczalna and sum(tablicaZmian) > 0:
+        if sum(listaBledowAtrybutow) == 0 and warstwa.isEditable() and czyZmianaJestDopuszczalna:
             zapisz.setEnabled(True)
             zapisz.setText("Zapisz")
-        else:
+            czyObiektZmieniony = True
+            zmianaWersjiIPoczatkuWersji()
+    except Exception as e:
+        pass
+
+
+def wylaczenieZapisu():
+    global czyObiektZmieniony, zapisz
+    try:
+        if sum(listaBledowAtrybutow) != 0 or (not warstwa.isEditable() and not czyZmianaJestDopuszczalna):
+            czyObiektZmieniony = False
             zapisz.setEnabled(False)
     except Exception as e:
         pass
@@ -280,11 +287,8 @@ def przestrzenNazw_kontrola():
             txt = 'PL.ZIPPZP.' + numerZbioru + '/' + jpt + '-' + rodzajZbioru
             if przestrzenNazw.text() != txt:
                 przestrzenNazw.setText(txt)
-                zmianaWTablicyZmian(txt, 'przestrzenNazw')
                 komunikowanieBledu(przestrzenNazw,'','przestrzenNazw')
             teryt_gminy = przestrzenNazw.text().split("/")[1].split("-")[0]
-        
-        zmianaWersjiIPoczatkuWersji()
     except Exception as e:
         pass
 
@@ -294,6 +298,8 @@ def lokalnyId_kontrola(txt):
         if idLokalnyAPP == '':
             lokalnyId.setPlaceholderText(placeHolders['lokalnyId'])
             komunikowanieBledu(lokalnyId,'Proszę w ustawieniach wpisać identyfikator lokalny identyfikujący jednoznacznie i unikalnie akt planowania przestrzennego w zbiorze danych przestrzennych i zapisać.','lokalnyId')
+        elif txt == '':
+            lokalnyId.setText(idLokalnyAPP)
         elif txt != idLokalnyAPP:
             lokalnyId.setText(idLokalnyAPP + "-" + oznaczenie.text())
         else:
@@ -303,21 +309,22 @@ def lokalnyId_kontrola(txt):
 
 
 def wersjaId_kontrola():
+    global czyWersjaZmieniona
     try:
-        zmianaWTablicyZmian(wersjaId.dateTime().toString("yyyyMMdd'T'hhmmss"), 'wersjaId')
         if koniecWersjiObiektu.dateTime().time().msec() != 0 and koniecWersjiObiektu.dateTime().date().year() != 1:
             poczatekWersjiObiektu.disconnect()
             poczatekWersjiObiektu.setDateTime(wersjaId.dateTime())
             poczatekWersjiObiektu.dateTimeChanged.connect(poczatekWersjiObiektu_kontrola)
-        wlaczenieLubWylaczenieZapisu()
     except Exception as e:
         pass
 
 
 def poczatekWersjiObiektu_kontrola():
+    global czyWersjaZmieniona
     try:
         if koniecWersjiObiektu.dateTime().time().msec() != 0 and koniecWersjiObiektu.dateTime().date().year() != 1:
             wersjaId.setDateTime(poczatekWersjiObiektu.dateTime())
+            czyWersjaZmieniona = True
         poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola()
     except Exception as e:
         pass
@@ -325,7 +332,6 @@ def poczatekWersjiObiektu_kontrola():
 
 def oznaczenie_kontrola(txt):
     try:
-        zmianaWTablicyZmian(txt, 'oznaczenie')
         if re.match('^[1-9][0-9]{0,4}$', txt) != None and symbol.text() != '':
             pozycjaKursora = len(txt)
             txt = str(txt) + symbol.text()
@@ -343,8 +349,6 @@ def oznaczenie_kontrola(txt):
                 oznaczenie.setPlaceholderText(placeHolders['oznaczenie'])
         if not czyWartoscAtrybutuJestUnikalna('oznaczenie',txt) and kontrolaAtrybutu['oznaczenie'] == 2:
             komunikowanieBledu(oznaczenie,'Oznaczenie nie jest unikalne w ramach warstwy.','oznaczenie')
-        
-        zmianaWersjiIPoczatkuWersji()
     except Exception as e:
         pass
 
@@ -355,7 +359,6 @@ def charakterUstalenia_kontrola(txt):
 
 def status_kontrola(txt):
     try:
-        zmianaWTablicyZmian(txt, 'status')
         if txt == 'wybierz' or txt == None:
             komunikowanieBledu(status,'Należy wybrać wartość pola status','status')
         else:
@@ -366,8 +369,6 @@ def status_kontrola(txt):
                 komunikowanieBledu(obowiazujeDo, 'Należy wybrać datę dla "obowiązuje do"', 'obowiazujeDo')
         else:
             poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola()
-        
-        zmianaWersjiIPoczatkuWersji()
     except Exception as e:
         pass
 
@@ -376,17 +377,8 @@ def poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola():
     try:
         obowiazujeOdTxt = obowiazujeOd.dateTime().toString("H:mm")
         obowiazujeDoTxt = obowiazujeDo.dateTime().toString("H:mm")
+        poczatekWersjiObiektuTxt = poczatekWersjiObiektu.dateTime().toString("H:mm")
         koniecWersjiObiektuTxt = koniecWersjiObiektu.dateTime().toString("H:mm")
-        
-        if obowiazujeOdTxt in ['0:00','23:59']:
-            zmianaWTablicyZmian(obowiazujeOd.date(), 'obowiazujeOd')
-        else:
-            zmianaWTablicyZmian(NULL, 'obowiazujeOd')
-        
-        if obowiazujeDoTxt in ['0:00','23:59']:
-            zmianaWTablicyZmian(obowiazujeDo.date(), 'obowiazujeDo')
-        else:
-            zmianaWTablicyZmian(NULL, 'obowiazujeDo')
         
         if obowiazujeOdTxt not in ['0:00','23:59'] and kontrolaAtrybutu['obowiazujeOd'] == 2:
             komunikowanieBledu(obowiazujeOd, 'Należy wybrać datę dla "obowiązuje od"', 'obowiazujeOd')
@@ -395,7 +387,7 @@ def poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola():
                 komunikowanieBledu(obowiazujeOd, 'Atrybut "obowiązuje od" nie może być większy lub równy od "obowiązuje do".', 'obowiazujeOd')
             else:
                 komunikowanieBledu(obowiazujeOd, '', 'obowiazujeOd')
-        if koniecWersjiObiektu.dateTime().time().msec() == 0 and koniecWersjiObiektu.dateTime().date().year() != 1 and poczatekWersjiObiektu.dateTime() >= koniecWersjiObiektu.dateTime():
+        if koniecWersjiObiektuTxt in ['0:00','23:59'] and koniecWersjiObiektu.dateTime().date().year() != 1 and poczatekWersjiObiektu.dateTime() >= koniecWersjiObiektu.dateTime():
             komunikowanieBledu(poczatekWersjiObiektu,'Koniec wersji obiektu musi być późniejszy niż początek wersji obiektu','poczatekWersjiObiektu')
             komunikowanieBledu(koniecWersjiObiektu,'Koniec wersji obiektu musi być późniejszy niż początek wersji obiektu','koniecWersjiObiektu')
         else:
@@ -409,17 +401,10 @@ def poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola():
                     komunikowanieBledu(obowiazujeDo, '', 'obowiazujeDo')
             else:
                 obowiazujeDo_label.setText("obowiązuje do")
-                if obowiazujeOd.dateTime() >= obowiazujeDo.dateTime() and obowiazujeDo.dateTime().time().msec() == 0 and obowiazujeOd.dateTime().time().msec() == 0 and kontrolaAtrybutu['obowiazujeOd'] == 2:
+                if (obowiazujeOd.dateTime() >= obowiazujeDo.dateTime() and obowiazujeDo.dateTime().time().msec() == 0 and obowiazujeOd.dateTime().time().msec() == 0):
                     komunikowanieBledu(obowiazujeOd, 'Atrybut "obowiązuje od" nie może być większy lub równy od "obowiązuje do".', 'obowiazujeOd')
                 else:
                     komunikowanieBledu(obowiazujeDo, '', 'obowiazujeDo')
-        
-        if koniecWersjiObiektu.dateTime().toString("zzz") == '000' and koniecWersjiObiektu.dateTime().toString("H:mm:ss") != '0:00:00':
-            zmianaWTablicyZmian(koniecWersjiObiektu.dateTime(), 'koniecWersjiObiektu')
-        else:
-            zmianaWTablicyZmian(NULL, 'koniecWersjiObiektu')
-        
-        zmianaWersjiIPoczatkuWersji()
     except Exception as e:
         pass
 
@@ -559,7 +544,6 @@ def operacjeNaAtrybucie(nazwaAtrybutu):
             if atrybut == 'oznaczenie':
                 globals().get(atrybutKontrola[atrybut])(oznaczenie.text())
         czyZmianaJestDopuszczalna = True
-        wlaczenieLubWylaczenieZapisu()
     
     def hurtowaZmianaArybutuWRamachWarstw():
         if obj.id() < 0:
@@ -769,38 +753,18 @@ Czy uspójnić "obowiązuje od" dla obiektów nowych lub zmienionych w ramach ws
             uspojnienieDatyObowiazujeOd()
 
 
-def zmianaWTablicyZmian(txt, nazwaAtrybutu):
-    global tablicaZmian
-    if czyZmianaJestDopuszczalna:
-        if txt == '':
-            txt = NULL
-        
-        if obj[nazwaAtrybutu] == '':
-            attr = NULL
-        else:
-            attr = obj[nazwaAtrybutu]
-        
-        if txt != NULL and isinstance(obj[nazwaAtrybutu], float):
-            txt = float(txt)
-        
-        if txt == attr:
-            tablicaZmian[warstwa.fields().indexFromName(nazwaAtrybutu)] = 0
-        else:
-            tablicaZmian[warstwa.fields().indexFromName(nazwaAtrybutu)] = 1
-
-
 def dialogRejected():
     try:
         global obj, dlg, warstwa, listaBledowAtrybutow, placeHolders, teryt_gminy
         global zapisz, przestrzenNazw, koniecWersjiObiektu, lokalnyId, wersjaId, poczatekWersjiObiektu, nazwa, oznaczenie, symbol
         global charakterUstalenia, status, obowiazujeOd, obowiazujeDo, obowiazujeOd_label, obowiazujeDo_label
         global rodzajZbioru, numerZbioru, jpt, idLokalnyAPP
-        global tablicaZmian, kontrolaAtrybutu, kontrolaAtrybutu_CB, fid
+        global czyObiektZmieniony, czyWersjaZmieniona, kontrolaAtrybutu, kontrolaAtrybutu_CB, fid
         
         del obj, dlg, warstwa, listaBledowAtrybutow, placeHolders, teryt_gminy
         del zapisz, przestrzenNazw, koniecWersjiObiektu, lokalnyId, wersjaId, poczatekWersjiObiektu, nazwa, oznaczenie, symbol
         del charakterUstalenia, status, obowiazujeOd, obowiazujeDo, obowiazujeOd_label, obowiazujeDo_label
         del rodzajZbioru, numerZbioru, jpt, idLokalnyAPP
-        del tablicaZmian, kontrolaAtrybutu, kontrolaAtrybutu_CB, fid
+        del czyObiektZmieniony, czyWersjaZmieniona, kontrolaAtrybutu, kontrolaAtrybutu_CB, fid
     except Exception as e:
         pass
