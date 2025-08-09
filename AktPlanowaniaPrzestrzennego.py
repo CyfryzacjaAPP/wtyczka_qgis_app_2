@@ -15,9 +15,11 @@ import string
 from datetime import date, datetime, timezone
 from qgis.core import QgsProject, NULL, QgsSettings, QgsMessageLog
 from qgis.gui import QgsCheckableComboBox
+from PyQt5.QtWidgets import QCheckBox
 from PyQt5.QtCore import QDateTime, QDate, QTime
 from qgis.utils import iface
 import os
+import wtyczka_qgis_app.resources
 
 
 def my_form_open(dialog, layer, feature):
@@ -26,14 +28,14 @@ def my_form_open(dialog, layer, feature):
         global zapisz, przestrzenNazw, koniecWersjiObiektu, lokalnyId, wersjaId, poczatekWersjiObiektu, listaTytulowAlternatywnych
         global status, obowiazujeOd, obowiazujeDo, tytul, tytulAlternatywny, typPlanu, poziomHierarchii, tytulyAlternatywne, dodaj, usun
         global rodzajZbioru, numerZbioru, jpt, idLokalnyAPP, obowiazujeOd_label, obowiazujeDo_label
-        global czyObiektZmieniony, modyfikacja, czyWersjaZmieniona, czyZmianaJestDopuszczalna
+        global modyfikacja,tablicaZmian, czyZmianaJestDopuszczalna
         global kontrolaAtrybutu, kontrolaAtrybutu_CB
         
         atrybuty = feature.attributes()
         geometria = feature.geometry()
         obj = feature
         dlg = dialog
-        if dlg.parent() == None:
+        if not isinstance(dialog.parent(), QDialog) or dlg.parent() == None:
             return
         
         s = QgsSettings()
@@ -52,7 +54,6 @@ def my_form_open(dialog, layer, feature):
         
         mainPath = Path(QgsApplication.qgisSettingsDirPath())/Path("python/plugins/wtyczka_qgis_app/")
         teryt_gminy = ''
-        czyObiektZmieniony = False
         czyZmianaJestDopuszczalna = False
         dataCzasTeraz = QDateTime.currentDateTimeUtc()
         kontrolaAtrybutu_CB = []
@@ -101,6 +102,7 @@ def my_form_open(dialog, layer, feature):
         przestrzenNazw = dialog.findChild(QLineEdit,"przestrzenNazw")
         przestrzenNazw.setToolTip('')
         przestrzenNazw.setPlaceholderText(placeHolders['przestrzenNazw'])
+        przestrzenNazw.textChanged.connect(przestrzenNazw_kontrola)
         
         lokalnyId = dialog.findChild(QLineEdit,"lokalnyId")
         lokalnyId.setToolTip('')
@@ -161,7 +163,8 @@ def my_form_open(dialog, layer, feature):
         
         geometria_kontrola()
         poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola()
-        czyWersjaZmieniona = False
+        
+        tablicaZmian = [0] * len(warstwa.fields())
         
         zapisz.clicked.connect(zapis)
         zapisz.setEnabled(False)
@@ -200,6 +203,7 @@ def my_form_open(dialog, layer, feature):
         if obj.id()> 0 and warstwa.isModified():
             iface.messageBar().pushMessage("Uwaga!", f"Warstwa '{warstwa.name()}' posiada niezapisane zmiany.", level = Qgis.Warning)
         czyZmianaJestDopuszczalna = True
+        przestrzenNazw_kontrola()
     except:
         pass
 
@@ -210,44 +214,39 @@ def komunikowanieBledu(object, txt, nazwaAtrybutu):
         if txt == '':
             listaBledowAtrybutow[warstwa.fields().indexFromName(nazwaAtrybutu)] = 0
             object.setStyleSheet("")
-            wlaczenieZapisu()
         else:
             listaBledowAtrybutow[warstwa.fields().indexFromName(nazwaAtrybutu)] = 1
             object.setStyleSheet("border: 1px solid red")
-            wylaczenieZapisu()
-    except:
+    except Exception as e:
         pass
 
 
 def zmianaWersjiIPoczatkuWersji():
-    dataCzasTeraz = QDateTime.currentDateTimeUtc()
-    if czyObiektZmieniony and koniecWersjiObiektu.dateTime().time().msec() != 0 and koniecWersjiObiektu.dateTime().date().year() != 1 and not czyWersjaZmieniona:
-        wersjaId.setDateTime(dataCzasTeraz)
-        poczatekWersjiObiektu.disconnect()
-        poczatekWersjiObiektu.setDateTime(dataCzasTeraz)
-        poczatekWersjiObiektu.dateTimeChanged.connect(poczatekWersjiObiektu_kontrola)
-        przestrzenNazw_kontrola()
-
-
-def wlaczenieZapisu():
-    global czyObiektZmieniony, zapisz
     try:
-        if sum(listaBledowAtrybutow) == 0 and warstwa.isEditable() and czyZmianaJestDopuszczalna:
-            zapisz.setEnabled(True)
-            zapisz.setText("Zapisz")
-            czyObiektZmieniony = True
-            zmianaWersjiIPoczatkuWersji()
-    except:
+        if czyZmianaJestDopuszczalna:
+            if sum(listaBledowAtrybutow) > 0 or sum(tablicaZmian) == 1:
+                wersjaId.setDateTime(datetime.strptime(obj['wersjaId'], "%Y%m%dT%H%M%S"))
+            
+            KWO_dateTime = koniecWersjiObiektu.dateTime()
+            dataCzasTeraz = QDateTime.currentDateTimeUtc()
+            
+            if KWO_dateTime.time().msec() != 0 and KWO_dateTime.date().year() != 1 and sum(tablicaZmian) > 0:
+                wersjaId.setDateTime(dataCzasTeraz)
+            else:
+                wlaczenieLubWylaczenieZapisu()
+    except Exception as e:
         pass
 
 
-def wylaczenieZapisu():
-    global czyObiektZmieniony, zapisz
+def wlaczenieLubWylaczenieZapisu():
+    global zapisz
     try:
-        if sum(listaBledowAtrybutow) != 0 or (not warstwa.isEditable() and not czyZmianaJestDopuszczalna):
-            czyObiektZmieniony = False
+        if sum(listaBledowAtrybutow) == 0 and warstwa.isEditable() and czyZmianaJestDopuszczalna and sum(tablicaZmian) > 0:
+            zapisz.setEnabled(True)
+            zapisz.setText("Zapisz")
+        else:
             zapisz.setEnabled(False)
-    except:
+    except Exception as e:
         pass
 
 
@@ -309,9 +308,12 @@ def przestrzenNazw_kontrola():
             txt = 'PL.ZIPPZP.' + numerZbioru + '/' + jpt + '-' + rodzajZbioru
             if przestrzenNazw.text() != txt:
                 przestrzenNazw.setText(txt)
+                zmianaWTablicyZmian(txt, 'przestrzenNazw')
                 komunikowanieBledu(przestrzenNazw,'','przestrzenNazw')
             teryt_gminy = przestrzenNazw.text().split("/")[1].split("-")[0]
-    except:
+        
+        zmianaWersjiIPoczatkuWersji()
+    except Exception as e:
         pass
 
 
@@ -330,29 +332,29 @@ def lokalnyId_kontrola():
 
 
 def wersjaId_kontrola():
-    global cnazyWersjaZmienio
     try:
+        zmianaWTablicyZmian(wersjaId.dateTime().toString("yyyyMMdd'T'hhmmss"), 'wersjaId')
         if koniecWersjiObiektu.dateTime().time().msec() != 0 and koniecWersjiObiektu.dateTime().date().year() != 1:
             poczatekWersjiObiektu.disconnect()
             poczatekWersjiObiektu.setDateTime(wersjaId.dateTime())
             poczatekWersjiObiektu.dateTimeChanged.connect(poczatekWersjiObiektu_kontrola)
-    except:
+        wlaczenieLubWylaczenieZapisu()
+    except Exception as e:
         pass
 
 
 def poczatekWersjiObiektu_kontrola():
-    global czyWersjaZmieniona
     try:
         if koniecWersjiObiektu.dateTime().time().msec() != 0 and koniecWersjiObiektu.dateTime().date().year() != 1:
             wersjaId.setDateTime(poczatekWersjiObiektu.dateTime())
-            czyWersjaZmieniona = True
         poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola()
-    except:
+    except Exception as e:
         pass
 
 
 def status_kontrola(txt):
     try:
+        zmianaWTablicyZmian(txt, 'status')
         if txt == 'wybierz' or txt == None:
             komunikowanieBledu(status,'Należy wybrać wartość pola status','status')
         else:
@@ -363,6 +365,8 @@ def status_kontrola(txt):
                 komunikowanieBledu(obowiazujeDo, 'Należy wybrać datę dla "obowiązuje do"', 'obowiazujeDo')
         else:
             poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola()
+        
+        zmianaWersjiIPoczatkuWersji()
     except:
         pass
 
@@ -371,8 +375,17 @@ def poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola():
     try:
         obowiazujeOdTxt = obowiazujeOd.dateTime().toString("H:mm")
         obowiazujeDoTxt = obowiazujeDo.dateTime().toString("H:mm")
-        poczatekWersjiObiektuTxt = poczatekWersjiObiektu.dateTime().toString("H:mm")
         koniecWersjiObiektuTxt = koniecWersjiObiektu.dateTime().toString("H:mm")
+        
+        if obowiazujeOdTxt in ['0:00','23:59']:
+            zmianaWTablicyZmian(obowiazujeOd.date(), 'obowiazujeOd')
+        else:
+            zmianaWTablicyZmian(NULL, 'obowiazujeOd')
+        
+        if obowiazujeDoTxt in ['0:00','23:59']:
+            zmianaWTablicyZmian(obowiazujeDo.date(), 'obowiazujeDo')
+        else:
+            zmianaWTablicyZmian(NULL, 'obowiazujeDo')
         
         if obowiazujeOdTxt not in ['0:00','23:59'] and kontrolaAtrybutu['obowiazujeOd'] == 2:
             komunikowanieBledu(obowiazujeOd, 'Należy wybrać datę dla "obowiązuje od"', 'obowiazujeOd')
@@ -381,7 +394,7 @@ def poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola():
                 komunikowanieBledu(obowiazujeOd, 'Atrybut "obowiązuje od" nie może być większy lub równy od "obowiązuje do".', 'obowiazujeOd')
             else:
                 komunikowanieBledu(obowiazujeOd, '', 'obowiazujeOd')
-        if koniecWersjiObiektuTxt in ['0:00','23:59'] and koniecWersjiObiektu.dateTime().date().year() != 1 and poczatekWersjiObiektu.dateTime() >= koniecWersjiObiektu.dateTime():
+        if koniecWersjiObiektu.dateTime().time().msec() == 0 and koniecWersjiObiektu.dateTime().date().year() != 1 and poczatekWersjiObiektu.dateTime() >= koniecWersjiObiektu.dateTime():
             komunikowanieBledu(poczatekWersjiObiektu,'Koniec wersji obiektu musi być późniejszy niż początek wersji obiektu','poczatekWersjiObiektu')
             komunikowanieBledu(koniecWersjiObiektu,'Koniec wersji obiektu musi być późniejszy niż początek wersji obiektu','koniecWersjiObiektu')
         else:
@@ -399,12 +412,20 @@ def poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola():
                     komunikowanieBledu(obowiazujeOd, 'Atrybut "obowiązuje od" nie może być większy lub równy od "obowiązuje do".', 'obowiazujeOd')
                 else:
                     komunikowanieBledu(obowiazujeDo, '', 'obowiazujeDo')
-    except:
+        
+        if koniecWersjiObiektu.dateTime().toString("zzz") == '000' and koniecWersjiObiektu.dateTime().toString("H:mm:ss") != '0:00:00':
+            zmianaWTablicyZmian(koniecWersjiObiektu.dateTime(), 'koniecWersjiObiektu')
+        else:
+            zmianaWTablicyZmian(NULL, 'koniecWersjiObiektu')
+        
+        zmianaWersjiIPoczatkuWersji()
+    except Exception as e:
         pass
 
 
 def tytul_kontrola(txt):
     try:
+        zmianaWTablicyZmian(txt, 'tytul')
         if re.match('^Plan ogólny [A-Z,a-z,ĄŚĘŁÓŻŹĆŃąśęłóżźćń ()-]{2,}$', txt) == None and rodzajZbioru == 'POG' and kontrolaAtrybutu['tytul'] == 2:
             tytul.setPlaceholderText(placeHolders['tytul'])
             komunikowanieBledu(tytul,'Tytuł jest polem obowiązkowym i musi zaczynać się od Plan ogólny','tytul')
@@ -413,6 +434,8 @@ def tytul_kontrola(txt):
             komunikowanieBledu(tytul,'Tytuł jest polem obowiązkowym','tytul')
         else:
             komunikowanieBledu(tytul,'','tytul')
+        
+        zmianaWersjiIPoczatkuWersji()
     except:
         pass
 
@@ -420,15 +443,17 @@ def tytul_kontrola(txt):
 def dodaj_tytulAlternatywny():
     try:
         global listaTytulowAlternatywnych
-        if listaTytulowAlternatywnych == ['NULL']:
+        if listaTytulowAlternatywnych == ['NULL'] or listaTytulowAlternatywnych == '':
             listaTytulowAlternatywnych = []
         txt = tytulAlternatywny_QLE.text()
         if txt != '' and txt != 'NULL' and txt not in listaTytulowAlternatywnych:
             tytulyAlternatywne.addItem(txt)
             listaTytulowAlternatywnych.append(txt)
             tytulAlternatywny.setText(','.join(listaTytulowAlternatywnych))
-            komunikowanieBledu(tytulAlternatywny,'','tytulAlternatywny')
             tytulAlternatywny_QLE.setText('')
+            zmianaWTablicyZmian(txt, 'tytulAlternatywny')
+        
+        zmianaWersjiIPoczatkuWersji()
     except:
         pass
 
@@ -441,7 +466,9 @@ def usun_tytulAlternatywny():
             tytulyAlternatywne.takeItem(nr)
             listaTytulowAlternatywnych.pop(nr)
             tytulAlternatywny.setText(','.join(listaTytulowAlternatywnych))
-            komunikowanieBledu(tytulAlternatywny,'','tytulAlternatywny')
+            zmianaWTablicyZmian(tytulAlternatywny.text(), 'tytulAlternatywny')
+        
+        zmianaWersjiIPoczatkuWersji()
     except:
         pass
 
@@ -450,7 +477,10 @@ def read_tytulAlternatywny():
     try:
         global listaTytulowAlternatywnych
         lista = tytulAlternatywny.text()
-        listaTytulowAlternatywnych = lista.split(",")
+        if ',' in lista:
+            listaTytulowAlternatywnych = lista.split(",")
+        else:
+            listaTytulowAlternatywnych = ''
         tytulyAlternatywne.clear()
         for item in listaTytulowAlternatywnych:
             if item != 'NULL':
@@ -460,10 +490,13 @@ def read_tytulAlternatywny():
 
 
 def modyfikacja_kontrola():
-    komunikowanieBledu(modyfikacja,'','modyfikacja')
+    zmianaWTablicyZmian(modyfikacja, 'modyfikacja')
+    
+    zmianaWersjiIPoczatkuWersji()
 
 
 def poziomHierarchii_kontrola():
+    
     if rodzajZbioru == 'POG' and poziomHierarchii.currentText() != 'lokalny':
         komunikowanieBledu(poziomHierarchii,"Należy wybrać 'lokalny'",'poziomHierarchii')
     elif rodzajZbioru == 'MPZP' and poziomHierarchii.currentText() not in ['sublokalny','lokalny']:
@@ -583,6 +616,7 @@ def operacjeNaAtrybucie(nazwaAtrybutu):
             if atrybut == 'tytul':
                 globals().get(atrybutKontrola[atrybut])(tytul.text())
         czyZmianaJestDopuszczalna = True
+        wlaczenieLubWylaczenieZapisu()
     
     def hurtowaZmianaArybutuWRamachWarstw():
         if obj.id() < 0:
@@ -722,18 +756,41 @@ Czy uspójnić "obowiązuje od" dla obiektów nowych lub zmienionych w ramach ws
             uspojnienieDatyObowiazujeOd()
 
 
+def zmianaWTablicyZmian(txt, nazwaAtrybutu):
+    global tablicaZmian
+    if czyZmianaJestDopuszczalna:
+        if txt == '':
+            txt = NULL
+        
+        if obj[nazwaAtrybutu] == '':
+            attr = NULL
+        else:
+            attr = obj[nazwaAtrybutu]
+        
+        if txt != NULL and isinstance(obj[nazwaAtrybutu], float):
+            txt = float(txt)
+        
+        if txt is not None and isinstance(txt, QCheckBox):
+            txt = txt.isChecked()
+        
+        if txt == attr:
+            tablicaZmian[warstwa.fields().indexFromName(nazwaAtrybutu)] = 0
+        else:
+            tablicaZmian[warstwa.fields().indexFromName(nazwaAtrybutu)] = 1
+
+
 def dialogRejected():
     try:
         global obj, dlg, warstwa, listaBledowAtrybutow, placeHolders, teryt_gminy, tytulAlternatywny_QLE
         global zapisz, przestrzenNazw, koniecWersjiObiektu, lokalnyId, wersjaId, poczatekWersjiObiektu, listaTytulowAlternatywnych
         global status, obowiazujeOd, obowiazujeDo, tytul, tytulAlternatywny, typPlanu, poziomHierarchii, tytulyAlternatywne, dodaj, usun
         global rodzajZbioru, numerZbioru, jpt, idLokalnyAPP, obowiazujeOd_label, obowiazujeDo_label
-        global czyObiektZmieniony, modyfikacja, czyWersjaZmieniona, kontrolaAtrybutu, kontrolaAtrybutu_CB
+        global modyfikacja, tablicaZmian, kontrolaAtrybutu, kontrolaAtrybutu_CB
         
         del obj, dlg, warstwa, listaBledowAtrybutow, placeHolders, teryt_gminy, tytulAlternatywny_QLE
         del zapisz, przestrzenNazw, koniecWersjiObiektu, lokalnyId, wersjaId, poczatekWersjiObiektu, listaTytulowAlternatywnych
         del status, obowiazujeOd, obowiazujeDo, tytul, tytulAlternatywny, typPlanu, poziomHierarchii, tytulyAlternatywne, dodaj, usun
         del rodzajZbioru, numerZbioru, jpt, idLokalnyAPP, obowiazujeOd_label, obowiazujeDo_label
-        del czyObiektZmieniony, modyfikacja, czyWersjaZmieniona, kontrolaAtrybutu, kontrolaAtrybutu_CB
+        del modyfikacja, tablicaZmian, kontrolaAtrybutu, kontrolaAtrybutu_CB
     except:
         pass
