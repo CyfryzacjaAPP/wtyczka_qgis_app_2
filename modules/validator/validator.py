@@ -13,7 +13,7 @@ import processing
 import re
 
 dsSignaturePattern = re.compile(r'\/.*\/\w{1,5}\:Signature')
-xsdPath = os.path.join(os.path.dirname(__file__), 'planowaniePrzestrzenne.xsd')
+xsdPath = os.path.join(os.path.dirname(__file__), 'planowaniePrzestrzenne_2_0.xsd')
 
 ns = {'gco': "http://www.isotc211.org/2005/gco",
       'app': "https://www.gov.pl/static/zagospodarowanieprzestrzenne/schemas/app/2.0",

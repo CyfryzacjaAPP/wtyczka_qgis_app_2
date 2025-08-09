@@ -278,6 +278,7 @@ class TworzenieOUZModule(BaseModule):
         newFields.append(QgsField('status', QVariant.String, '', 255))
         newFields.append(QgsField('poczatekWersjiObiektu', QVariant.DateTime, ''))
         newFields.append(QgsField('koniecWersjiObiektu', QVariant.DateTime, ''))
+        newFields.append(QgsField('plan', QVariant.String, '', 255))
         newFields.append(QgsField('edycja', QVariant.Bool, ''))
         
         layers = QgsProject.instance().mapLayers()
@@ -339,7 +340,7 @@ class TworzenieOUZModule(BaseModule):
                     ouz.setAttribute(8,dataTime)
                     ouz.setAttribute(10,'w opracowaniu')
                     ouz.setAttribute(11,dataTime)
-                    ouz.setAttribute(13,True)
+                    ouz.setAttribute(14,True)
                     ouz.setGeometry(ouz.geometry())
                     
                     if warstwaZPOG.featureCount() > 0:

@@ -374,9 +374,9 @@ class Formularz:
             # tylko liczby calkowite
             if formElement.name == 'rozdzielczoscPrzestrzenna':
                 input.setValidator(QRegExpValidator(
-                    QRegExp("^[\d]{0,10}")))
+                    QRegExp(r"^[\d]{0,10}")))
             else:
-                input.setValidator(QRegExpValidator(QRegExp("[0-9]*")))
+                input.setValidator(QRegExpValidator(QRegExp(r"[0-9]*")))
             input.setObjectName(formElement.name + '_lineEdit')
         elif formElement.type == 'anyURI':
             input = QgsFilterLineEdit()
@@ -386,7 +386,12 @@ class Formularz:
         else:
             input = QgsFilterLineEdit()
             if formElement.name == 'opis':
-                input.setValidator(QRegExpValidator(QRegExp("^[\d\D\s\S\w\W]{0,1000}")))
+                input.setValidator(QRegExpValidator(QRegExp(r"^[\d\D\s\S\w\W]{0,1000}")))
+            elif formElement.name == 'lokalnyId':
+                input.setValidator(QRegExpValidator(QRegExp(r"^[A-Za-z0-9][A-Za-z0-9_\.-]*$")))
+            else:
+                input.setValidator(QRegExpValidator(QRegExp(r"[^<>&]+")))
+            
             input.setObjectName(formElement.name + '_lineEdit')
         
         input.setMinimumHeight(20)
