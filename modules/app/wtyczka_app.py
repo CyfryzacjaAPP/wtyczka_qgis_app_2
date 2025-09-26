@@ -2690,6 +2690,11 @@ class AppModule(BaseModule):
         liczbaObiektowWarstwy = obrysLayer_tmp.featureCount()
         liczbaObiektowWarstwyUnikalnych = liczbaObiektowWarstwy
         jestOk = True
+        
+        field_names = [field.name() for field in obrysLayer.fields()]
+        if atrybutDoSprawdzeniaUnikalnosci not in field_names:
+            return False
+        
         if liczbaObiektowWarstwy > 0:
             unikalnosc = processing.run("native:removeduplicatesbyattribute", {
                 'INPUT': obrysLayer_tmp,
@@ -2822,62 +2827,27 @@ class AppModule(BaseModule):
         pathOUZ_wyjsciowy_layer = QgsVectorLayer(pathOUZ_wyjsciowy + "|layername=ObszarUzupelnieniaZabudowy|option:FORCE_SRS_DETECTION=YES|option:CONSIDER_EPSG_AS_URN=YES|geometrytype=Polygon", "ObszarUzupelnieniaZabudowy", 'ogr')
         
         try:
-            pojedynczeBufory = processing.run("native:multiparttosingleparts", {
+            pojedynczeOUZ = processing.run("native:multiparttosingleparts", {
                 'INPUT': pathOUZ_wyjsciowy_layer,
                 'OUTPUT': 'memory:'
             })['OUTPUT']
         except:
-            pojedynczeBufory = pathOUZ_wyjsciowy_layer
+            pojedynczeOUZ = pathOUZ_wyjsciowy_layer
         
-        roznica_features = []
-        for obrys_feat in obrysLayer.getFeatures():
-            obrys_geom = obrys_feat.geometry()
-            
-            for buf_feat in pojedynczeBufory.getFeatures():
-                buf_geom = buf_feat.geometry()
-                if obrys_geom.intersects(buf_geom):
-                    obrys_geom = obrys_geom.difference(buf_geom)
-        
-            if not obrys_geom.isEmpty():
-                new_feat = QgsFeature()
-                new_feat.setGeometry(obrys_geom)
-                new_feat.setAttributes(obrys_feat.attributes())
-                roznica_features.append(new_feat)
-        
-        roznica = QgsVectorLayer("Polygon?crs=" + obrysLayer.crs().authid(), "roznica", "memory")
-        roznica.dataProvider().addFeatures(roznica_features)
-        roznica.updateExtents()
+        wynik_roznica = processing.run("native:multidifference", {
+                'INPUT': obrysLayer,
+                'OVERLAYS': pojedynczeOUZ,
+                'OUTPUT': 'memory:'
+        })['OUTPUT']
         
         # zmiana multipoligonów na poligony
         try:
-            pojedynczeBufory2 = processing.run("native:multiparttosingleparts", {
-                'INPUT': roznica,
+            pojedynczeRoznice = processing.run("native:multiparttosingleparts", {
+                'INPUT': wynik_roznica,
                 'OUTPUT': 'memory:'
             })['OUTPUT']
         except:
-            pojedynczeBufory2 = roznica
-        
-        # usunięcie bardzo małych powierzchnii
-        pojedynczeBufory2.startEditing()
-        for tmpObj in pojedynczeBufory2.getFeatures():
-            if tmpObj.geometry().area() < 10:
-                pojedynczeBufory2.deleteFeature(tmpObj.id())
-        pojedynczeBufory2.commitChanges(False)
-        
-        # odseparowanie obiektów, które się nie przecinają
-        obiektyBledne = processing.run("qgis:extractbylocation", {
-            'INPUT': pojedynczeBufory2,
-            'PREDICATE': 2,
-            'INTERSECT': pojedynczeBufory,
-            'OUTPUT': 'memory:'
-        })
-        
-        # przekazanie komunikatu i obiektów błędnych
-        if obiektyBledne['OUTPUT'].featureCount() > 0:
-            obiektyBledne['OUTPUT'].setName("Nowe obiekty OUZ")
-            QgsProject.instance().addMapLayer(obiektyBledne['OUTPUT'])
-            showPopup("Błąd warstwy obrysu","Warstwa ObszarUzupelnieniaZabudowy zawiera nowe obiekty.")
-            return True
+            pojedynczeRoznice = wynik_roznica
         
         def powierzchniaNaElipsoidzie(feature):
             d = QgsDistanceArea()
@@ -2888,12 +2858,37 @@ class AppModule(BaseModule):
             return area
         
         powierzchniaPowiekszeniaOUZ = 0
-        for tmp_obj in pojedynczeBufory2.getFeatures():
+        for tmp_obj in pojedynczeRoznice.getFeatures():
             powierzchniaPowiekszeniaOUZ += powierzchniaNaElipsoidzie(tmp_obj)
         
+        # usunięcie bardzo małych powierzchnii
+        pojedynczeRoznice.startEditing()
+        for tmpObj in pojedynczeRoznice.getFeatures():
+            if tmpObj.geometry().area() < 10:
+                pojedynczeRoznice.deleteFeature(tmpObj.id())
+        pojedynczeRoznice.commitChanges(False)
+        
+        # odseparowanie obiektów, które się nie przecinają
+        obiektyBledne = processing.run("qgis:extractbylocation", {
+            'INPUT': pojedynczeRoznice,
+            'PREDICATE': 2,
+            'INTERSECT': pojedynczeOUZ,
+            'OUTPUT': 'memory:'
+        })
+        
+        # przekazanie komunikatu i obiektów błędnych
+        if obiektyBledne['OUTPUT'].featureCount() > 0:
+            obiektyBledne['OUTPUT'].setName("Nowe obiekty OUZ")
+            QgsProject.instance().addMapLayer(obiektyBledne['OUTPUT'])
+            showPopup("Błąd warstwy obrysu","Warstwa ObszarUzupelnieniaZabudowy zawiera nowe obiekty.")
+            return True
+        
         if powierzchniaPowiekszeniaOUZ > powierzchnia_Pp:
+            roznica_pow = powierzchniaPowiekszeniaOUZ - powierzchnia_Pp
             showPopup("Błąd warstwy obrysu",
-                      "Powierzchnia warstwy została powiększona o więcej niż maksymalną powierzchnię powiększenia obszarów uzupełnienia zabudowy wyznaczonych w sposób, o którym mowa w ust. 1 Rozporządzenia.")
+                      f"Powierzchnia warstwy została powiększona o {powierzchniaPowiekszeniaOUZ:.2f} m2,\
+ tj. więcej niż o maksymalną powierzchnię powiększenia obszarów uzupełnienia zabudowy wyznaczonych w sposób,\
+ o którym mowa w ust. 1 Rozporządzenia tj. {powierzchnia_Pp:.2f} m2. Róznica wynosi {roznica_pow:.2f} m2.")
             return True
         else:
             showPopup("Informacja",
