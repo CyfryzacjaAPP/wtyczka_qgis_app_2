@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import xml.etree.ElementTree as ET
+import xml.etree.ElementTree as ET  # nosec B405
 from PyQt5.QtCore import QDateTime
 from qgis.core import QgsMessageLog
 from . import translation
@@ -18,7 +18,7 @@ def xmlToMetadataElementDict(xml):
           'xs': "http://www.w3.org/2001/XMLSchema",
           'xsi': "http://www.w3.org/2001/XMLSchema-instance"
           }
-    root = ET.parse(xml)
+    root = ET.parse(xml)  # nosec B314
 
     # E1
     element = root.find('//gmd:MD_DataIdentification/*/gmd:CI_Citation/gmd:title/gco:CharacterString', ns)

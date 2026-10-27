@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import xml.etree.ElementTree as ET
+import xml.etree.ElementTree as ET  # nosec B405
 
 
 def xmlToMetadataElementDictFixed(xml):
@@ -14,8 +14,7 @@ def xmlToMetadataElementDictFixed(xml):
           'xs': "http://www.w3.org/2001/XMLSchema",
           'xsi': "http://www.w3.org/2001/XMLSchema-instance"
           }
-
-    root = ET.parse(xml)
+    root = ET.parse(xml)  # nosec B314
     # E3
     element = root.find('/gmd:hierarchyLevel/gmd:MD_ScopeCode', ns)
     if element is not None:

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from .. import dictionaries, utils
-import xml.etree.ElementTree as ET
+import xml.etree.ElementTree as ET  # nosec B405
 import re
 from PyQt5.QtCore import QDateTime
 from qgis.core import QgsVectorLayer, QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsProject, QgsRectangle
@@ -14,26 +14,25 @@ def appGmlToMetadataElementDict(gmlPath):
     
     s = QgsSettings()
     rodzajZbioru = s.value("qgis_app2/settings/rodzajZbioru", "/")
-    root = ET.parse(gmlPath)
+    root = ET.parse(gmlPath)  # nosec B314
+    
+    namespaces = {}
+    for event, namespace in ET.iterparse(  # nosec B314
+        gmlPath,
+        events=("start-ns",)
+    ):
+        prefix, namespace_uri = namespace
+        namespaces[prefix] = namespace_uri
+    app_namespace = namespaces.get("app")
     
     ns = {'gco': "http://www.isotc211.org/2005/gco",
-          'app': "https://www.gov.pl/static/zagospodarowanieprzestrzenne/schemas/app/2.0",
+          'app': f'{app_namespace}',
           'gmd': "http://www.isotc211.org/2005/gmd",
           'gml': "http://www.opengis.net/gml/3.2",
           'wfs': "http://www.opengis.net/wfs/2.0",
           'xlink': "http://www.w3.org/1999/xlink",
           'xsi': "http://www.w3.org/2001/XMLSchema-instance"
          }
-    
-    if rodzajZbioru != 'POG' and root.find('//app:AktPlanowaniaPrzestrzennego/app:idIIP/app:Identyfikator/app:przestrzenNazw', ns) is None:
-        ns = {'gco': "http://www.isotc211.org/2005/gco",
-              'app': "https://www.gov.pl/static/zagospodarowanieprzestrzenne/schemas/app/1.0",
-              'gmd': "http://www.isotc211.org/2005/gmd",
-              'gml': "http://www.opengis.net/gml/3.2",
-              'wfs': "http://www.opengis.net/wfs/2.0",
-              'xlink': "http://www.w3.org/1999/xlink",
-              'xsi': "http://www.w3.org/2001/XMLSchema-instance"
-             }
     
     # E1
     element = root.find('//app:AktPlanowaniaPrzestrzennego/app:typPlanu', ns)
@@ -53,7 +52,6 @@ def appGmlToMetadataElementDict(gmlPath):
     # E7 - kodowanie z nagłówka GML
     with open(gmlPath, 'r') as file:
         line = file.readlines(1)[0]
-        line.replace("'", '"')
         encoding = re.search('encoding="[a-zA-Z0-9\\-]{3,10}"', line)[0].split(
             "=")[-1].strip('"').replace(' ', '').replace('-', '').lower()
         if encoding == 'usascii':
@@ -93,27 +91,22 @@ def appGmlToMetadataElementDict(gmlPath):
 
     # E11
     layer = QgsVectorLayer(
-        gmlPath + '|layername=AktPlanowaniaPrzestrzennego', "gml",  'ogr')
-    # if not layer.isValid(): # sprawdzanie czy AktPlanowaniaPrzestrzennego jest w wfs:member lub gml:featureMember (bezpośrednio)
-    #     layer = QgsVectorLayer(gmlPath + '|layername=featureMember', "gml", 'ogr')
+        gmlPath
+        + '|layername=AktPlanowaniaPrzestrzennego'
+        + '|option:FORCE_SRS_DETECTION=YES'
+        + '|option:CONSIDER_EPSG_AS_URN=YES',
+        "gml",
+        'ogr'
+    )
+    
     if layer.isValid():
-
+        
         sourceCrs = layer.crs()
         extent = layer.extent()
-        # w zwiazku z niepoprawnym zaczytywaniem zasiegu GML przez QGIS - odwrocenie osi
-        '''
-        Dla wersji QGIS <= 3.14 przy wczytywaniu GML
-        # z definicją układu
-        # jako uri do opengis.net np. http://www.opengis.net/def/crs/EPSG/0/2177
-        # QGIS wczytuje zasięg z odwróconymi X i Y
-        # TODO: do wykomentowania gdy błąd zostanie naprawiony w nowej wersji programu
-        # dla starych - pozostaje
-        '''
-        extentInverted = QgsRectangle(extent.yMinimum(), extent.xMinimum(), extent.yMaximum(), extent.xMaximum())
         crsDest = QgsCoordinateReferenceSystem(4326)  # WGS84
         xform = QgsCoordinateTransform(
             sourceCrs, crsDest, QgsProject.instance())
-        extent84 = xform.transform(extentInverted)
+        extent84 = xform.transformBoundingBox(extent)
         metadataElementDict['e11'] = [{'e11_lineEdit': '%s,%s,%s,%s' % (extent84.xMinimum(), extent84.xMaximum(), extent84.yMinimum(), extent84.yMaximum())}]
 
     # E12
@@ -153,7 +146,7 @@ def appGmlToMetadataElementDict(gmlPath):
     ifKrajowy = False
     ifInspire = False
     namespaces = dict(
-        [node for _, node in ET.iterparse(gmlPath, events=['start-ns'])])
+        [node for _, node in ET.iterparse(gmlPath, events=['start-ns'])])  # nosec B314
     for v in namespaces.values():
         if 'https://www.gov.pl/static/zagospodarowanieprzestrzenne' in v:
             ifKrajowy = True

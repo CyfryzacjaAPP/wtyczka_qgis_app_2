@@ -57,8 +57,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>763</width>
-          <height>294</height>
+          <width>780</width>
+          <height>188</height>
          </rect>
         </property>
         <property name="sizePolicy">
@@ -76,7 +76,7 @@
             </font>
            </property>
            <property name="text">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;W tym oknie zostanie wygenerowany końcowy plik GML dla pojedynczego APP. Składa się on ze wszystkich formularzy wygenerowanych w poprzednich krokach, to znaczy z:&lt;br/&gt;- formularza/y dla rysunku APP (co najmniej jednego dla obowiązującego APP),&lt;br/&gt;- dokładnie jednego formularza dla APP (granica aktu),&lt;br/&gt;- formularza/y dla dokumentów formalnych (co najmniej jeden).&lt;/p&gt;&lt;p&gt;W tabeli poniżej muszą znaleźć się wszystkie ww. formularze składające się na dany APP, aby został wygenerowany poprawny plik GML. Dla każdego pliku odczytanego jako &lt;span style=&quot; text-decoration: underline;&quot;&gt;Dokument formalny&lt;/span&gt;, użytkownik musi wybrać odpowiednią relację jaka wiąże ten dokument z APP. &lt;/p&gt;&lt;p&gt;Następnie można wybrać przycisk &lt;span style=&quot; text-decoration: underline;&quot;&gt;Generuj&lt;/span&gt;, który uruchomi wstępną walidację i umożliwi zapisanie pliku GML dla APP na dysku. Po poprawnym wygenerowaniu użytkownik może zdecydować czy będzie tworzył kolejne dane dla pojedynczych APP, czy przejdzie do tworzenia zbioru. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;W tym oknie zostanie wygenerowany końcowy plik GML dla pojedynczego APP. Składa się on ze wszystkich formularzy wygenerowanych w poprzednich krokach, to znaczy z:&lt;br/&gt;- formularza/y dla rysunku APP (co najmniej jednego dla obowiązującego APP),&lt;br/&gt;- dokładnie jednego formularza dla APP (granica aktu),&lt;br/&gt;- formularza/y dla dokumentów formalnych (co najmniej jeden).&lt;/p&gt;&lt;p&gt;W tabeli poniżej muszą znaleźć się wszystkie ww. formularze składające się na dany APP, aby został wygenerowany poprawny plik GML. Dla każdego pliku odczytanego jako &lt;span style=&quot; text-decoration: underline;&quot;&gt;Dokument formalny&lt;/span&gt;, użytkownik musi wybrać odpowiednią relację jaka wiąże ten dokument z APP.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-family:'Aptos','sans-serif';&quot;&gt;Do tabeli możliwe jest wczytanie wyłącznie pojedynczych plików GML zawierających dany typ obiektu.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Następnie można wybrać przycisk &lt;span style=&quot; text-decoration: underline;&quot;&gt;Generuj&lt;/span&gt;, który uruchomi wstępną walidację i umożliwi zapisanie pliku GML dla APP na dysku. Po poprawnym wygenerowaniu użytkownik może zdecydować czy będzie tworzył kolejne dane dla pojedynczych APP, czy przejdzie do tworzenia zbioru. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignJustify|Qt::AlignVCenter</set>
@@ -159,7 +159,7 @@
        </column>
        <column>
         <property name="text">
-         <string>Rodzaj dokumentu</string>
+         <string>Typ obiektu</string>
         </property>
        </column>
        <column>

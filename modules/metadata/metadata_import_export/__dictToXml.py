@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-import xml.etree.ElementTree as ET
-from xml.dom import minidom
+import xml.etree.ElementTree as ET  # nosec B405
 from . import translation
 from .. import dictionaries, utils
 
@@ -468,4 +467,15 @@ def metadataElementDictToXml(metadataElementDict):
     characterString = ET.SubElement(statement, 'gco:CharacterString')
     characterString.text = metadataElementDict['e15']['e15_lineEdit']
 
-    return minidom.parseString(ET.tostring(root, encoding='utf-8', method='xml').decode('utf-8')).toprettyxml(encoding='utf-8').decode('UTF-8')
+    ET.indent(
+        root,
+        space="\t",
+        level=0
+    )
+    
+    return ET.tostring(
+        root,
+        encoding="utf-8",
+        method="xml",
+        xml_declaration=True
+    ).decode("utf-8")

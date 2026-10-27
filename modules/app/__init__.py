@@ -13,5 +13,10 @@ from .dialogs import (
     WektorInstrukcjaDialogSPL,
     WektorInstrukcjaDialogOUZ,
     WektorInstrukcjaDialogOZS,
-    WektorInstrukcjaDialogOSD
+    WektorInstrukcjaDialogOSD,
+    
+    PytanieAppUniewaznienieDialog,
+    FormularzInstrukcjaDialogPOGpoUniewaznieniu,
+    DokumentyFormularzDialogPoUniewaznieniu,
+    GenerowanieGMLDialogPoUniewaznieniu
     )

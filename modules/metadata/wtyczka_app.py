@@ -21,25 +21,26 @@ class MetadataModule(BaseModule):
     walidacjaDialog = None
 
     def __init__(self, iface):
+        """Inicjalizuje obiekt klasy `MetadataModule` i konfiguruje jego stan początkowy."""
         self.iface = iface
         self.dataValidator = None
         self.saved = False
         # plik metadanych do wysłania
-
+        
         self.s = QgsSettings()
         self.metadataXmlPath = None
         # region okno moduł metadata
         self.metadaneDialog = MetadaneDialog()
-
+        
         # region eventy moduł metadata
         self.metadaneDialog.prev_btn.clicked.connect(self.metadaneDialog_prev_btn_clicked)
         self.metadaneDialog.validateAndSave_btn.clicked.connect(self.showPopupValidateAndSave)
         self.metadaneDialog.close_btn.clicked.connect(self.metadaneDialog.close)
-
+        
         self.metadaneDialog.chooseFile_widget.setFilter(filter="pliki XML (*.xml)")
         self.metadaneDialog.chooseFile_widget.setDefaultRoot(self.s.value("qgis_app2/settings/defaultPath", ""))
         self.metadaneDialog.chooseFile_widget.fileChanged.connect(self.chooseFile_widget_fileChanged)
-
+        
         self.metadaneDialog.chooseSet_widget.setFilter(filter="pliki XML/GML (*.xml *.gml)")
         self.metadaneDialog.chooseSet_widget.setDefaultRoot(self.s.value("qgis_app2/settings/defaultPath", ""))
         self.metadaneDialog.chooseSet_widget.fileChanged.connect(self.chooseSet_widget_fileChanged)
@@ -47,6 +48,7 @@ class MetadataModule(BaseModule):
 
     """Event handlers"""
     def chooseSet_widget_fileChanged(self, path):
+        """Obsługuje zmianę pliku wskazanego dla `chooseSet_widget`."""
         if path:
             # utworzenie słownika na podstawie pliku zbioru APP
             metadataElementDict = appGmlToMetadataElementDict(path)
@@ -58,11 +60,12 @@ class MetadataModule(BaseModule):
                                                     "Zaktualizowano formularz metadanych w oparciu o plik zbioru APP.")
 
     def chooseFile_widget_fileChanged(self, path):
+        """Obsługuje zmianę pliku wskazanego dla `chooseFile_widget`."""
         if path:
             # utworzenie słownika na podstawie pliku metadanych
             metadataElementDict = xmlToMetadataElementDict(path)
             # print(metadataElementDict)
-
+            
             # zapisanie słownika do formularza
             metadataElementDictToForm(metadataElementDict, self.metadaneDialog)
             self.iface.messageBar().pushSuccess("Aktualizacja formularza metadanych:",
@@ -71,10 +74,12 @@ class MetadataModule(BaseModule):
 
     # region metadaneDialog
     def metadaneDialog_prev_btn_clicked(self):
+        """Obsługuje kliknięcie przycisku związanego z operacją `metadaneDialog_prev`."""
         self.openNewDialog(self.listaOkienek.pop())
 
 
     def metadaneDialog_next_btn_clicked(self):
+        """Obsługuje kliknięcie przycisku związanego z operacją `metadaneDialog_next`."""
         self.openNewDialog(self.walidacjaDialog)
         self.listaOkienek.append(self.metadaneDialog)
         self.walidacjaDialog.prev_btn.setEnabled(True)
@@ -82,7 +87,8 @@ class MetadataModule(BaseModule):
 
     """Helper methods"""
     def saveMetaFile(self, xmlString):
-
+        
+        """Zapisuje dane obsługiwane przez operację `saveMetaFile`."""
         defaultPath = self.s.value("qgis_app2/settings/defaultPath", "")
         self.metadataXmlPath = QFileDialog.getSaveFileName(directory=defaultPath, filter="*.xml")[0]
         if self.metadataXmlPath:
@@ -99,6 +105,7 @@ class MetadataModule(BaseModule):
 
     """Popup windows"""
     def showPopupValidateAndSave(self):
+        """Wyświetla komunikat związany z operacją `showPopupValidateAndSave`."""
         validationResult = validateMetadataForm(dlg=self.metadaneDialog)
         # if True: # do testów w celu ominięcia walidacji formularza
         if validationResult[0]:

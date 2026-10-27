@@ -12,6 +12,10 @@ from qgis.PyQt import uic, QtGui
 from qgis.PyQt import QtWidgets
 from PyQt5.QtGui import QRegExpValidator
 from .comboBoxWithContextMenu import ComboBoxWithContextMenu
+from qgis.PyQt.QtCore import pyqtSignal
+from qgis.PyQt.QtWidgets import QDialog
+
+
 
 
 title_settings = 'Ustawienia'
@@ -29,6 +33,9 @@ FORM_CLASS1, _ = uic.loadUiType(os.path.join(
 
 
 class UstawieniaDialog(QtWidgets.QDialog, FORM_CLASS):
+    
+    closed = pyqtSignal()
+    
     def __init__(self, parent=None):
         """Constructor."""
         super(UstawieniaDialog, self).__init__(parent)
@@ -41,6 +48,10 @@ class UstawieniaDialog(QtWidgets.QDialog, FORM_CLASS):
         self.jpt_comboBoxWithContextMenu  = ComboBoxWithContextMenu(self)
         self.jpt_comboBoxWithContextMenu.setObjectName("jpt_comboBoxWithContextMenu")
         self.gridLayout_4.addWidget(self.jpt_comboBoxWithContextMenu ,2, 1)
+    
+    def closeEvent(self, event):
+        """Obsługuje zamknięcie okna i wykonuje wymagane czynności porządkowe."""
+        self.closed.emit()
 
 class PomocDialog(QtWidgets.QDialog, FORM_CLASS1):
     def __init__(self, parent=None):

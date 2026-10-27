@@ -33,6 +33,7 @@ class SendFileDialog:
     """klasa bazowa dla formularzy wysyłki pliku metadanych"""
 
     def setXmlPath(self, xmlPath):
+        """Ustawia dane lub stan wymagany przez operację `setXmlPath`."""
         self.xmlPath = xmlPath
 
     def saveSettings(self, formName):
@@ -176,6 +177,7 @@ class MetadaneDialog(CloseMessageDialog, FORM_CLASS, ButtonsDialog):
     def prepareListWidgets(self, listWidget):
         """Przygotowanie obsługi pól wielokrotnej liczności"""
         def clearDataFromListWidget():
+            """Czyści dane lub stan obsługiwany przez operację `clearDataFromListWidget`."""
             if elementId == 'e22':
                 utils.getWidgetByName(layout=self, searchObjectType=QComboBox, name='e23_cmbbx').setCurrentIndex(0)
             if elementId == 'e18':
@@ -224,6 +226,7 @@ class MetadaneDialog(CloseMessageDialog, FORM_CLASS, ButtonsDialog):
             return False
 
         def getDataFromListWidget(listItem):
+            """Pobiera dane wymagane przez operację `getDataFromListWidget`."""
             data = listItem.data(Qt.UserRole)
             for input in inputs:
                 if isinstance(input, QLineEdit):
@@ -260,6 +263,7 @@ class MetadaneDialog(CloseMessageDialog, FORM_CLASS, ButtonsDialog):
                     input2.setCurrentIndex(0)
 
         def addItem():
+            """Dodaje dane lub elementy obsługiwane przez operację `addItem`."""
             if checkValidity():  # jeżeli pola są wypełnione
                 newItem = QListWidgetItem()
                 data = {}
@@ -310,6 +314,7 @@ class MetadaneDialog(CloseMessageDialog, FORM_CLASS, ButtonsDialog):
                 utils.showPopup("Wypełnij formularz mapy podkładowej",
                                 'Musisz zdefiniować poprawne wartości dla wszystkich wymaganych pól przed dodaniem do listy')
         def removeItem(listWidget):
+            """Usuwa dane lub elementy obsługiwane przez operację `removeItem`."""
             listWidget.takeItem(listWidget.currentRow())
 
         def setDefaultValues(elementId, listWidget):

@@ -15,6 +15,7 @@ from ..app.wtyczka_app import AppModule
 class AnalizyModule(BaseModule):
 
     def __init__(self, iface):
+        """Inicjalizuje obiekt klasy `AnalizyModule` i konfiguruje jego stan początkowy."""
         self.iface = iface
         self.analizyDialog = AnalizyDialog()
         self.analizyDialog.close_btn.clicked.connect(self.analizyDialog.close)
@@ -23,5 +24,6 @@ class AnalizyModule(BaseModule):
     """Event handlers"""
     
     def analizy_load_btn_clicked(self):
+        """Obsługuje kliknięcie przycisku związanego z operacją `analizy_load`."""
         self.loadFromGMLorGPKG(True)
 

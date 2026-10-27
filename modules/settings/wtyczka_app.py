@@ -17,8 +17,11 @@ import json
 import types
 
 
+
+
 class SettingsModule(BaseModule):
     def __init__(self, iface):
+        """Inicjalizuje obiekt klasy `SettingsModule` i konfiguruje jego stan początkowy."""
         self.iface = iface
         global s, bledy, zmiany
         s = QgsSettings()
@@ -27,6 +30,8 @@ class SettingsModule(BaseModule):
         
         # region okno moduł settings
         self.ustawieniaDialog = ustawieniaDialog
+        self.ustawieniaDialog.closed.connect(self.readSettings)
+        
         # endregion
         # region okno moduł help
         self.pomocDialog = PomocDialog()
@@ -38,6 +43,7 @@ class SettingsModule(BaseModule):
         self.preparePrzestrzenNazw()
         
         def custom_context_menu(widget, event):
+            """Realizuje operację `custom_context_menu` w bieżącym module."""
             menu = widget.createStandardContextMenu()
             menu.addSeparator()
             
@@ -51,7 +57,7 @@ class SettingsModule(BaseModule):
         
         self.jpt_comboBoxWithContextMenu = self.ustawieniaDialog.jpt_comboBoxWithContextMenu.lineEdit()
         
-        if self.ustawieniaDialog.rodzajZbioru_comboBox.currentText() == 'PZPW':
+        if self.ustawieniaDialog.rodzajZbioru_comboBox.currentText() in ['PZPW','AK']:
             self.jpt_comboBoxWithContextMenu.setPlaceholderText('np. 24')
             self.ustawieniaDialog.jpt_comboBoxWithContextMenu.setValidator(QRegExpValidator(QRegExp("[0][2|4|6|8]|[1-2][0|2|4|6|8]|[3][0|2]")))
         else:
@@ -91,6 +97,7 @@ class SettingsModule(BaseModule):
     """Event handlers"""
 
     def set_edycjaILAPP(self):
+        """Ustawia dane lub stan wymagany przez operację `set_edycjaILAPP`."""
         global bledy, zmiany
         txt = self.ustawieniaDialog.edycjaILAPP.text()
         
@@ -118,6 +125,7 @@ class SettingsModule(BaseModule):
 
 
     def set_edycjaNumerZbioru(self):
+        """Ustawia dane lub stan wymagany przez operację `set_edycjaNumerZbioru`."""
         global bledy, zmiany
         
         txt = self.ustawieniaDialog.numerZbioru_lineEdit.text()
@@ -138,17 +146,18 @@ class SettingsModule(BaseModule):
 
 
     def set_edycjaJPT(self):
+        """Ustawia dane lub stan wymagany przez operację `set_edycjaJPT`."""
         global bledy, zmiany
         
         txt = self.ustawieniaDialog.jpt_comboBoxWithContextMenu.currentText()
         match = ''
-        if self.ustawieniaDialog.rodzajZbioru_comboBox.currentText() == 'PZPW':
+        if self.ustawieniaDialog.rodzajZbioru_comboBox.currentText() in ['PZPW','AK']:
             match = '^[0][2|4|6|8]|[1-2][0|2|4|6|8]|[3][0|2]$'
         else:
             match = '^([0][2|4|6|8]|[1-2][0|2|4|6|8]|[3][0|2])[0-9]{4}$'
         
         if re.match(match, txt) == None or \
-           (self.ustawieniaDialog.rodzajZbioru_comboBox.currentText() != 'PZPW' and 
+           (not self.ustawieniaDialog.rodzajZbioru_comboBox.currentText() in ['PZPW','AK'] and 
            not txt[:4] in [code for values in dictionaries.przypisaniePowiatuDoEPSGukladuPL2000.values() for code in values]):
             self.ustawieniaDialog.jpt_comboBoxWithContextMenu.setStyleSheet("border: 1px solid red")
             self.ustawieniaDialog.jpt_comboBoxWithContextMenu.setFixedHeight(22)
@@ -165,6 +174,7 @@ class SettingsModule(BaseModule):
 
 
     def selectJPT(self, index):
+        """Wybiera dane lub element wymagany przez operację `selectJPT`."""
         for ustawienie_json in ustawienia_json:
             if ustawienie_json["jpt"] == self.ustawieniaDialog.jpt_comboBoxWithContextMenu.itemText(index):
                 self.ustawieniaDialog.folder_lbl.setText(ustawienie_json["defaultPath"])
@@ -174,6 +184,7 @@ class SettingsModule(BaseModule):
 
 
     def wlaczenieZapisu(self):
+        """Realizuje operację `wlaczenieZapisu` w bieżącym module."""
         if self.ustawieniaDialog.rodzajZbioru_comboBox.currentText() != 'POG':
             bledy[3] = 0
         if sum(bledy) == 0 and sum(zmiany) > 0:
@@ -183,9 +194,10 @@ class SettingsModule(BaseModule):
 
 
     def set_field_validators(self):
+        """Ustawia dane lub stan wymagany przez operację `set_field_validators`."""
         global zmiany
         self.ustawieniaDialog.numerZbioru_lineEdit.setValidator(QRegExpValidator(QRegExp("[1-9][0-9]*")))
-        if self.ustawieniaDialog.rodzajZbioru_comboBox.currentText() == 'PZPW':
+        if self.ustawieniaDialog.rodzajZbioru_comboBox.currentText() in ['PZPW','AK']:
             self.ustawieniaDialog.jpt_comboBoxWithContextMenu.lineEdit().setPlaceholderText('np. 24')
             self.ustawieniaDialog.jpt_comboBoxWithContextMenu.setValidator(QRegExpValidator(QRegExp("[0][2|4|6|8]|[1-2][0|2|4|6|8]|[3][0|2]")))
         else:
@@ -215,18 +227,24 @@ class SettingsModule(BaseModule):
 
 
     def add_rodzajZbioru_values(self):
+        """Dodaje dane lub elementy obsługiwane przez operację `add_rodzajZbioru_values`."""
         values = dictionaries.rodzajeZbiorow.keys()
         self.ustawieniaDialog.rodzajZbioru_comboBox.addItems(values)
 
 
-    def folder_btn_clicked(self):
+    def folder_btn_clicked(self, katalog=None):
+        """Obsługuje kliknięcie przycisku związanego z operacją `folder`."""
         global bledy, zmiany
         if self.ustawieniaDialog.folder_lbl != '/':
             directory = self.ustawieniaDialog.folder_lbl.text()
         else:
             directory = '/'
-        path = QFileDialog.getExistingDirectory(
-            self.ustawieniaDialog, "Wskaż domyślny folder zapisu", directory , QFileDialog.ShowDirsOnly)
+        
+        if katalog:
+            path = katalog
+        else:
+            path = QFileDialog.getExistingDirectory(
+                self.ustawieniaDialog, "Wskaż domyślny folder zapisu", directory , QFileDialog.ShowDirsOnly)
         
         if path == '':
             showPopup('Wybór katalogu', 'Nie wskazano domyślnej ścieżki zapisu plików. Proszę wybrać katalog.', icon=QMessageBox.Warning)
@@ -250,6 +268,7 @@ class SettingsModule(BaseModule):
 
 
     def kontrola_folder(self):
+        """Wykonuje kontrolę danych w ramach operacji `kontrola_folder`."""
         global bledy, zmiany
         
         if self.ustawieniaDialog.folder_lbl.text() == '':
@@ -267,8 +286,9 @@ class SettingsModule(BaseModule):
 
 
     def validate_settings(self):
+        """Wykonuje kontrolę danych w ramach operacji `validate_settings`."""
         bledy_tmp = []
-        if not (self.ustawieniaDialog.przestrzenNazw_lineEdit.text() == '' or validate_IIP(self.ustawieniaDialog.przestrzenNazw_lineEdit.text())):  # walidacja idIPP
+        if self.ustawieniaDialog.przestrzenNazw_lineEdit.text() == '' or not validate_IIP(self.ustawieniaDialog.przestrzenNazw_lineEdit.text()):  # walidacja idIPP
             bledy_tmp.append('- Błędna wartość dla pola Przestrzeń nazw APP.')
         if self.ustawieniaDialog.rodzajZbioru_comboBox.currentText() == 'POG' and self.getEPSGukladPL2000() == 0:
             bledy_tmp.append('- Błędna wartość dla pola JPT.')
@@ -281,6 +301,7 @@ class SettingsModule(BaseModule):
 
 
     def save_btn_clicked(self, silently=False):
+        """Obsługuje kliknięcie przycisku związanego z operacją `save`."""
         global ustawienia_json
         
         valResult = self.validate_settings()
@@ -298,7 +319,7 @@ class SettingsModule(BaseModule):
             if self.ustawieniaDialog.rodzajZbioru_comboBox.currentText() == 'POG':
                 s.setValue("qgis_app2/settings/idLokalnyAPP",
                            self.ustawieniaDialog.edycjaILAPP.text())
-            s.setValue("qgis_app2/settings/strefaPL2000", self.getEPSGukladPL2000())
+            s.setValue("qgis_app2/settings/strefaPL2000", self.getEPSGDlaRodzajuZbioru())
             
             paczki = ustawienia_json
             if self.ustawieniaDialog.rodzajZbioru_comboBox.currentText() != 'POG':
@@ -331,10 +352,16 @@ class SettingsModule(BaseModule):
             
             if self.ustawieniaDialog.rodzajZbioru_comboBox.currentText() == 'PZPW':
                 s.setValue("qgis_app2/settings/ustawienia_json_pzpw", json.dumps(paczki))
+            elif self.ustawieniaDialog.rodzajZbioru_comboBox.currentText() == 'AK':
+                s.setValue("qgis_app2/settings/ustawienia_json_AK", json.dumps(paczki))
+            elif self.ustawieniaDialog.rodzajZbioru_comboBox.currentText() == 'UK':
+                s.setValue("qgis_app2/settings/ustawienia_json_UchwalaKrajobrazowa", json.dumps(paczki))
             elif self.ustawieniaDialog.rodzajZbioru_comboBox.currentText() == 'SUIKZP':
                 s.setValue("qgis_app2/settings/ustawienia_json_suikzp", json.dumps(paczki))
             elif self.ustawieniaDialog.rodzajZbioru_comboBox.currentText() == 'MPZP':
                 s.setValue("qgis_app2/settings/ustawienia_json_mpzp", json.dumps(paczki))
+            elif self.ustawieniaDialog.rodzajZbioru_comboBox.currentText() == 'ZPI':
+                s.setValue("qgis_app2/settings/ustawienia_json_zpi", json.dumps(paczki))
             else:
                 s.setValue("qgis_app2/settings/ustawienia_json_pog", json.dumps(paczki))
             
@@ -349,12 +376,15 @@ class SettingsModule(BaseModule):
 
 
     def exit_btn_clicked(self):
+        """Obsługuje kliknięcie przycisku związanego z operacją `exit`."""
         self.readSettings()
         self.kontrola_folder()
 
 
     def preparePrzestrzenNazw(self):
+        """Przygotowuje dane wymagane przez operację `preparePrzestrzenNazw`."""
         def updatePrzestrzenNazw():
+            """Aktualizuje dane obsługiwane przez operację `updatePrzestrzenNazw`."""
             przestrzenNazw_list = []
             przestrzenNazw_lineEdit = self.ustawieniaDialog.przestrzenNazw_lineEdit
             numerZbioru_lineEdit = self.ustawieniaDialog.numerZbioru_lineEdit.text()
@@ -400,6 +430,7 @@ class SettingsModule(BaseModule):
 
 
     def readSettings(self):
+        """Odczytuje dane wymagane przez operację `readSettings`."""
         global ustawienia_json
         ustawienia_json = []
         
@@ -413,10 +444,16 @@ class SettingsModule(BaseModule):
         
         if s.value("qgis_app2/settings/rodzajZbioru", "") == 'PZPW':
             raw_data = s.value("qgis_app2/settings/ustawienia_json_pzpw","[]")
+        elif s.value("qgis_app2/settings/rodzajZbioru", "") == 'AK':
+            raw_data = s.value("qgis_app2/settings/ustawienia_json_AK","[]")
+        elif s.value("qgis_app2/settings/rodzajZbioru", "") == 'UK':
+            raw_data = s.value("qgis_app2/settings/ustawienia_json_UchwalaKrajobrazowa","[]")
         elif s.value("qgis_app2/settings/rodzajZbioru", "") == 'SUIKZP':
             raw_data = s.value("qgis_app2/settings/ustawienia_json_suikzp","[]")
         elif s.value("qgis_app2/settings/rodzajZbioru", "") == 'MPZP':
             raw_data = s.value("qgis_app2/settings/ustawienia_json_mpzp","[]")
+        elif s.value("qgis_app2/settings/rodzajZbioru", "") == 'ZPI':
+            raw_data = s.value("qgis_app2/settings/ustawienia_json_zpi","[]")
         else:
             raw_data = s.value("qgis_app2/settings/ustawienia_json_pog","[]")
         
@@ -441,6 +478,7 @@ class SettingsModule(BaseModule):
 
 
     def readSettings_Manual(self):
+        """Odczytuje dane wymagane przez operację `readSettings_Manual`."""
         global ustawienia_json
         ustawienia_json = []
         
@@ -451,10 +489,16 @@ class SettingsModule(BaseModule):
         else:
             if self.ustawieniaDialog.rodzajZbioru_comboBox.currentText() == 'PZPW':
                 raw_data = s.value("qgis_app2/settings/ustawienia_json_pzpw","[]")
+            elif self.ustawieniaDialog.rodzajZbioru_comboBox.currentText() == 'AK':
+                raw_data = s.value("qgis_app2/settings/ustawienia_json_AK","[]")
+            elif self.ustawieniaDialog.rodzajZbioru_comboBox.currentText() == 'UK':
+                raw_data = s.value("qgis_app2/settings/ustawienia_json_UchwalaKrajobrazowa","[]")
             elif self.ustawieniaDialog.rodzajZbioru_comboBox.currentText() == 'SUIKZP':
                 raw_data = s.value("qgis_app2/settings/ustawienia_json_suikzp","[]")
             elif self.ustawieniaDialog.rodzajZbioru_comboBox.currentText() == 'MPZP':
                 raw_data = s.value("qgis_app2/settings/ustawienia_json_mpzp","[]")
+            elif self.ustawieniaDialog.rodzajZbioru_comboBox.currentText() == 'ZPI':
+                raw_data = s.value("qgis_app2/settings/ustawienia_json_zpi","[]")
             else:
                 raw_data = s.value("qgis_app2/settings/ustawienia_json_pog","[]")
             
@@ -478,12 +522,32 @@ class SettingsModule(BaseModule):
                 self.ustawieniaDialog.folder_lbl.setText(self.data[0]["defaultPath"])
                 self.ustawieniaDialog.numerZbioru_lineEdit.setText(self.data[0]["numerZbioru"])
                 if self.ustawieniaDialog.rodzajZbioru_comboBox.currentText() == 'POG':
-                    self.ustawieniaDialog.edycjaILAPP.setText(self.data[0]["idLokalnyAPP"])
+                    try:
+                        self.ustawieniaDialog.edycjaILAPP.setText(self.data[0]["idLokalnyAPP"])
+                    except:
+                        self.ustawieniaDialog.edycjaILAPP.setText("")
             
             self.kontrola_folder()
 
 
+    def getEPSGDlaRodzajuZbioru(self):
+        """Pobiera dane wymagane przez operację `getEPSGDlaRodzajuZbioru`."""
+        rodzajZbioru = self.ustawieniaDialog.rodzajZbioru_comboBox.currentText()
+        
+        # AK i PZPW pracują w PUWG 1992
+        if rodzajZbioru in ('AK', 'PZPW'):
+            return '2180'
+            
+        epsg = self.getEPSGukladPL2000()
+        
+        if epsg in (0, '0', None, ''):
+            return ''
+        
+        return str(epsg)
+
+
     def getEPSGukladPL2000(self):
+        """Pobiera dane wymagane przez operację `getEPSGukladPL2000`."""
         jpt = self.ustawieniaDialog.jpt_comboBoxWithContextMenu.currentText()
         teryt = jpt[:4]
         
@@ -494,6 +558,7 @@ class SettingsModule(BaseModule):
 
 
     def usuniecieJPT(self, value):
+        """Usuwa dane lub elementy obsługiwane przez operację `usuniecieJPT`."""
         global ustawienia_json
         
         paczki = ustawienia_json
@@ -505,10 +570,16 @@ class SettingsModule(BaseModule):
         
         if self.ustawieniaDialog.rodzajZbioru_comboBox.currentText() == 'PZPW':
             s.setValue("qgis_app2/settings/ustawienia_json_pzpw", json.dumps(paczki))
+        elif self.ustawieniaDialog.rodzajZbioru_comboBox.currentText() == 'AK':
+            s.setValue("qgis_app2/settings/ustawienia_json_AK", json.dumps(paczki))
+        elif self.ustawieniaDialog.rodzajZbioru_comboBox.currentText() == 'UK':
+            s.setValue("qgis_app2/settings/ustawienia_json_UchwalaKrajobrazowa", json.dumps(paczki))
         elif self.ustawieniaDialog.rodzajZbioru_comboBox.currentText() == 'SUIKZP':
             s.setValue("qgis_app2/settings/ustawienia_json_suikzp", json.dumps(paczki))
         elif self.ustawieniaDialog.rodzajZbioru_comboBox.currentText() == 'MPZP':
             s.setValue("qgis_app2/settings/ustawienia_json_mpzp", json.dumps(paczki))
+        elif self.ustawieniaDialog.rodzajZbioru_comboBox.currentText() == 'ZPI':
+            s.setValue("qgis_app2/settings/ustawienia_json_zpi", json.dumps(paczki))
         else:
             s.setValue("qgis_app2/settings/ustawienia_json_pog", json.dumps(paczki))
         
@@ -518,10 +589,14 @@ class SettingsModule(BaseModule):
 
 
     def pobranieNumeruZbioru_z_EZiUDP(self):
+        """pobranie numeru zbioru z Ewidencji zbiorów i usług danych przestrzennych"""
         teryt = self.ustawieniaDialog.jpt_comboBoxWithContextMenu.currentText()
-        if teryt == "":
+        
+        if teryt == "" or bledy[2] == 1:
             showPopup('Pobranie numeru zbioru','Proszę uzupełnić JPT.',icon=QMessageBox.Information)
         else:
+            rodzajZbioru = self.ustawieniaDialog.rodzajZbioru_comboBox.currentText()
+            
             showPopup('Pobranie numeru zbioru',
                       'Nastąpi pobranie numeru zbioru z Ewidencji zbiorów i usług danych przestrzennych (źródło: www.geoportal.gov.pl). Pobranie będzie trwało od 1 do ok. 10 sekund.',
                       icon=QMessageBox.Information)
@@ -529,13 +604,16 @@ class SettingsModule(BaseModule):
             nazwa_zbioru = {"POG": "Zbiór danych przestrzennych dla planu ogólnego gminy",
                             "MPZP":"Zbiór danych przestrzennych dla miejscowych planów zagospodarowania przestrzennego",
                             "PZPW":"Zbiór danych przestrzennych dla planu zagospodarowania przestrzennego województwa",
-                            "SUIKZP":"Studium uwarunkowań i kierunków zagospodarowania przestrzennego"
+                            "SUIKZP":"Studium uwarunkowań i kierunków zagospodarowania przestrzennego",
+                            "AK":"Audyt krajobrazowy",
+                            "UK":"Uchwała ustalająca zasady i warunki sytuowania obiektów małej architektury, tablic reklamowych i urządzeń reklamowych oraz ogrodzeń",
+                            "ZPI":"Zintegrowany plan inwestycyjny"
                            }
             
             params = {"teryt": teryt,
                       "rodzaj": "",
                       "nazwa": "",
-                      "zbior": nazwa_zbioru[self.ustawieniaDialog.rodzajZbioru_comboBox.currentText()],
+                      "zbior": nazwa_zbioru[rodzajZbioru],
                       "temat": "",
                       "usluga": "",
                       "adres": ""
@@ -545,7 +623,10 @@ class SettingsModule(BaseModule):
             url = f"{base_url}?{urllib.parse.urlencode(params)}"
             
             try:
-                with urllib.request.urlopen(url) as response:
+                parsed_url = urllib.parse.urlparse(url)
+                if parsed_url.scheme not in ("http", "https"):
+                    raise ValueError("Niedozwolony schemat URL. Dozwolone są wyłącznie HTTP i HTTPS.")
+                with urllib.request.urlopen(url, timeout=10) as response:  # nosec B310
                     html = response.read().decode("utf-8")
             except Exception as e:
                 raise Exception(f"Błąd pobierania danych: {e}")

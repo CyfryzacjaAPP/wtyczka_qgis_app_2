@@ -17,6 +17,7 @@ class ComboBoxWithContextMenu(QComboBox):
     pobierzNumerZbioru_z_EZiUDP = pyqtSignal(str)
     
     def __init__(self, parent=None):
+        """Inicjalizuje obiekt klasy `ComboBoxWithContextMenu` i konfiguruje jego stan początkowy."""
         super().__init__(parent)
         self.setEditable(True)
         
@@ -29,6 +30,7 @@ class ComboBoxWithContextMenu(QComboBox):
     
     def eventFilter(self, source, event):
         # Zdarzenie, gdy klikniemy prawym przyciskiem myszy na elemencie ComboBox
+        """Filtruje zdarzenia interfejsu i obsługuje zdarzenia wymagające własnej reakcji."""
         if event.type() == QEvent.MouseButtonRelease and event.button() == Qt.RightButton:
             index = self.view().indexAt(event.pos())
             if index.isValid():
@@ -46,10 +48,12 @@ class ComboBoxWithContextMenu(QComboBox):
     
     def focusOutEvent(self, event):
         # Kiedy ComboBox traci fokus, sprawdzamy czy pole edycji zawiera wartość
+        """Obsługuje utratę fokusu przez kontrolkę."""
         text = self.lineEdit().text()
         super().focusOutEvent(event)
     
     def usuniecie(self, index):
+        """Usuwa dane lub elementy obsługiwane przez operację `usuniecie`."""
         value = self.itemText(index)
         self.removeItem(index)
         self.itemRemoved.emit(value)
