@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Dialog</class>
+ <widget class="QDialog" name="Dialog">
+  <property name="enabled">
+   <bool>true</bool>
+  </property>
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>762</width>
+    <height>558</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Dialog</string>
+  </property>
+  <property name="sizeGripEnabled">
+   <bool>true</bool>
+  </property>
+  <layout class="QGridLayout" name="gridLayout_2">
+   <item row="0" column="0">
+    <layout class="QVBoxLayout" name="verticalLayout">
+     <item>
+      <widget class="QLabel" name="title_lbl">
+       <property name="font">
+        <font>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Przygotowanie granic APP</string>
+       </property>
+       <property name="margin">
+        <number>7</number>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QScrollArea" name="instruction_scrollArea">
+       <property name="widgetResizable">
+        <bool>true</bool>
+       </property>
+       <widget class="QWidget" name="scrollAreaWidgetContents">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>0</y>
+          <width>740</width>
+          <height>376</height>
+         </rect>
+        </property>
+        <layout class="QGridLayout" name="gridLayout">
+         <item row="0" column="0">
+          <widget class="QLabel" name="instruction_lbl">
+           <property name="font">
+            <font>
+             <stylestrategy>PreferDefault</stylestrategy>
+            </font>
+           </property>
+           <property name="text">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Dane przestrzenne APP obejmują m.in. wektorowe granice obowiązywania APP w &lt;span style=&quot; font-weight:600;&quot;&gt;układzie PL-2000 lub PL-1992&lt;/span&gt;. W warstwie wektorowej musi znajdować się tylko &lt;span style=&quot; font-weight:600;&quot;&gt;jeden obiekt&lt;/span&gt;, którym może być &lt;span style=&quot; font-weight:600;&quot;&gt;poligon lub multipoligon&lt;/span&gt; (w przypadku obiektów wieloczęściowych).&lt;/p&gt;&lt;p&gt;Granice APP są&lt;span style=&quot; font-weight:600;&quot;&gt; niezbędne&lt;/span&gt; do wygenerowania w kolejnym kroku pliku XML z atrybutami dla APP. W przypadku posiadania wcześniej przygotowanego pliku XML z atrybutami dla APP, można wybrać opcję &lt;span style=&quot; text-decoration: underline;&quot;&gt;Pomiń&lt;/span&gt;. Przeniesie ona Użytkownika do okna Praca z APP (krok 5 z 6) Formularz atrybutów dla dokumentów formalnych. &lt;/p&gt;&lt;p&gt;W przypadku posiadania poprawnych granic APP należy wgrać plik do QGIS, a następnie wybrać go z listy rozwijalnej w oknie wtyczki i kliknąć przycisk &lt;span style=&quot; text-decoration: underline;&quot;&gt;Dalej&lt;/span&gt;. &lt;/p&gt;&lt;p&gt;W przypadku nieposiadania poprawnych granic APP należy je przygotować na podstawie istniejących plików (np. naprawić niepoprawne granice APP) lub stworzyć granicę APP od podstaw. W przypadku tworzenia danych od podstaw można wybrać opcję &lt;span style=&quot; text-decoration: underline;&quot;&gt;Stwórz pustą warstwę&lt;/span&gt;, a następnie postępować zgodnie z &lt;a href=&quot;http://www.gov.pl/zagospodarowanieprzestrzenne/instrukcja-uzytkownika-wtyczka-app&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;instrukcją&lt;/span&gt;&lt;/a&gt;.&lt;br/&gt;&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;WAŻNE:&lt;/span&gt; Warstwę tymczasową warto zapisać na dysku. W tym celu proszę wybrać format Geopackage. &lt;/p&gt;&lt;p&gt;Dzięki wyborowi tego formatu zapisu warstwy, w następnym kroku formularz atrybutów dla APP zostanie automatycznie wypełnionymi danymi znajdującymi się w poszczególnych kolumnach tabeli atrybutów tej warstwy.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignJustify|Qt::AlignVCenter</set>
+           </property>
+           <property name="wordWrap">
+            <bool>true</bool>
+           </property>
+           <property name="openExternalLinks">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="empty1_lbl">
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_4">
+       <item>
+        <widget class="QLabel" name="addAppShp_lbl">
+         <property name="text">
+          <string>Wybierz warstwę do zapisu (opcjonalne)</string>
+         </property>
+         <property name="margin">
+          <number>0</number>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer_2">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <item>
+        <widget class="QgsMapLayerComboBox" name="layers_comboBox">
+         <property name="allowEmptyLayer">
+          <bool>false</bool>
+         </property>
+         <property name="showCrs">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <widget class="QLabel" name="empty2_lbl">
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <item>
+        <widget class="QPushButton" name="prev_btn">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
+         <property name="text">
+          <string>Wstecz</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QPushButton" name="generateTemporaryLayer_btn">
+         <property name="text">
+          <string>Stwórz pustą warstwę</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="skip_btn">
+         <property name="toolTip">
+          <string>Pominięcie tworzenia formularza dla APP. Przeniesienie do formularza dla dokumentów formalnych.</string>
+         </property>
+         <property name="text">
+          <string>Pomiń</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="next_btn">
+         <property name="text">
+          <string>Dalej</string>
+         </property>
+         <property name="default">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QgsMapLayerComboBox</class>
+   <extends>QComboBox</extends>
+   <header>qgsmaplayercombobox.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>
