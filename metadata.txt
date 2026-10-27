@@ -5,16 +5,16 @@
 [general]
 name=Wtyczka APP 2
 qgisMinimumVersion=3.34.4
-qgisMaximumVersion=3.40.9
-description=Wtyczka wspomaga tworzenie danych przestrzennych dla planów ogólnych gminy w pełnym zakresie oraz pozostałych aktów planowania przestrzennego (APP) w zakresie podstawowym, w tym zbiorów APP oraz metadanych zgodnie z polskimi przepisami. Dedykowaną wersją oprogramowania QGIS do korzystania z Wtyczki APP są wersje od 3.34.4 do 3.40.9. 
-version=2.1.3
+qgisMaximumVersion=3.40.11
+description=Wtyczka wspomaga tworzenie danych przestrzennych dla planów ogólnych gminy w pełnym zakresie oraz pozostałych aktów planowania przestrzennego (APP) w zakresie podstawowym, w tym zbiorów APP oraz metadanych zgodnie z polskimi przepisami. Dedykowaną wersją oprogramowania QGIS do korzystania z Wtyczki APP są wersje od 3.34.4 do 3.40.11. 
+version=2.1.4
 author=Marcin Lebiecki
 email=cyfryzacja.app@mrit.gov.pl 
 
 about=PL: Wtyczka wspomaga tworzenie danych przestrzennych dla planów ogólnych gminy w pełnym zakresie, zgodnie z polskimi przepisami obowiązującymi od 24 września 2024 r. oraz pozostałych aktów planowania przestrzennego (APP), w tym zbiorów APP oraz metadanych zgodnie z polskimi przepisami obowiązującymi od 31 października 2020 r.
-  Dedykowaną wersją oprogramowania QGIS do korzystania z Wtyczki APP są wersje od 3.34.4 do 3.40.9.
+  Dedykowaną wersją oprogramowania QGIS do korzystania z Wtyczki APP są wersje od 3.34.4 do 3.40.11.
   ENG: The plugin supports creation of spatial data for general municipal plans in full scope and other spatial planning acts (APP), APP datasets and APP metadata in accordance with the Polish regulations.
-  Dedicated version of QGIS software to use APP Plugin are versions from 3.34.4 to 3.40.9.
+  Dedicated version of QGIS software to use APP Plugin are versions from 3.34.4 to 3.40.11.
 
 tracker=https://github.com/CyfryzacjaAPP/wtyczka_qgis_app_2/issues
 repository=https://github.com/CyfryzacjaAPP/wtyczka_qgis_app_2
@@ -25,6 +25,12 @@ repository=https://github.com/CyfryzacjaAPP/wtyczka_qgis_app_2
 hasProcessingProvider=no
 # Uncomment the following line and add your changelog:
   changelog=
+  Wersja 2.1.4
+  * dodano funkcję tworzenia APP po stwierdzeniu nieważności części POG
+  * dodano funkcję tworzenia pliku GML dla dokumentu Repozytorium
+  * zaktualizowano schemat aplikacyjny dla APP do schematu Planowanie przestrzenne 3.0
+  * dodano możliwość tworzenia GML dla audytu krajobrazowego oraz uchwały krajobrazowej
+  * poprawiono pojedyncze błędy
   Wersja 2.1.3
   * wzmocnienie kontroli zmian OUZ
   Wersja 2.1.2

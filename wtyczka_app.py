@@ -32,6 +32,7 @@ from qgis.core import QgsTask, QgsApplication, QgsMessageLog
 from .resources import *
 # Import the code for the dialog
 from .modules.app.wtyczka_app import AppModule
+from .modules.dokument.wtyczka_app import DokumentModule
 from .modules.metadata.wtyczka_app import MetadataModule
 from .modules.validator.wtyczka_app import ValidatorModule
 from .modules.tworzenieOUZ.wtyczka_app import TworzenieOUZModule
@@ -49,20 +50,24 @@ from qgis.core import QgsSettings
 PLUGIN_NAME = 'Wtyczka APP 2'
 
 
-class WtyczkaAPP(AppModule, MetadataModule, ValidatorModule, TworzenieOUZModule, SettingsModule, AnalizyModule):
+class WtyczkaAPP(AppModule, MetadataModule, ValidatorModule, DokumentModule, TworzenieOUZModule, SettingsModule, AnalizyModule):
     """QGIS Plugin Implementation."""
 
     def __init__(self, iface):
-        global numerZbioru, jpt, parametrUstawienMakr, komunikatMakr
+        """Inicjalizuje obiekt klasy `WtyczkaAPP` i konfiguruje jego stan początkowy."""
+        global numerZbioru, jpt, komunikatMakr
         s = QgsSettings()
         numerZbioru = s.value("qgis_app2/settings/numerZbioru", "")
         jpt = s.value("qgis_app2/settings/jpt", "")
-        parametrUstawienMakr = s.value("qgis/enableMacros")
+        self.rodzajZbioru = s.value("qgis_app2/settings/rodzajZbioru", "/")
+        self.parametrUstawienMakr = s.value("qgis/enableMacros")
+        self.parametrUstawienMakr_QGIS3_40_10 = s.value("qgis/enablePythonEmbedded")
         komunikatMakr = "Wtyczka wymaga używania makr. Szczegółowe informacje na ten temat znajdziesz w instrukcji użytkownika.\nPo zmianie ustawień QGIS wyłącz i włącz program QGIS lub użyj wtyczki \"Plugin Reloader\" w celu zastosowania zmian."
         
         # wczytanie modułów
         AppModule.__init__(self, iface)
         MetadataModule.__init__(self, iface)
+        DokumentModule.__init__(self, iface)
         ValidatorModule.__init__(self, iface)
         TworzenieOUZModule.__init__(self, iface)
         SettingsModule.__init__(self, iface)
@@ -97,11 +102,12 @@ class WtyczkaAPP(AppModule, MetadataModule, ValidatorModule, TworzenieOUZModule,
             try:
                 dialogObject.clearForm(dialogObject.form_scrollArea)
                 dialogObject.setDefaultValues()
-            except:
-                pass
+            except Exception as e:
+                print(e)
 
 
     def createValidator(self):
+        """Tworzy dane lub obiekt wymagany przez operację `createValidator`."""
         self.iface.messageBar().pushSuccess("Informacja:","Schemat jest importowany. Proszę nie podejmować żadnych akcji w programie QGIS.")
         QCoreApplication.processEvents()
         self.dataValidator = validator.ValidatorLxml(schema_path=os.path.join(os.path.dirname(__file__), 'modules/validator', 'schematTechniczny.xsd'))
@@ -113,6 +119,7 @@ class WtyczkaAPP(AppModule, MetadataModule, ValidatorModule, TworzenieOUZModule,
 
 
     def createMetadataValidator(self):
+        """Tworzy dane lub obiekt wymagany przez operację `createMetadataValidator`."""
         self.iface.messageBar().pushSuccess("Informacja:","Schemat metadanych jest importowany. Proszę nie podejmować żadnych akcji w programie QGIS.")
         QCoreApplication.processEvents()
         self.metadataValidator = validator.ValidatorLxml(schema_path=os.path.join(os.path.dirname(__file__), 'modules/validator', 'metadane.xsd'))
@@ -121,14 +128,17 @@ class WtyczkaAPP(AppModule, MetadataModule, ValidatorModule, TworzenieOUZModule,
 
 
     def prepareXsdForApp(self):
+        """Przygotowuje dane wymagane przez operację `prepareXsdForApp`."""
         self.createValidator()
 
 
     def prepareXsdForMetadata(self):
+        """Przygotowuje dane wymagane przez operację `prepareXsdForMetadata`."""
         self.createMetadataValidator()
 
 
     def addAction(self, icon_path, text, callback):
+        """Dodaje dane lub elementy obsługiwane przez operację `addAction`."""
         m = self.toolButton.menu()
         action = QAction(
             icon=QIcon(icon_path),
@@ -160,6 +170,18 @@ class WtyczkaAPP(AppModule, MetadataModule, ValidatorModule, TworzenieOUZModule,
         self.addAction(icon_path=':/plugins/wtyczka_app/img/praca_z_app.png',
                        text=u'Praca z APP / zbiorem APP',
                        callback=self.run_app)
+        
+        self.addAction(icon_path=':/plugins/wtyczka_app/img/praca_z_app_po_uniewaznieniu.png',
+                        text=u'Praca z APP po stwierdzeniu nieważności części POG',
+                        callback=self.run_app_po_uniewaznieniu)
+        
+        # self.addAction(icon_path=':/plugins/wtyczka_app/img/delta.png',
+        #                 text=u'Praca ze zmianą w POG',
+        #                 callback=self.run_delta)
+        
+        self.addAction(icon_path=':/plugins/wtyczka_app/img/dokument.png',
+                        text=u'Tworzenie pliku GML dla dokumentu Repozytorium',
+                        callback=self.run_dokument)
         
         self.addAction(icon_path=':/plugins/wtyczka_app/img/tworzenie.png',
                        text=u'Tworzenie / aktualizacja metadanych dla zbioru APP',
@@ -196,14 +218,15 @@ class WtyczkaAPP(AppModule, MetadataModule, ValidatorModule, TworzenieOUZModule,
         
         try:
             QgsExpression.unregisterFunction('zamien_nazwy_na_skroty')
-        except:
-            pass
+        except Exception as e:
+            print(e)
 
 
     """Action handlers"""
     # region action handlers
     def run_app(self):
-        if parametrUstawienMakr in ['Never','NotForThisSession']:
+        """Uruchamia operację `run_app`."""
+        if self.parametrUstawienMakr in ['Never','NotForThisSession'] or self.parametrUstawienMakr_QGIS3_40_10 in ['Never','NotForThisSession']:
             showPopup("Informacja", komunikatMakr)
             return
         
@@ -211,8 +234,36 @@ class WtyczkaAPP(AppModule, MetadataModule, ValidatorModule, TworzenieOUZModule,
             self.openNewDialog(self.pytanieAppDialog)
 
 
+    def run_app_po_uniewaznieniu(self):
+        """Uruchamia operację `run_app_po_uniewaznieniu`."""
+        if self.parametrUstawienMakr in ['Never','NotForThisSession'] or self.parametrUstawienMakr_QGIS3_40_10 in ['Never','NotForThisSession']:
+            showPopup("Informacja", komunikatMakr)
+            return
+        
+        if self.czyPoprawneUstawienia():
+            if self.rodzajZbioru != 'POG':
+                showPopup("Ustawienia wtyczki APP", "Praca z APP / zbiorem APP po unieważnieniu jest możliwa tylko dla rodzaju zbioru POG. Proszę w ustawieniach wtyczki wybrać rodzaj zbioru POG.")
+                return
+            
+            self.openNewDialog(self.pytanieAppUniewaznienieDialog)
+
+
+    # def run_delta(self):
+    #     if self.parametrUstawienMakr in ['Never','NotForThisSession'] or self.parametrUstawienMakr_QGIS3_40_10 in ['Never','NotForThisSession']:
+    #         showPopup("Informacja", komunikatMakr)
+    #         return
+        
+    #     if self.czyPoprawneUstawienia():
+    #         if self.rodzajZbioru != 'POG':
+    #             showPopup("Ustawienia wtyczki APP", "Praca ze zmianą w POG jest możliwa tylko dla rodzaju zbioru POG. Proszę w ustawieniach wtyczki wybrać rodzaj zbioru POG.")
+    #             return
+            
+            # self.openNewDialog(self.pytanieAppUniewaznienieDialog)
+
+
     def run_metadata(self):
-        if parametrUstawienMakr in ['Never','NotForThisSession']:
+        """Uruchamia operację `run_metadata`."""
+        if self.parametrUstawienMakr in ['Never','NotForThisSession'] or self.parametrUstawienMakr_QGIS3_40_10 in ['Never','NotForThisSession']:
             showPopup("Informacja", komunikatMakr)
             return
         
@@ -221,8 +272,19 @@ class WtyczkaAPP(AppModule, MetadataModule, ValidatorModule, TworzenieOUZModule,
             self.metadaneDialog.prev_btn.setEnabled(False)
 
 
+    def run_dokument(self):
+        """Uruchamia operację `run_dokument`."""
+        if self.parametrUstawienMakr in ['Never','NotForThisSession'] or self.parametrUstawienMakr_QGIS3_40_10 in ['Never','NotForThisSession']:
+            showPopup("Informacja", komunikatMakr)
+            return
+        
+        if self.czyPoprawneUstawienia():
+            self.openNewDialog(self.dokumentDialog)
+
+
     def run_settings(self):
-        if parametrUstawienMakr in ['Never','NotForThisSession']:
+        """Uruchamia operację `run_settings`."""
+        if self.parametrUstawienMakr in ['Never','NotForThisSession'] or self.parametrUstawienMakr_QGIS3_40_10 in ['Never','NotForThisSession']:
             showPopup("Informacja", komunikatMakr)
             return
         
@@ -230,7 +292,8 @@ class WtyczkaAPP(AppModule, MetadataModule, ValidatorModule, TworzenieOUZModule,
 
 
     def run_help(self):
-        if parametrUstawienMakr in ['Never','NotForThisSession']:
+        """Uruchamia operację `run_help`."""
+        if self.parametrUstawienMakr in ['Never','NotForThisSession'] or self.parametrUstawienMakr_QGIS3_40_10 in ['Never','NotForThisSession']:
             showPopup("Informacja", komunikatMakr)
             return
         
@@ -238,7 +301,8 @@ class WtyczkaAPP(AppModule, MetadataModule, ValidatorModule, TworzenieOUZModule,
 
 
     def run_validator(self):
-        if parametrUstawienMakr in ['Never','NotForThisSession']:
+        """Uruchamia operację `run_validator`."""
+        if self.parametrUstawienMakr in ['Never','NotForThisSession'] or self.parametrUstawienMakr_QGIS3_40_10 in ['Never','NotForThisSession']:
             showPopup("Informacja", komunikatMakr)
             return
             
@@ -246,7 +310,8 @@ class WtyczkaAPP(AppModule, MetadataModule, ValidatorModule, TworzenieOUZModule,
 
 
     def run_analizy(self):
-        if parametrUstawienMakr in ['Never','NotForThisSession']:
+        """Uruchamia operację `run_analizy`."""
+        if self.parametrUstawienMakr in ['Never','NotForThisSession'] or self.parametrUstawienMakr_QGIS3_40_10 in ['Never','NotForThisSession']:
             showPopup("Informacja", komunikatMakr)
             return
         
@@ -255,7 +320,8 @@ class WtyczkaAPP(AppModule, MetadataModule, ValidatorModule, TworzenieOUZModule,
 
 
     def run_OUZ(self):
-        if parametrUstawienMakr in ['Never','NotForThisSession']:
+        """Uruchamia operację `run_OUZ`."""
+        if self.parametrUstawienMakr in ['Never','NotForThisSession'] or self.parametrUstawienMakr_QGIS3_40_10 in ['Never','NotForThisSession']:
             showPopup("Informacja", komunikatMakr)
             return
         
@@ -269,6 +335,7 @@ class WtyczkaAPP(AppModule, MetadataModule, ValidatorModule, TworzenieOUZModule,
 
 
     def czyPoprawneUstawienia(self):
+        """Sprawdza warunek określony przez operację `czyPoprawneUstawienia` i zwraca jego wynik."""
         if jpt == "" or numerZbioru == "":
             showPopup("Ustawienia wtyczki APP", "Przed przystąpieniem do pracy z Wtyczką APP 2 należy uzupełnić ustawienia wtyczki.")
             return False

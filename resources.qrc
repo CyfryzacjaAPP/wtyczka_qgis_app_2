@@ -2,9 +2,11 @@
     <qresource prefix="/plugins/wtyczka_app" >
         <file>img/logo.png</file>
 		<file>img/praca_z_app.png</file>
+		<file>img/praca_z_app_po_uniewaznieniu.png</file>
 		<file>img/analizy.png</file>
 		<file>img/tworzenie.png</file>
 		<file>img/ustawienia.png</file>
+		<file>img/dokument.png</file>
 		<file>img/walidacja.png</file>
 		<file>img/info1.png</file>
 		<file>img/info2.png</file>

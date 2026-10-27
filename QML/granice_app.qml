@@ -428,6 +428,21 @@
               <Option type="Map">
                 <Option value="plan zagospodarowania przestrzennego województwa" type="QString" name="plan zagospodarowania przestrzennego województwa"/>
               </Option>
+              <Option type="Map">
+                  <Option value="uchwała krajobrazowa" type="QString" name="uchwała krajobrazowa"/>
+              </Option>
+              <Option type="Map">
+                  <Option value="audyt krajobrazowy" type="QString" name="audyt krajobrazowy"/>
+              </Option>
+			  <Option type="Map">
+                  <Option value="zintegrowany plan inwestycyjny" type="QString" name="zintegrowany plan inwestycyjny"/>
+              </Option>
+			  <Option type="Map">
+                  <Option value="miejscowy plan odbudowy" type="QString" name="miejscowy plan odbudowy"/>
+              </Option>
+			  <Option type="Map">
+                  <Option value="miejscowy plan rewitalizacji" type="QString" name="miejscowy plan rewitalizacji"/>
+              </Option>
             </Option>
           </Option>
         </config>

@@ -23,6 +23,7 @@ import wtyczka_qgis_app.resources
 
 
 def my_form_open(dialog, layer, feature):
+    """Inicjalizuje formularz edycji obiektu i podłącza obsługę walidacji pól."""
     try:
         global obj, dlg, warstwa, listaBledowAtrybutow, placeHolders, teryt_gminy, tytulAlternatywny_QLE
         global zapisz, przestrzenNazw, koniecWersjiObiektu, lokalnyId, wersjaId, poczatekWersjiObiektu, listaTytulowAlternatywnych
@@ -72,7 +73,7 @@ def my_form_open(dialog, layer, feature):
                         'lokalnyId':'np. 1POG',
                         'tytul':'np. Plan ogólny gminy …',
                         'tytul2':'np. ' + rodzajZbioru,
-                        'tytulAlternatywny':'np. POG nazwa gminy'
+                        'tytulAlternatywny':'np. POG – przekazany do uzgodnień i opiniowania'
                         }
         
         pomoc = ['Przestrzeń nazw identyfikująca w sposób jednoznaczny źródło danych obiektu, o której mowa w § 5 ust. 1 pkt 1 rozporządzenia.\nWartość atrybutu przestrzeń nazw powinna jednoznacznie identyfikować zbiór danych przestrzennych, do którego należy instancja typu obiektu.',
@@ -139,7 +140,6 @@ def my_form_open(dialog, layer, feature):
         
         koniecWersjiObiektu = dialog.findChild(QDateTimeEdit,"koniecWersjiObiektu")
         koniecWersjiObiektu.valueChanged.connect(poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola)
-        koniecWersjiObiektu.setMaximumDate(QDate.currentDate())
         
         tytul = dialog.findChild(QLineEdit,"tytul")
         tytul.setPlaceholderText(placeHolders['tytul'])
@@ -150,6 +150,7 @@ def my_form_open(dialog, layer, feature):
         tytulAlternatywny = dialog.findChild(QLineEdit,"tytulAlternatywny")
         tytulAlternatywny_QLE = dialog.findChild(QLineEdit,"tytulAlternatywny_QLE")
         tytulAlternatywny_QLE.setPlaceholderText(placeHolders['tytulAlternatywny'])
+        tytulAlternatywny_QLE.setToolTip(placeHolders['tytulAlternatywny'])
         if tytulAlternatywny_QLE.text() == 'NULL': tytulAlternatywny_QLE.setText('')
         
         tytulyAlternatywne = dialog.findChild(QListWidget,"tytulyAlternatywne")
@@ -186,6 +187,7 @@ def my_form_open(dialog, layer, feature):
         dlg.parent().rejected.connect(dialogRejected)
         
         def on_geometry_changed(fid):
+            """Obsługuje zmianę geometrii obiektu i aktualizuje zależne dane."""
             changed_feature = layer.getFeature(fid)
             field_names = [field.name() for field in layer.fields()]
             dataCzasTeraz = QDateTime.currentDateTimeUtc()
@@ -204,11 +206,12 @@ def my_form_open(dialog, layer, feature):
             iface.messageBar().pushMessage("Uwaga!", f"Warstwa '{warstwa.name()}' posiada niezapisane zmiany.", level = Qgis.Warning)
         czyZmianaJestDopuszczalna = True
         przestrzenNazw_kontrola()
-    except:
-        pass
+    except Exception as e:
+        print(e)
 
 
 def komunikowanieBledu(object, txt, nazwaAtrybutu):
+    """Obsługuje zgłoszenie błędu walidacji dla wskazanego pola formularza."""
     try:
         object.setToolTip(txt)
         if txt == '':
@@ -218,10 +221,11 @@ def komunikowanieBledu(object, txt, nazwaAtrybutu):
             listaBledowAtrybutow[warstwa.fields().indexFromName(nazwaAtrybutu)] = 1
             object.setStyleSheet("border: 1px solid red")
     except Exception as e:
-        pass
+        print(e)
 
 
 def zmianaWersjiIPoczatkuWersji():
+    """Aktualizuje identyfikator wersji i datę początku wersji obiektu."""
     try:
         if czyZmianaJestDopuszczalna:
             if sum(listaBledowAtrybutow) > 0 or sum(tablicaZmian) == 1:
@@ -235,10 +239,11 @@ def zmianaWersjiIPoczatkuWersji():
             else:
                 wlaczenieLubWylaczenieZapisu()
     except Exception as e:
-        pass
+        print(e)
 
 
 def wlaczenieLubWylaczenieZapisu():
+    """Aktualizuje dostępność zapisu na podstawie bieżącego stanu formularza."""
     global zapisz
     try:
         if sum(listaBledowAtrybutow) == 0 and warstwa.isEditable() and czyZmianaJestDopuszczalna and sum(tablicaZmian) > 0:
@@ -247,10 +252,11 @@ def wlaczenieLubWylaczenieZapisu():
         else:
             zapisz.setEnabled(False)
     except Exception as e:
-        pass
+        print(e)
 
 
 def zapis():
+    """Zapisuje zmiany formularza do edytowanego obiektu."""
     global zapisz
     try:
         obj.setAttribute(warstwa.fields().indexFromName('edycja'),True)
@@ -264,18 +270,19 @@ def zapis():
         
         if obj.id() < 0:
             dlg.parent().close()
-    except:
-        pass
+    except Exception as e:
+        print(e)
 
 # ----------------------------------------------------------------------------------------------------
 
 def geometria_kontrola():
+    """Sprawdza poprawność wartości pola `geometria` i aktualizuje stan walidacji."""
     try:
         validator = QgsGeometryValidator(obj.geometry())
         errors = validator.validateGeometry(obj.geometry())
         msg = ''
         for error in errors:
-            if not re.match('Poligon \d+ leży wewnątrz poligonu \d+|Polygon \d+ lies inside polygon \d+', error.what()):
+            if not re.match(r'Poligon \d+ leży wewnątrz poligonu \d+|Polygon \d+ lies inside polygon \d+', error.what()):
                 msg = msg + error.what() + ' '
         if len(msg) != 0:
             dlg.displayWarning('Błędy w geometrii: ' + msg)
@@ -292,11 +299,12 @@ def geometria_kontrola():
                     listaBledowAtrybutow[obj.fieldNameIndex('geometria')] = 1
                     dlg.displayWarning(msg)
                     break
-    except:
-        pass
+    except Exception as e:
+        print(e)
 
 
 def przestrzenNazw_kontrola():
+    """Sprawdza poprawność wartości pola `przestrzenNazw` i aktualizuje stan walidacji."""
     try:
         if rodzajZbioru == '':
             komunikowanieBledu(przestrzenNazw,'Proszę w ustawieniach wybrać POG dla rodzaju zbioru i zapisać.','przestrzenNazw')
@@ -314,10 +322,11 @@ def przestrzenNazw_kontrola():
         
         zmianaWersjiIPoczatkuWersji()
     except Exception as e:
-        pass
+        print(e)
 
 
 def lokalnyId_kontrola():
+    """Sprawdza poprawność wartości pola `lokalnyId` i aktualizuje stan walidacji."""
     try:
         if lokalnyId.text() == '':
             komunikowanieBledu(lokalnyId,'Identyfikator lokalny jest obligatoryjny.','lokalnyId')
@@ -327,11 +336,12 @@ def lokalnyId_kontrola():
         else:
             lokalnyId.setText(idLokalnyAPP)
             komunikowanieBledu(lokalnyId,'','lokalnyId')
-    except:
-        pass
+    except Exception as e:
+        print(e)
 
 
 def wersjaId_kontrola():
+    """Sprawdza poprawność wartości pola `wersjaId` i aktualizuje stan walidacji."""
     try:
         zmianaWTablicyZmian(wersjaId.dateTime().toString("yyyyMMdd'T'hhmmss"), 'wersjaId')
         if koniecWersjiObiektu.dateTime().time().msec() != 0 and koniecWersjiObiektu.dateTime().date().year() != 1:
@@ -340,19 +350,21 @@ def wersjaId_kontrola():
             poczatekWersjiObiektu.dateTimeChanged.connect(poczatekWersjiObiektu_kontrola)
         wlaczenieLubWylaczenieZapisu()
     except Exception as e:
-        pass
+        print(e)
 
 
 def poczatekWersjiObiektu_kontrola():
+    """Sprawdza poprawność wartości pola `poczatekWersjiObiektu` i aktualizuje stan walidacji."""
     try:
         if koniecWersjiObiektu.dateTime().time().msec() != 0 and koniecWersjiObiektu.dateTime().date().year() != 1:
             wersjaId.setDateTime(poczatekWersjiObiektu.dateTime())
         poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola()
     except Exception as e:
-        pass
+        print(e)
 
 
 def status_kontrola(txt):
+    """Sprawdza poprawność wartości pola `status` i aktualizuje stan walidacji."""
     try:
         zmianaWTablicyZmian(txt, 'status')
         if txt == 'wybierz' or txt == None:
@@ -367,11 +379,12 @@ def status_kontrola(txt):
             poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola()
         
         zmianaWersjiIPoczatkuWersji()
-    except:
-        pass
+    except Exception as e:
+        print(e)
 
 
 def poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola():
+    """Sprawdza poprawność wartości pola `poczatekKoniecWersjiObiektuObowiazujeOdDo` i aktualizuje stan walidacji."""
     try:
         obowiazujeOdTxt = obowiazujeOd.dateTime().toString("H:mm")
         obowiazujeDoTxt = obowiazujeDo.dateTime().toString("H:mm")
@@ -420,10 +433,11 @@ def poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola():
         
         zmianaWersjiIPoczatkuWersji()
     except Exception as e:
-        pass
+        print(e)
 
 
 def tytul_kontrola(txt):
+    """Sprawdza poprawność wartości pola `tytul` i aktualizuje stan walidacji."""
     try:
         zmianaWTablicyZmian(txt, 'tytul')
         if re.match('^Plan ogólny [A-Z,a-z,ĄŚĘŁÓŻŹĆŃąśęłóżźćń ()-]{2,}$', txt) == None and rodzajZbioru == 'POG' and kontrolaAtrybutu['tytul'] == 2:
@@ -436,11 +450,12 @@ def tytul_kontrola(txt):
             komunikowanieBledu(tytul,'','tytul')
         
         zmianaWersjiIPoczatkuWersji()
-    except:
-        pass
+    except Exception as e:
+        print(e)
 
 
 def dodaj_tytulAlternatywny():
+    """Dodaje dane lub elementy obsługiwane przez operację `dodaj_tytulAlternatywny`."""
     try:
         global listaTytulowAlternatywnych
         if listaTytulowAlternatywnych == ['NULL'] or listaTytulowAlternatywnych == '':
@@ -452,13 +467,13 @@ def dodaj_tytulAlternatywny():
             tytulAlternatywny.setText(','.join(listaTytulowAlternatywnych))
             tytulAlternatywny_QLE.setText('')
             zmianaWTablicyZmian(txt, 'tytulAlternatywny')
-        
         zmianaWersjiIPoczatkuWersji()
-    except:
-        pass
+    except Exception as e:
+        print(e)
 
 
 def usun_tytulAlternatywny():
+    """Usuwa dane lub elementy obsługiwane przez operację `usun_tytulAlternatywny`."""
     try:
         global listaTytulowAlternatywnych
         nr = tytulyAlternatywne.currentRow()
@@ -469,11 +484,12 @@ def usun_tytulAlternatywny():
             zmianaWTablicyZmian(tytulAlternatywny.text(), 'tytulAlternatywny')
         
         zmianaWersjiIPoczatkuWersji()
-    except:
-        pass
+    except Exception as e:
+        print(e)
 
 
 def read_tytulAlternatywny():
+    """Odczytuje dane wymagane przez operację `read_tytulAlternatywny`."""
     try:
         global listaTytulowAlternatywnych
         lista = tytulAlternatywny.text()
@@ -485,11 +501,12 @@ def read_tytulAlternatywny():
         for item in listaTytulowAlternatywnych:
             if item != 'NULL':
                 tytulyAlternatywne.addItem(item)
-    except:
-        pass
+    except Exception as e:
+        print(e)
 
 
 def modyfikacja_kontrola():
+    """Sprawdza poprawność wartości pola `modyfikacja` i aktualizuje stan walidacji."""
     zmianaWTablicyZmian(modyfikacja, 'modyfikacja')
     
     zmianaWersjiIPoczatkuWersji()
@@ -497,6 +514,7 @@ def modyfikacja_kontrola():
 
 def poziomHierarchii_kontrola():
     
+    """Sprawdza poprawność wartości pola `poziomHierarchii` i aktualizuje stan walidacji."""
     if rodzajZbioru == 'POG' and poziomHierarchii.currentText() != 'lokalny':
         komunikowanieBledu(poziomHierarchii,"Należy wybrać 'lokalny'",'poziomHierarchii')
     elif rodzajZbioru == 'MPZP' and poziomHierarchii.currentText() not in ['sublokalny','lokalny']:
@@ -506,6 +524,7 @@ def poziomHierarchii_kontrola():
 
 
 def typPlanu_kontrola():
+    """Sprawdza poprawność wartości pola `typPlanu` i aktualizuje stan walidacji."""
     if rodzajZbioru == 'POG' and typPlanu.currentText() != 'plan ogólny gminy':
         komunikowanieBledu(typPlanu,"Należy wybrać 'plan ogólny gminy'",'typPlanu')
     elif rodzajZbioru == 'MPZP' and typPlanu.currentText() != 'miejscowy plan zagospodarowania przestrzennego':
@@ -515,6 +534,7 @@ def typPlanu_kontrola():
 
 
 def operacjeNaAtrybucie(nazwaAtrybutu):
+    """Wykonuje operację na wskazanym atrybucie i aktualizuje powiązane dane."""
     global operacja, kontrolaAtrybutu_CB
     
     operacje = ['włączona kontrola wypełnienia',
@@ -547,6 +567,7 @@ def operacjeNaAtrybucie(nazwaAtrybutu):
     
     qWidget = QWidget()
     wyborAkcji = QToolButton(qWidget)
+    wyborAkcji.setObjectName("QToolButton" + nazwaAtrybutu)
     wyborAkcji.setFixedSize(18, 18)
     wyborAkcji.setIcon(QIcon(":/plugins/wtyczka_app/img/rectangle.png"))
     wyborAkcji.setPopupMode(QToolButton.InstantPopup)
@@ -587,6 +608,7 @@ def operacjeNaAtrybucie(nazwaAtrybutu):
                 'koniecWersjiObiektu':[]}
     
     def wlaczenieLubWylaczenieKontroliWszystkichWymaganychAtrybutow(isChecked):
+        """Włącza lub wyłącza kontrolę wszystkich wymaganych atrybutów formularza."""
         global czyZmianaJestDopuszczalna
         czyZmianaJestDopuszczalna = False
         if isChecked:
@@ -604,6 +626,7 @@ def operacjeNaAtrybucie(nazwaAtrybutu):
         czyZmianaJestDopuszczalna = True
     
     def wlaczenieLubWylaczenieKontroli(atrybut,isChecked):
+        """Włącza lub wyłącza wskazany mechanizm kontroli formularza."""
         global kontrolaAtrybutu, czyZmianaJestDopuszczalna
         czyZmianaJestDopuszczalna = False
         if isChecked:
@@ -619,6 +642,7 @@ def operacjeNaAtrybucie(nazwaAtrybutu):
         wlaczenieLubWylaczenieZapisu()
     
     def hurtowaZmianaArybutuWRamachWarstw():
+        """Wykonuje zbiorczą zmianę wskazanego atrybutu w wielu warstwach."""
         if obj.id() < 0:
             QMessageBox.warning(None,'Informacja','Hurtowa zmiana atrybutu {} w ramach wszystkich warstw nie może być wykonana dla obiektu, który nie został zapisany.'.format(nazwaAtrybutu))
             return
@@ -688,6 +712,7 @@ def operacjeNaAtrybucie(nazwaAtrybutu):
             QMessageBox.information(None,'Informacja','Hurtowa zmiana atrybutu {} w ramach wszystkich warstw została zakończona.'.format(nazwaAtrybutu))
     
     def uspojnienieDatyObowiazujeOd():
+        """Ujednolica wartość daty `obowiazujeOd` dla przetwarzanych obiektów."""
         if obj.id() < 0:
             QMessageBox.warning(None,'Informacja','Uspójnienie daty "obowiązuje od" nie może być wykonane dla obiektu, który nie został zapisany.')
             return
@@ -749,6 +774,7 @@ Czy uspójnić "obowiązuje od" dla obiektów nowych lub zmienionych w ramach ws
             QMessageBox.information(None,'Informacja','Uspójnienie daty "obowiązuje od" w ramach wszystkich warstw zostało zakończone.')
     
     def wskazanieNaOperacje(atrybut,txt):
+        """Wskazuje operację wykonywaną dla bieżącego obiektu lub formularza."""
         nazwaAtrybutu = atrybut
         if txt == 'hurtowa zmiana atrybutu w ramach wszystkich warstw':
             hurtowaZmianaArybutuWRamachWarstw()
@@ -757,6 +783,7 @@ Czy uspójnić "obowiązuje od" dla obiektów nowych lub zmienionych w ramach ws
 
 
 def zmianaWTablicyZmian(txt, nazwaAtrybutu):
+    """Rejestruje zmianę wartości atrybutu w tablicy zmian."""
     global tablicaZmian
     if czyZmianaJestDopuszczalna:
         if txt == '':
@@ -780,6 +807,7 @@ def zmianaWTablicyZmian(txt, nazwaAtrybutu):
 
 
 def dialogRejected():
+    """Obsługuje odrzucenie formularza i wykonuje wymagane czynności porządkowe."""
     try:
         global obj, dlg, warstwa, listaBledowAtrybutow, placeHolders, teryt_gminy, tytulAlternatywny_QLE
         global zapisz, przestrzenNazw, koniecWersjiObiektu, lokalnyId, wersjaId, poczatekWersjiObiektu, listaTytulowAlternatywnych
@@ -792,5 +820,5 @@ def dialogRejected():
         del status, obowiazujeOd, obowiazujeDo, tytul, tytulAlternatywny, typPlanu, poziomHierarchii, tytulyAlternatywne, dodaj, usun
         del rodzajZbioru, numerZbioru, jpt, idLokalnyAPP, obowiazujeOd_label, obowiazujeDo_label
         del modyfikacja, tablicaZmian, kontrolaAtrybutu, kontrolaAtrybutu_CB
-    except:
-        pass
+    except Exception as e:
+        print(e)

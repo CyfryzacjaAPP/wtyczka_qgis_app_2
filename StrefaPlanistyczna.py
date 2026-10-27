@@ -23,6 +23,7 @@ import wtyczka_qgis_app.resources
 
 
 def my_form_open(dialog, layer, feature):
+    """Inicjalizuje formularz edycji obiektu i podłącza obsługę walidacji pól."""
     try:
         global obj, dlg, warstwa, listaBledowAtrybutow, placeHolders, teryt_gminy, mapaNazwaSymbol, mapaSymbolProfilDodatkowy
         global zapisz, przestrzenNazw, koniecWersjiObiektu, lokalnyId, wersjaId, poczatekWersjiObiektu, nazwa, oznaczenie, symbol, symbolTXT
@@ -258,7 +259,6 @@ def my_form_open(dialog, layer, feature):
         oznaczenie.setPlaceholderText(placeHolders['oznaczenie'])
         oznaczenie.textChanged.connect(oznaczenie_kontrola)
         if oznaczenie.text() == 'NULL' or oznaczenie.text() == None:
-            pass
             oznaczenie.setText('')
         else:
             oznaczenie_kontrola(oznaczenie.text())
@@ -382,6 +382,7 @@ def my_form_open(dialog, layer, feature):
         dlg.parent().rejected.connect(dialogRejected)
         
         def on_geometry_changed(fid):
+            """Obsługuje zmianę geometrii obiektu i aktualizuje zależne dane."""
             changed_feature = layer.getFeature(fid)
             field_names = [field.name() for field in layer.fields()]
             dataCzasTeraz = QDateTime.currentDateTimeUtc()
@@ -399,10 +400,11 @@ def my_form_open(dialog, layer, feature):
         czyZmianaJestDopuszczalna = True
         przestrzenNazw_kontrola()
     except Exception as e:
-        pass
+        print(e)
 
 
 def komunikowanieBledu(object, txt, nazwaAtrybutu):
+    """Obsługuje zgłoszenie błędu walidacji dla wskazanego pola formularza."""
     try:
         object.setToolTip(txt)
         if txt == '':
@@ -412,10 +414,11 @@ def komunikowanieBledu(object, txt, nazwaAtrybutu):
             listaBledowAtrybutow[warstwa.fields().indexFromName(nazwaAtrybutu)] = 1
             object.setStyleSheet("border: 1px solid red")
     except Exception as e:
-        pass
+        print(e)
 
 
 def zmianaWersjiIPoczatkuWersji():
+    """Aktualizuje identyfikator wersji i datę początku wersji obiektu."""
     try:
         if czyZmianaJestDopuszczalna:
             if sum(listaBledowAtrybutow) > 0 or sum(tablicaZmian) == 1:
@@ -429,10 +432,11 @@ def zmianaWersjiIPoczatkuWersji():
             else:
                 wlaczenieLubWylaczenieZapisu()
     except Exception as e:
-        pass
+        print(e)
 
 
 def wlaczenieLubWylaczenieZapisu():
+    """Aktualizuje dostępność zapisu na podstawie bieżącego stanu formularza."""
     global zapisz
     try:
         if sum(listaBledowAtrybutow) == 0 and warstwa.isEditable() and czyZmianaJestDopuszczalna and sum(tablicaZmian) > 0:
@@ -441,10 +445,11 @@ def wlaczenieLubWylaczenieZapisu():
         else:
             zapisz.setEnabled(False)
     except Exception as e:
-        pass
+        print(e)
 
 
 def zapis():
+    """Zapisuje zmiany formularza do edytowanego obiektu."""
     global zapisz
     try:
         obj.setAttribute(warstwa.fields().indexFromName('edycja'),True)
@@ -459,11 +464,12 @@ def zapis():
         if obj.id() < 0:
             dlg.parent().close()
     except Exception as e:
-        pass
+        print(e)
 
 # ----------------------------------------------------------------------------------------------------
 
 def geometria_kontrola():
+    """Sprawdza poprawność wartości pola `geometria` i aktualizuje stan walidacji."""
     try:
         validator = QgsGeometryValidator(obj.geometry())
         errors = validator.validateGeometry(obj.geometry())
@@ -476,10 +482,11 @@ def geometria_kontrola():
         else:
             listaBledowAtrybutow[obj.fieldNameIndex('geometria')] = 0
     except Exception as e:
-        pass
+        print(e)
 
 
 def przestrzenNazw_kontrola():
+    """Sprawdza poprawność wartości pola `przestrzenNazw` i aktualizuje stan walidacji."""
     try:
         if rodzajZbioru == '':
             komunikowanieBledu(przestrzenNazw,'Proszę w ustawieniach wybrać POG dla rodzaju zbioru i zapisać.','przestrzenNazw')
@@ -497,10 +504,11 @@ def przestrzenNazw_kontrola():
         
         zmianaWersjiIPoczatkuWersji()
     except Exception as e:
-        pass
+        print(e)
 
 
 def lokalnyId_kontrola(txt):
+    """Sprawdza poprawność wartości pola `lokalnyId` i aktualizuje stan walidacji."""
     try:
         if idLokalnyAPP == '':
             lokalnyId.setPlaceholderText(placeHolders['lokalnyId'])
@@ -510,10 +518,11 @@ def lokalnyId_kontrola(txt):
         else:
             komunikowanieBledu(lokalnyId,'','lokalnyId')
     except Exception as e:
-        pass
+        print(e)
 
 
 def wersjaId_kontrola():
+    """Sprawdza poprawność wartości pola `wersjaId` i aktualizuje stan walidacji."""
     try:
         zmianaWTablicyZmian(wersjaId.dateTime().toString("yyyyMMdd'T'hhmmss"), 'wersjaId')
         if koniecWersjiObiektu.dateTime().time().msec() != 0 and koniecWersjiObiektu.dateTime().date().year() != 1:
@@ -522,19 +531,21 @@ def wersjaId_kontrola():
             poczatekWersjiObiektu.dateTimeChanged.connect(poczatekWersjiObiektu_kontrola)
         wlaczenieLubWylaczenieZapisu()
     except Exception as e:
-        pass
+        print(e)
 
 
 def poczatekWersjiObiektu_kontrola():
+    """Sprawdza poprawność wartości pola `poczatekWersjiObiektu` i aktualizuje stan walidacji."""
     try:
         if koniecWersjiObiektu.dateTime().time().msec() != 0 and koniecWersjiObiektu.dateTime().date().year() != 1:
             wersjaId.setDateTime(poczatekWersjiObiektu.dateTime())
         poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola()
     except Exception as e:
-        pass
+        print(e)
 
 
 def oznaczenie_kontrola(txt):
+    """Sprawdza poprawność wartości pola `oznaczenie` i aktualizuje stan walidacji."""
     try:
         zmianaWTablicyZmian(txt, 'oznaczenie')
         if re.match('^[1-9][0-9]{0,4}$', txt) != None and symbol.currentText() != 'wybierz':
@@ -559,10 +570,11 @@ def oznaczenie_kontrola(txt):
         
         zmianaWersjiIPoczatkuWersji()
     except Exception as e:
-        pass
+        print(e)
 
 
 def symbol_kontrola(txt):
+    """Sprawdza poprawność wartości pola `symbol` i aktualizuje stan walidacji."""
     global symbolTXT
     try:
         zmianaWTablicyZmian(txt, 'symbol')
@@ -596,18 +608,20 @@ def symbol_kontrola(txt):
         if tablicaZmian[warstwa.fields().indexFromName('symbol')] == 0:
             profilDodatkowy_reader()
             oznaczenie.setText(obj['oznaczenie'])
-    except:
-        pass
+    except Exception as e:
+        print(e)
 
 
 def charakterUstalenia_kontrola(txt):
+    """Sprawdza poprawność wartości pola `charakterUstalenia` i aktualizuje stan walidacji."""
     try:
         komunikowanieBledu(charakterUstalenia,'','charakterUstalenia')
     except Exception as e:
-        pass
+        print(e)
 
 
 def status_kontrola(txt):
+    """Sprawdza poprawność wartości pola `status` i aktualizuje stan walidacji."""
     try:
         zmianaWTablicyZmian(txt, 'status')
         if txt == 'wybierz' or txt == None:
@@ -623,10 +637,11 @@ def status_kontrola(txt):
         
         zmianaWersjiIPoczatkuWersji()
     except Exception as e:
-        pass
+        print(e)
 
 
 def poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola():
+    """Sprawdza poprawność wartości pola `poczatekKoniecWersjiObiektuObowiazujeOdDo` i aktualizuje stan walidacji."""
     try:
         obowiazujeOdTxt = obowiazujeOd.dateTime().toString("H:mm")
         obowiazujeDoTxt = obowiazujeDo.dateTime().toString("H:mm")
@@ -675,10 +690,11 @@ def poczatekKoniecWersjiObiektuObowiazujeOdDo_kontrola():
         
         zmianaWersjiIPoczatkuWersji()
     except Exception as e:
-        pass
+        print(e)
 
 
 def nazwa_kontrola(txt):
+    """Sprawdza poprawność wartości pola `nazwa` i aktualizuje stan walidacji."""
     try:
         if txt == 'wybierz':
             komunikowanieBledu(nazwa,'Należy wybrać wartość pola nazwa','nazwa')
@@ -691,15 +707,17 @@ def nazwa_kontrola(txt):
 
 
 def nazwaAlternatywna_kontrola(txt):
+    """Sprawdza poprawność wartości pola `nazwaAlternatywna` i aktualizuje stan walidacji."""
     try:
         zmianaWTablicyZmian(txt, 'nazwaAlternatywna')
         nazwaAlternatywna.setPlaceholderText(placeHolders['nazwaAlternatywna'])
         zmianaWersjiIPoczatkuWersji()
     except Exception as e:
-        pass
+        print(e)
 
 
 def profilPodstawowy_QCCB_kontrola(lista):
+    """Sprawdza poprawność wartości pola `profilPodstawowy_QCCB` i aktualizuje stan walidacji."""
     try:
         if lista == [] and nazwa.currentText() == 'wybierz':
             komunikowanieBledu(profilPodstawowy_QCCB,'Należy wybrać symbol lub nazwę','profilPodstawowy')
@@ -714,6 +732,7 @@ def profilPodstawowy_QCCB_kontrola(lista):
 
 
 def profilPodstawowy_reader():
+    """Odczytuje wartości dla `profilPodstawowy` z bieżących danych formularza."""
     try:
         profilPodstawowy_QCCB.clear()
         listaProfiliPodstawowych = profilPodstawowy.text().split(",")
@@ -721,10 +740,11 @@ def profilPodstawowy_reader():
             profilPodstawowy_QCCB.addItem(item)
         profilPodstawowy_QCCB.selectAllOptions()
     except Exception as e:
-        pass
+        print(e)
 
 
 def profilPodstawowy_createList():
+    """Tworzy listę wartości dla `profilPodstawowy`."""
     try:
         lista = []
         for skrot in mapaSymbolProfilPodstawowy[symbol.currentText()]:
@@ -732,10 +752,11 @@ def profilPodstawowy_createList():
                 lista.append(klasaPrzeznaczeniaTerenuKod[skrot])
         return lista
     except Exception as e:
-        pass
+        print(e)
 
 
 def profilDodatkowy_QCCB_kontrola(lista):
+    """Sprawdza poprawność wartości pola `profilDodatkowy_QCCB` i aktualizuje stan walidacji."""
     try:
         if len(lista) != 0:
             profilDodatkowy.setText(','.join(lista))
@@ -744,10 +765,11 @@ def profilDodatkowy_QCCB_kontrola(lista):
         zmianaWTablicyZmian(profilDodatkowy.text(), 'profilDodatkowy')
         zmianaWersjiIPoczatkuWersji()
     except Exception as e:
-        pass
+        print(e)
 
 
 def profilDodatkowy_reader():
+    """Odczytuje wartości dla `profilDodatkowy` z bieżących danych formularza."""
     try:
         lista = profilDodatkowy_createList()
         listaProfiliDodatkowych = profilDodatkowy.text().split(",")
@@ -758,10 +780,11 @@ def profilDodatkowy_reader():
                 idx = lista.index(item)
                 profilDodatkowy_QCCB.setItemCheckState(idx,2)
     except Exception as e:
-        pass
+        print(e)
 
 
 def profilDodatkowy_createList():
+    """Tworzy listę wartości dla `profilDodatkowy`."""
     try:
         lista = []
         for skrot in mapaSymbolProfilDodatkowy[symbol.currentText()]:
@@ -769,10 +792,11 @@ def profilDodatkowy_createList():
                 lista.append(klasaPrzeznaczeniaTerenuKod[skrot])
         return lista
     except Exception as e:
-        pass
+        print(e)
 
 
 def maksNadziemnaIntensywnoscZabudowy_kontrola(txt):
+    """Sprawdza poprawność wartości pola `maksNadziemnaIntensywnoscZabudowy` i aktualizuje stan walidacji."""
     try:
         zmianaWTablicyZmian(txt, 'maksNadziemnaIntensywnoscZabudowy')
         separator_dziesietny = locale.localeconv()['decimal_point']
@@ -792,10 +816,11 @@ def maksNadziemnaIntensywnoscZabudowy_kontrola(txt):
         
         zmianaWersjiIPoczatkuWersji()
     except Exception as e:
-        pass
+        print(e)
 
 
 def maksUdzialPowierzchniZabudowy_kontrola(txt):
+    """Sprawdza poprawność wartości pola `maksUdzialPowierzchniZabudowy` i aktualizuje stan walidacji."""
     try:
         zmianaWTablicyZmian(txt, 'maksUdzialPowierzchniZabudowy')
         separator_dziesietny = locale.localeconv()['decimal_point']
@@ -817,10 +842,11 @@ Wartość musi być podana dla: ' + nazwa.currentText(),'maksUdzialPowierzchniZa
         
         zmianaWersjiIPoczatkuWersji()
     except Exception as e:
-        pass
+        print(e)
 
 
 def maksWysokoscZabudowy_kontrola(txt):
+    """Sprawdza poprawność wartości pola `maksWysokoscZabudowy` i aktualizuje stan walidacji."""
     try:
         zmianaWTablicyZmian(txt, 'maksWysokoscZabudowy')
         if symbol.currentText() in ['SW','SJ','SZ','SU','SH','SP','SR'] and txt == '' and kontrolaAtrybutu['maksWysokoscZabudowy'] == 2:
@@ -836,10 +862,11 @@ def maksWysokoscZabudowy_kontrola(txt):
         
         zmianaWersjiIPoczatkuWersji()
     except Exception as e:
-        pass
+        print(e)
 
 
 def minUdzialPowierzchniBiologicznieCzynnej_kontrola(txt):
+    """Sprawdza poprawność wartości pola `minUdzialPowierzchniBiologicznieCzynnej` i aktualizuje stan walidacji."""
     try:
         zmianaWTablicyZmian(txt, 'minUdzialPowierzchniBiologicznieCzynnej')
         if txt != '':
@@ -858,10 +885,11 @@ def minUdzialPowierzchniBiologicznieCzynnej_kontrola(txt):
         
         zmianaWersjiIPoczatkuWersji()
     except Exception as e:
-        pass
+        print(e)
 
 
 def wlaczenieWylaczenieProfiliDoEdycji():
+    """Realizuje operację `wlaczenieWylaczenieProfiliDoEdycji` w bieżącym module."""
     try:
         if not warstwa.isEditable():
             czyWarstwaWEdycji = False
@@ -870,10 +898,11 @@ def wlaczenieWylaczenieProfiliDoEdycji():
         profilPodstawowy_QCCB.setEnabled(czyWarstwaWEdycji)
         profilDodatkowy_QCCB.setEnabled(czyWarstwaWEdycji)
     except Exception as e:
-        pass
+        print(e)
 
 
 def czyWartoscAtrybutuJestUnikalna(atrybut, wartosc):
+    """Sprawdza, czy wskazana wartość atrybutu jest unikalna w warstwie."""
     wartoscAtrybutuJestUnikalna = True
     if koniecWersjiObiektu.dateTime().time().msec() != 0:
         request = QgsFeatureRequest(QgsExpression('koniecWersjiObiektu is NULL and ' + atrybut + "='" + wartosc + "'"))
@@ -884,6 +913,7 @@ def czyWartoscAtrybutuJestUnikalna(atrybut, wartosc):
 
 
 def odczytajAtrybutyZPOG():
+    """Odczytuje wymagane atrybuty z danych POG."""
     try:
         warstwy = QgsProject().instance().mapLayers()
         atrybutyPOG = {}
@@ -895,6 +925,9 @@ def odczytajAtrybutyZPOG():
         if warstwaPOG != None and warstwaPOG.featureCount() > 0:
             for POG in warstwaPOG.getFeatures():
                 atrybutyPOG['status'] = POG['status']
+                if atrybutyPOG['status'] == NULL:
+                    atrybutyPOG['status'] = 'wybierz'
+                
                 atrybutyPOG['obowiazujeOd'] = POG['obowiazujeOd']
                 atrybutyPOG['obowiazujeDo'] = POG['obowiazujeDo']
                 break
@@ -902,10 +935,11 @@ def odczytajAtrybutyZPOG():
         else:
             return None
     except Exception as e:
-        pass
+        print(e)
 
 
 def operacjeNaAtrybucie(nazwaAtrybutu):
+    """Wykonuje operację na wskazanym atrybucie i aktualizuje powiązane dane."""
     global operacja, kontrolaAtrybutu_CB
     
     operacje = ['włączona kontrola wypełnienia',
@@ -1000,6 +1034,7 @@ def operacjeNaAtrybucie(nazwaAtrybutu):
                 'koniecWersjiObiektu':[]}
     
     def wlaczenieLubWylaczenieKontroliWszystkichWymaganychAtrybutow(isChecked):
+        """Włącza lub wyłącza kontrolę wszystkich wymaganych atrybutów formularza."""
         global czyZmianaJestDopuszczalna
         czyZmianaJestDopuszczalna = False
         if isChecked:
@@ -1017,6 +1052,7 @@ def operacjeNaAtrybucie(nazwaAtrybutu):
         czyZmianaJestDopuszczalna = True
     
     def wlaczenieLubWylaczenieKontroli(atrybut,isChecked):
+        """Włącza lub wyłącza wskazany mechanizm kontroli formularza."""
         global kontrolaAtrybutu, czyZmianaJestDopuszczalna
         czyZmianaJestDopuszczalna = False
         if isChecked:
@@ -1040,6 +1076,7 @@ def operacjeNaAtrybucie(nazwaAtrybutu):
         wlaczenieLubWylaczenieZapisu()
     
     def hurtowaZmianaArybutuWRamachWarstw():
+        """Wykonuje zbiorczą zmianę wskazanego atrybutu w wielu warstwach."""
         if obj.id() < 0:
             QMessageBox.warning(None,'Informacja','Hurtowa zmiana atrybutu {} w ramach wszystkich warstw nie może być wykonana dla obiektu, który nie został zapisany.'.format(nazwaAtrybutu))
             return
@@ -1111,6 +1148,7 @@ def operacjeNaAtrybucie(nazwaAtrybutu):
             QMessageBox.information(None,'Informacja','Hurtowa zmiana atrybutu {} w ramach wszystkich warstw została zakończona.'.format(nazwaAtrybutu))
     
     def hurtowaZmianaArybutuWRamachWarstwy():
+        """Wykonuje zbiorczą zmianę wskazanego atrybutu w jednej warstwie."""
         if obj.id() < 0:
             QMessageBox.warning(None,'Informacja','Hurtowa zmiana atrybutu {} w ramach warstwy nie może być wykonana dla obiektu, który nie został zapisany.'.format(nazwaAtrybutu))
             return
@@ -1173,6 +1211,7 @@ def operacjeNaAtrybucie(nazwaAtrybutu):
             QMessageBox.information(None,'Informacja','Hurtowa zmiana atrybutu {} w ramach warstwy została zakończona.'.format(nazwaAtrybutu))
     
     def uspojnienieDatyObowiazujeOd():
+        """Ujednolica wartość daty `obowiazujeOd` dla przetwarzanych obiektów."""
         if obj.id() < 0:
             QMessageBox.warning(None,'Informacja','Uspójnienie daty "obowiązuje od" nie może być wykonane dla obiektu, który nie został zapisany.')
             return
@@ -1242,6 +1281,7 @@ Czy uspójnić "obowiązuje od" dla obiektów nowych lub zmienionych w ramach ws
             QMessageBox.information(None,'Informacja','Uspójnienie daty "obowiązuje od" w ramach wszystkich warstw zostało zakończone.')
     
     def wskazanieNaOperacje(atrybut,txt):
+        """Wskazuje operację wykonywaną dla bieżącego obiektu lub formularza."""
         nazwaAtrybutu = atrybut
         if txt == 'hurtowa zmiana atrybutu w ramach wszystkich warstw':
             hurtowaZmianaArybutuWRamachWarstw()
@@ -1252,6 +1292,7 @@ Czy uspójnić "obowiązuje od" dla obiektów nowych lub zmienionych w ramach ws
 
 
 def zmianaWTablicyZmian(txt, nazwaAtrybutu):
+    """Rejestruje zmianę wartości atrybutu w tablicy zmian."""
     global tablicaZmian
     if czyZmianaJestDopuszczalna:
         if txt == '':
@@ -1272,6 +1313,7 @@ def zmianaWTablicyZmian(txt, nazwaAtrybutu):
 
 
 def dialogRejected():
+    """Obsługuje odrzucenie formularza i wykonuje wymagane czynności porządkowe."""
     try:
         global obj, dlg, warstwa, listaBledowAtrybutow, placeHolders, teryt_gminy, mapaNazwaSymbol, mapaSymbolProfilDodatkowy
         global zapisz, przestrzenNazw, koniecWersjiObiektu, lokalnyId, wersjaId, poczatekWersjiObiektu, nazwa, oznaczenie, symbol, symbolTXT
@@ -1295,4 +1337,4 @@ def dialogRejected():
         del minUdzialPowierzchniBiologicznieCzynnej_label
         del tablicaZmian, kontrolaAtrybutu, kontrolaAtrybutu_CB, fid
     except Exception as e:
-        pass
+        print(e)
