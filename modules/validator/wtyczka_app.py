@@ -12,6 +12,7 @@ import os
 class ValidatorModule(BaseModule):
 
     def __init__(self, iface):
+        """Inicjalizuje obiekt klasy `ValidatorModule` i konfiguruje jego stan początkowy."""
         self.iface = iface
         self.dataValidator = None   # inicjacja w głównym skrypcie wtyczki
         self.metadataValidator = None   # inicjacja w głównym skrypcie wtyczki
@@ -28,11 +29,13 @@ class ValidatorModule(BaseModule):
     """Event handlers"""
     # region walidacjaDialog
     def walidacjaDialog_prev_btn_clicked(self):
+        """Obsługuje kliknięcie przycisku związanego z operacją `walidacjaDialog_prev`."""
         self.openNewDialog(self.listaOkienek.pop())
 
 
     def walidacjaDialog_validate_btn_clicked(self):
 
+        """Obsługuje kliknięcie przycisku związanego z operacją `walidacjaDialog_validate`."""
         if self.walidacjaDialog.validateGMLset_radioButton.isChecked():  # wybrano walidację GML dla zbioru
             path = self.walidacjaDialog.chooseGMLset_widget.filePath()
             if path:  # jest wybrany plik z danymi
@@ -56,18 +59,22 @@ class ValidatorModule(BaseModule):
 
 
     def xml_checkBoxChangedAction(self, state):
+        """Realizuje operację `xml_checkBoxChangedAction` w bieżącym module."""
         self.walidacjaDialog.chooseXML_widget.setEnabled(state)
 
 
     def gmlapp_checkBoxChangedAction(self, state):
+        """Realizuje operację `gmlapp_checkBoxChangedAction` w bieżącym module."""
         self.walidacjaDialog.chooseGMLapp_widget.setEnabled(state)
 
 
     def gmlset_checkBoxChangedAction(self, state):
+        """Realizuje operację `gmlset_checkBoxChangedAction` w bieżącym module."""
         self.walidacjaDialog.chooseGMLset_widget.setEnabled(state)
     # endregion
 
 
     """Popup windows"""
     def showPopupExport(self):
+        """Wyświetla komunikat związany z operacją `showPopupExport`."""
         showPopup("Wyeksportuj plik z błędami", "Poprawnie wyeksportowano plik z błędami.")

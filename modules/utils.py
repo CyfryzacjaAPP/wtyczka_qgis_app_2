@@ -5,19 +5,18 @@ from qgis.core import QgsVectorLayer
 import re
 import os
 import itertools
-import xml.etree.ElementTree as ET
+import xml.etree.ElementTree as ET  # nosec B405
 from .models import FormElement
 from . import dictionaries
 from qgis.core import QgsSettings, QgsMessageLog
 import datetime
 import uuid
-import random
 from qgis.PyQt.QtWidgets import QAction, QMessageBox
 
 
 def validateDatasetId(datasetId):
     """sprawdza czy id ma poprawną formę"""
-    pattern = r'PL.ZIPPZP.\d+/\d{1}[02468]{1}(\d{0}|\d{2}|\d{4})-(PZPW|MPZP|SUIKZP|POG){1}'
+    pattern = r'PL.ZIPPZP.\d+/\d{1}[02468]{1}(\d{0}|\d{2}|\d{4})-(PZPW|MPZP|SUIKZP|POG|AK|UK){1}'
     return True if re.fullmatch(pattern, datasetId) else False
 
 
@@ -39,7 +38,7 @@ def settingsValidateDatasetId(przestrzenNazw):
 
 def validateDatasetUri(datasetUri):
     """sprawdza czy Uri ma poprawną formę"""
-    pattern = r'https://www.gov.pl/static/zagospodarowanieprzestrzenne/app/AktPlanowaniaPrzestrzennego/PL.ZIPPZP.\d+/\d{1}[02468]{1}(\d{0}|\d{2}|\d{4})-(PZPW|MPZP|SUIKZP|POG){1}/'
+    pattern = r'https://www.gov.pl/static/zagospodarowanieprzestrzenne/app/AktPlanowaniaPrzestrzennego/PL.ZIPPZP.\d+/\d{1}[02468]{1}(\d{0}|\d{2}|\d{4})-(PZPW|MPZP|SUIKZP|POG|AK|UK){1}/'
     # pattern = r'https://www.gov.pl/static/zagospodarowanieprzestrzenne/app/AktPlanowaniaPrzestrzennego/PL.ZIPPZP.\d+/\d{1}[02468]{1}(\d{0}|\d{2}|\d{4})-(PZPW|MPZP|SUIKZP){1}/'
     return True if re.fullmatch(pattern, datasetUri) else False
 
@@ -52,18 +51,16 @@ def validateEmailAddress(email):
 
 def generateUUID():
     """generuje UUID"""
-    rd = random.Random()
-    return str(uuid.UUID(int=rd.getrandbits(128)))
+    return str(uuid.uuid4())
 
 
 def oldestQDateTime(qDateTimelist):
-    """zwraca najstarszą datę z listy dat QDateTime"""
-    if type(qDateTimelist) == list and len(qDateTimelist) > 0:
-        oldest = qDateTimelist[0]
-        for date in qDateTimelist:
-            if date > oldest:
-                oldest == date
-        return oldest
+    """Zwraca najstarszą datę z listy obiektów QDateTime."""
+    
+    if isinstance(qDateTimelist, list) and qDateTimelist:
+        return min(qDateTimelist)
+    
+    return None
 
 
 def getKeyByValue(dictionary, value):
@@ -75,6 +72,7 @@ def getKeyByValue(dictionary, value):
 
 
 def showPopup(title, text, icon=QMessageBox.Information):
+    """Wyświetla komunikat związany z operacją `showPopup`."""
     msg = QMessageBox()
     msg.setWindowTitle(title)
     msg.setText(text)
@@ -84,12 +82,14 @@ def showPopup(title, text, icon=QMessageBox.Information):
 
 
 def validate_teryt_voivo(teryt):
+    """Wykonuje kontrolę danych w ramach operacji `validate_teryt_voivo`."""
     if int(teryt) % 2 == 1 or int(teryt) == 0:
         return False
     return True
 
 
 def validate_teryt_county(teryt):
+    """Wykonuje kontrolę danych w ramach operacji `validate_teryt_county`."""
     if validate_teryt_voivo(teryt[0:2]):
         if 0 < int(teryt[2:4]) < 100:
             return True
@@ -98,16 +98,17 @@ def validate_teryt_county(teryt):
 
 def validate_teryt(teryt, rodzaj='None'):
     # Walidacja terytu
+    """Wykonuje kontrolę danych w ramach operacji `validate_teryt`."""
     if not teryt.isdigit():
         return False
     elif len(teryt) == 2 and validate_teryt_voivo(teryt):  # wojewodztwo
-        if rodzaj != 'PZPW' and rodzaj != 'None':
+        if not rodzaj in ['PZPW', 'AK', 'None']:
             return False
         return True
     elif len(teryt) == 4 and validate_teryt_county(teryt) and rodzaj != 'None':
         return True  # sprawdzić, czy rodzaj zbioru poprawny
     elif len(teryt) == 6 and validate_teryt_county(teryt):
-        if rodzaj not in ['MPZP','SUIKZP','POG','None']:
+        if rodzaj not in ['MPZP', 'SUIKZP', 'POG', 'UK', 'None']:
             return False
         if 0 < int(teryt[4:6]) < 100:
             return True
@@ -129,7 +130,7 @@ def validate_IIP(przestrzenNazw):
     
     if not numer.isdigit():
         return False  # numer porządkowy nie jest liczbą całkowitą
-    rodzaj_list = ['PZPW', 'SUIKZP', 'MPZP','POG']
+    rodzaj_list = ['PZPW', 'SUIKZP', 'MPZP', 'POG', 'AK', 'UK']
     
     if rodzaj not in rodzaj_list:
         return False
@@ -153,16 +154,16 @@ def isAppOperative(gmlPath, gmlId=None):
     ns = dictionaries.nameSpaces
     # statusPath = 'wfs:member/app:AktPlanowaniaPrzestrzennego/app:status[@xlink:title="prawnie wiążący lub realizowany"]'
     statusPath = 'app:AktPlanowaniaPrzestrzennego/app:status'
-
-    root = ET.parse(gmlPath).getroot()
-
+    
+    root = ET.parse(gmlPath).getroot()  # nosec B314
+    
     if gmlId is not None:   # w przypadku sprawdzania konkretnego Id w zbiorze
         app = root.find(
             'app:AktPlanowaniaPrzestrzennego[@gml:id="%s"]' % gmlId, ns)
         statusElement = app.find('./app:status', ns) if app else None
     else:   # w przypadku sprawdzania pliku APP (nie zbioru)
         statusElement = root.find(statusPath, ns)
-
+        
     if statusElement is not None:
         if statusElement.attrib['{http://www.w3.org/1999/xlink}title'] == 'prawnie wiążący lub realizowany':
             return True
@@ -226,11 +227,13 @@ def checkZbiorGeometryValidityOnCreatedFile(gmlSetFilePath):
 
 
 def getNamespace(element):
+    """Pobiera dane wymagane przez operację `getNamespace`."""
     m = re.match(r'\{.*\}', element.tag)
     return m.group(0) if m else ''
 
 
 def createEditField():
+    """Tworzy dane lub obiekt wymagany przez operację `createEditField`."""
     formElements = []
     formElement = FormElement(
         name = 'edycja',
@@ -242,6 +245,7 @@ def createEditField():
 
 
 def createDateCI_DateTypeCodeFields():
+    """Tworzy dane lub obiekt wymagany przez operację `createDateCI_DateTypeCodeFields`."""
     formElements = []
     formElement = FormElement(
         name = 'Date',
@@ -265,16 +269,16 @@ def createFormElements(attribute):
     s = QgsSettings()
     rodzajZbioru = s.value("qgis_app2/settings/rodzajZbioru", "/")
     
-    xsd = os.path.join(os.path.dirname(__file__),'validator', 'planowaniePrzestrzenne_2_0.xsd')
+    xsd = os.path.join(os.path.dirname(__file__),'validator', 'planowaniePrzestrzenne_3_0.xsd')
     
     ns = {'glowny': "http://www.w3.org/2001/XMLSchema",
-          'app': "https://www.gov.pl/static/zagospodarowanieprzestrzenne/schemas/app/2.0",
+          'app': "https://www.gov.pl/static/zagospodarowanieprzestrzenne/schemas/app/3.0",
           'gmd': "http://www.isotc211.org/2005/gmd",
           'gml': "http://www.opengis.net/gml/3.2",
           'gmlexr': "http://www.opengis.net/gml/3.3/exr"}
     formElements = []
     
-    tree = ET.parse(xsd)
+    tree = ET.parse(xsd)  # nosec B314
     root = tree.getroot()
     
     complexType = root.find("glowny:complexType[@name='" + attribute + "']", ns)
@@ -427,6 +431,7 @@ def all_layout_widgets(layout):
 
 
 def getWidgets(layout, types=[QPushButton, QLabel, QTextEdit, QLineEdit, QDateEdit, QComboBox, QListWidget]):
+    """Pobiera dane wymagane przez operację `getWidgets`."""
     wtypes = types
     qreg = QRegExp(r'.*')
     mywidgets = {}
@@ -452,6 +457,7 @@ def getWidgetByName(layout, searchObjectType, name):
 
 
 def makeXmlComplex(tag, item, element, doc=False):
+    """Realizuje operację `makeXmlComplex` w bieżącym module."""
     ComplexItem = ET.SubElement(
         item, element.type.replace('PropertyType', ''))
     for inner in element.innerFormElements:
@@ -464,7 +470,8 @@ def makeXmlComplex(tag, item, element, doc=False):
 
 
 def makeXmlListElements(tag, item, element, formData, slownik={}):
-    # Tworzenie wewnętrzych elementów i wypełnianie ich
+    """ Tworzenie wewnętrzych elementów i wypełnianie ich"""
+    
     nilReason = ["inapplicable", "missing", "template", "unknown", "withheld"]
     for fee in formData:
         if element.isComplex():
@@ -491,14 +498,15 @@ def makeXmlListElements(tag, item, element, formData, slownik={}):
                     if fee[innerElement.name+'_lineEdit_nilReason_chkbx']:
                         makeNil(
                             innerItem, innerElement, fee[innerElement.name+'_lineEdit_nilReason_cmbbx'])
-                except:
-                    pass
+                except Exception as e:
+                    print(e)
                 if element.name in fd:
                     multiItem.text = fee[fd]
                     break
 
 
 def make_polygon(polygons):
+    """Zwraca wynik operacji `make_polygon` wykonywanej w bieżącym module."""
     BoundaryList = []
     # pierwszy poligon jest outerBoundary, kolejne innerBoundary
     for polygon in polygons:
@@ -511,6 +519,7 @@ def make_polygon(polygons):
 
 
 def getCoordinates(obrysLayer):
+    """Pobiera dane wymagane przez operację `getCoordinates`."""
     CoordinatesList = []
     coordinates = ''
     for f in obrysLayer.getFeatures():
@@ -527,6 +536,7 @@ def getCoordinates(obrysLayer):
 
 
 def makeSpatialExtent(node, CoordinatesList):
+    """Realizuje operację `makeSpatialExtent` w bieżącym module."""
     for polygon in CoordinatesList:
         isBoundary = True  # 0 - True, >0 - False
         subItem2 = ET.SubElement(node, 'gml:surfaceMember')
@@ -543,6 +553,7 @@ def makeSpatialExtent(node, CoordinatesList):
 
 
 def makeXML(docName, elements, formData, obrysLayer=None):
+    """Zwraca wynik operacji `makeXML` wykonywanej w bieżącym module."""
     import datetime
     dict_map = {
         'status': dictionaries.statusListaKodowa,
@@ -562,8 +573,8 @@ def makeXML(docName, elements, formData, obrysLayer=None):
         for crs in dict_map['ukladOdniesieniaPrzestrzennego'].values():
             if epsg in crs:
                 srsName = crs
+                break
             else:
-                # TODO co w przypadku, gdy CRS jest inny niż w słowniku - rozwiązanie tymczasowe
                 srsName = "http://www.opengis.net/def/crs/EPSG/0/2180"
     else:
         CoordinatesList = None
@@ -685,6 +696,7 @@ def formSkippedObjects(docName):
 
 
 def checkForNillable(fe, element):
+    """Wykonuje kontrolę danych w ramach operacji `checkForNillable`."""
     nil = False  # Brak Nillable
     if fe.isNillable:
         widgets = all_layout_widgets(element[1])
@@ -696,6 +708,7 @@ def checkForNillable(fe, element):
 
 
 def checkElement(fe, element):
+    """Wykonuje kontrolę danych w ramach operacji `checkElement`."""
     try:  # LineEdit
         if fe.minOccurs > 0 and (element.dateTime().toString() is None or element.dateTime().toString() == 'NULL' or element.dateTime().toString() == ''):
             return False
@@ -705,18 +718,21 @@ def checkElement(fe, element):
                 return False
         except:
             try:  # Combobox
-                if fe.minOccurs > 0 and (element.currentText() is None or element.currentText() == 'NULL' or element.currentText() == ''):
-                    return False
+                if fe.minOccurs > 0:
+                    value = element.currentText()
+                    if (value is None or value.strip() == '' or value == 'NULL' or value.lower() == 'wybierz'):
+                        return False
             except:
                 try:  # ListWidget
-                    if fe.minOccurs > 0 and element.count() > 0:
+                    if fe.minOccurs > 0 and element.count() == 0:
                         return False
-                except:
-                    pass
+                except Exception as e:
+                    print(e)
     return True
 
 
 def getFormElementByName(formElements, name):
+    """Pobiera dane wymagane przez operację `getFormElementByName`."""
     for fe in formElements:
         if fe.name == name:
             return fe
@@ -727,32 +743,50 @@ def getFormElementByName(formElements, name):
     return None
 
 
-def validate_typPlanu(formElements):
+def validate_typPlanu(formElements=None, typPlanu_value=None, rodzajZbioru_value=None, showMessage=True):
     """walidacja typPlanu"""
-    typPlanu = getFormElementByName(formElements, 'typPlanu')
-    mapaPodkladowa = getFormElementByName(formElements, 'mapaPodkladowa')
-    przestrzenNazw = getFormElementByName(formElements, 'przestrzenNazw')
-    rodzajZbioru = przestrzenNazw.refObject.text().split('-')[-1]
-    if typPlanu is not None:
-        rodzajZbioru_map = {
-            'PZPW': ['plan zagospodarowania przestrzennego województwa'],
-            'SUIKZP': ['studium uwarunkowań i kier. zagosp. przestrz. gminy'],
-            'MPZP': ['miejscowy plan zagospodarowania przestrzennego', 'miejscowy plan odbudowy', 'miejscowy plan rewitalizacji'],
-            'POG':['plan ogólny gminy']
-        }
-
-        typy = ["miejscowy plan zagospodarowania przestrzennego", "studium uwarunkowań i kier. zagosp. przestrz. gminy",
-                "miejscowy plan odbudowy", "miejscowy plan rewitalizacji"]
-        if typPlanu.refObject.currentText() in typy and len(getListWidgetItems(mapaPodkladowa.refObject)) == 0:
-            showPopup('Brak mapy podkładowej', 'Mapa podkładowa jest wymagana dla wartości atrybutu typPlanu:\n - %s' %
-                      '\n - '.join(typy))
-            return False
-
-        if typPlanu.refObject.currentText() not in rodzajZbioru_map[rodzajZbioru]:
-            showPopup('Błąd wartości atrybutu', 'Atrybut typPlanu dla rodzaju zbioru %s przyjmuje wartości:\n - %s' %
-                      (rodzajZbioru, '\n - '.join(rodzajZbioru_map[rodzajZbioru])))
-            return False
-
+    
+    rodzajZbioru_map = {
+        'PZPW': ['plan zagospodarowania przestrzennego województwa'],
+        'SUIKZP': ['studium uwarunkowań i kier. zagosp. przestrz. gminy'],
+        'MPZP': ['miejscowy plan zagospodarowania przestrzennego', 'miejscowy plan odbudowy', 'miejscowy plan rewitalizacji', 'zintegrowany plan inwestycyjny'],
+        'UK': ['uchwała krajobrazowa'],
+        'AK': ['audyt krajobrazowy'],
+        'POG': ['plan ogólny gminy']
+    }
+    
+    if formElements is not None:
+        typPlanu = getFormElementByName(formElements, 'typPlanu')
+        mapaPodkladowa = getFormElementByName(formElements, 'mapaPodkladowa')
+        przestrzenNazw = getFormElementByName(formElements, 'przestrzenNazw')
+        rodzajZbioru = przestrzenNazw.refObject.text().split('-')[-1]
+        
+        if typPlanu is not None:
+            typPlanu_value = typPlanu.refObject.currentText()
+            
+            typy = ["miejscowy plan zagospodarowania przestrzennego", 
+                    "studium uwarunkowań i kier. zagosp. przestrz. gminy", 
+                    "miejscowy plan odbudowy", 
+                    "miejscowy plan rewitalizacji",
+                    "uchwała krajobrazowa",
+                    "zintegrowany plan inwestycyjny"]
+            
+            if typPlanu_value in typy and len(getListWidgetItems(mapaPodkladowa.refObject)) == 0:
+                showPopup('Brak mapy podkładowej', 'Mapa podkładowa jest wymagana dla wartości atrybutu typPlanu:\n - %s' % '\n - '.join(typy))
+                return False
+            
+            if typPlanu_value not in rodzajZbioru_map[rodzajZbioru]:
+                if showMessage:
+                    showPopup('Błąd wartości atrybutu', 'Atrybut typPlanu dla rodzaju zbioru %s przyjmuje wartości:\n - %s' % (rodzajZbioru, '\n - '.join(rodzajZbioru_map[rodzajZbioru])))
+                return False
+                
+        return True
+        
+    if typPlanu_value is not None and rodzajZbioru_value in rodzajZbioru_map and typPlanu_value not in rodzajZbioru_map[rodzajZbioru_value]:
+        if showMessage:
+            showPopup('Błąd wartości atrybutu', 'Atrybut typPlanu dla rodzaju zbioru %s przyjmuje wartości:\n - %s' % (rodzajZbioru_value, '\n - '.join(rodzajZbioru_map[rodzajZbioru_value])))
+        return False
+        
     return True
 
 
@@ -799,6 +833,7 @@ def validate_form_dates(formElements):
 
 
 def isFormFilled(dialog):
+    """Sprawdza warunek określony przez operację `isFormFilled` i zwraca jego wynik."""
     for fe in dialog.formElements:
         if fe.isComplex() and fe.minOccurs > 0:
             for inner in fe.innerFormElements:
@@ -840,6 +875,7 @@ def isFormFilled(dialog):
 
 
 def getListWidgetItems(element):
+    """Pobiera dane wymagane przez operację `getListWidgetItems`."""
     itemList = []
     for i in range(element.count()):
         item = element.item(i).data(Qt.UserRole)
@@ -854,6 +890,7 @@ def getListWidgetItems(element):
 
 def retrieveFormData(elements, data, pomijane):
 
+    """Pobiera dane wymagane przez operację `retrieveFormData`."""
     form_data = {}
     for el in data:
 
@@ -877,12 +914,13 @@ def retrieveFormData(elements, data, pomijane):
             try:
                 if 'ComboBox' in type(el).__name__:
                     form_data[el.objectName()] = el.currentText()
-            except:
+            except:  # nosec B112
                 continue
     return(form_data)
 
 
 def getListWidgetItems(listWidget):
+    """Pobiera dane wymagane przez operację `getListWidgetItems`."""
     itemList = []
     for i in range(listWidget.count()):
         item = listWidget.item(i).data(Qt.UserRole)
@@ -899,18 +937,21 @@ def getListWidgetItems(listWidget):
 
 
 def makeMapaPodkladowaNode(item, data):
+    """Realizuje operację `makeMapaPodkladowaNode` w bieżącym module."""
     for i in data.keys():
         item1 = ET.SubElement(item, 'app:MapaPodkladowa')
         item1.text = data[i]
 
 
 def makeListWidgetLaczeNode(item, data):
+    """Realizuje operację `makeListWidgetLaczeNode` w bieżącym module."""
     for i in data.keys():
         item1 = ET.SubElement(item, 'app:lacze')
         item1.text = data[i]
 
 
 def makeDataNode(item, data, slownik):
+    """Realizuje operację `makeDataNode` w bieżącym module."""
     item1 = ET.SubElement(item, 'gmd:CI_Date')
     item2 = ET.SubElement(item1, 'gmd:date')
     item3 = ET.SubElement(item2, 'gco:Date')
@@ -924,18 +965,21 @@ def makeDataNode(item, data, slownik):
 
 
 def makeNil(item, element, nilReason):
+    """Realizuje operację `makeNil` w bieżącym module."""
     if element.isNillable:
         item.set('nilReason', str(nilReason))
         item.set('xsi:nil', 'true')
 
 
 def checkForNoDateValue(element):
+    """Wykonuje kontrolę danych w ramach operacji `checkForNoDateValue`."""
     if element.dateTime().toString() == '' or element.text() == 'NULL' or element.text() == None:
         return True
     return False  # jest wartość
 
 
 def checkForNoValue(element):
+    """Wykonuje kontrolę danych w ramach operacji `checkForNoValue`."""
     try:
         if element.text() == '' or element.text() == 'NULL' or element.text() == None:
             return True
@@ -952,12 +996,13 @@ def checkForNoValue(element):
                     params = getListWidgetItems(element)
                     if params == []:
                         return True
-                except:
-                    pass
+                except Exception as e:
+                    print(e)
     return False  # jest wartość
 
 
 def createXmlData(dialog, obrysLayer):
+    """Tworzy dane lub obiekt wymagany przez operację `createXmlData`."""
     dict_map = {
         'status': dictionaries.statusListaKodowa,
         'poziomHierarchii': dictionaries.poziomyHierarchii,
@@ -972,7 +1017,8 @@ def createXmlData(dialog, obrysLayer):
     docNames = {
         'RasterFormularzDialog': 'RysunekAktuPlanowaniaPrzestrzennego',
         'WektorFormularzDialog': 'AktPlanowaniaPrzestrzennego',
-        'DokumentyFormularzDialog': 'DokumentFormalny'
+        'DokumentyFormularzDialog': 'DokumentFormalny',
+        'DokumentyFormularzDialogPoUniewaznieniu': 'DokumentFormalny'
     }
     
     docName = docNames[type(dialog).__name__]
@@ -1084,9 +1130,9 @@ def createXmlData(dialog, obrysLayer):
                             except:
                                 try:
                                     item.text = refObject.currentText()
-                                except:
-                                    pass
-
+                                except Exception as e:
+                                    print(e)
+                                
         elif fe.name == 'data':
             makeDataNode(item, refObject, slownik)
         elif fe.name == 'ukladOdniesieniaPrzestrzennego':
@@ -1115,8 +1161,8 @@ def createXmlData(dialog, obrysLayer):
             except:
                 try:
                     item.text = refObject.currentText()
-                except:
-                    pass
+                except Exception as e:
+                    print(e)
 
     return data
 
@@ -1167,6 +1213,7 @@ def createXmlAktPlanowaniaPrzestrzennego(layout, obrysLayer):
 def putElementAbove(element, subElementName, newElement):
     # Możemy umieścić nowy element nad starym elementem o określonej nazwie
     # element = root, subElementName = str element przed który wrzucamy, newElement = ET.Element
+    """Zwraca wynik operacji `putElementAbove` wykonywanej w bieżącym module."""
     idx = 0
     for elem in element:
         if subElementName in elem.tag:
@@ -1182,6 +1229,7 @@ def putElementAbove(element, subElementName, newElement):
 def putElementBelow(element, subElementName, newElement):
     # Możemy umieścić nowy element pod starym elementem o określonej nazwie
     # element = root, subElementName = str element przed który wrzucamy, newElement = ET.Element
+    """Zwraca wynik operacji `putElementBelow` wykonywanej w bieżącym module."""
     idx = 0
     for elem in element:
         idx += 1
@@ -1196,6 +1244,7 @@ def putElementBelow(element, subElementName, newElement):
 
 
 def getDocType(filePath):
+    """Pobiera dane wymagane przez operację `getDocType`."""
     docNames = ['AktPlanowaniaPrzestrzennego',
                 'RysunekAktuPlanowaniaPrzestrzennego',
                 'DokumentFormalny',
@@ -1205,7 +1254,7 @@ def getDocType(filePath):
                 'ObszarStandardowDostepnosciInfrastrukturySpolecznej'
                 ]
     try:
-        tree = ET.parse(filePath)
+        tree = ET.parse(filePath)  # nosec B314
         root = tree.getroot()
         elemList = []
         for elem in root.iter():
@@ -1224,6 +1273,7 @@ def getDocType(filePath):
 
 
 def getDocIIP(rootDoc, IIP=''):
+    """Pobiera dane wymagane przez operację `getDocIIP`."""
     for elem in rootDoc:
         for attr in elem.attrib.keys():
             if '{http://www.opengis.net/gml/3.2}id' in attr:  # szybka zmiana
@@ -1242,8 +1292,10 @@ def newItem(root, name, link, ns):
 
 
 def mergeDocsToAPP2(docList):  # Nowa wersja tworzenia APP - do dokończenia
+    """Łączy przekazane dokumenty na potrzeby tworzenia danych APP2 zgodnie z aktualną implementacją."""
     def initializeMember(data, docType, root, ns):
         # Inicjalizacja dokumentu
+        """Zwraca wynik operacji `initializeMember` wykonywanej w bieżącym module."""
         dataMember = ET.SubElement(data, 'wfs:member')
         dataDoc = ET.SubElement(dataMember, 'app:%s' % docType)
         elementPath = 'wfs:member/app:%s' % (docType)
@@ -1258,6 +1310,7 @@ def mergeDocsToAPP2(docList):  # Nowa wersja tworzenia APP - do dokończenia
         return dataDoc
 
     def addElements(formElements, root, dataDoc, docType, relations=[]):
+        """Dodaje dane lub elementy obsługiwane przez operację `addElements`."""
         for fe in formElements:
             elementPath = 'wfs:member/app:%s/app:%s' % (docType, fe.name)
             elements = root.findall(elementPath, ns)
@@ -1296,7 +1349,7 @@ def mergeDocsToAPP2(docList):  # Nowa wersja tworzenia APP - do dokończenia
 
     for doc, relation in docList:
         docType = getDocType(doc)
-        root = ET.parse(doc).getroot()
+        root = ET.parse(doc).getroot()  # nosec B314
         formType = docType + 'Type'
         formElements = createFormElements(
             formType)  # odczytywanie atrybutów z xsd
@@ -1349,8 +1402,9 @@ def mergeDocsToAPP2(docList):  # Nowa wersja tworzenia APP - do dokończenia
 
 
 def mergeDocsToAPP(docList):  # docList z getTableContent
+    """Łączy dane wejściowe zgodnie z logiką operacji `mergeDocsToAPP`."""
     ET.register_namespace('wfs', 'http://www.opengis.net/wfs/2.0')
-    ET.register_namespace('app', 'https://www.gov.pl/static/zagospodarowanieprzestrzenne/schemas/app/2.0')
+    ET.register_namespace('app', 'https://www.gov.pl/static/zagospodarowanieprzestrzenne/schemas/app/3.0')
     ET.register_namespace('gml', 'http://www.opengis.net/gml/3.2')
     ET.register_namespace('xlink', 'http://www.w3.org/1999/xlink')
     ET.register_namespace('xsi', 'http://www.w3.org/2001/XMLSchema-instance')
@@ -1358,7 +1412,7 @@ def mergeDocsToAPP(docList):  # docList z getTableContent
     ET.register_namespace('gmd', 'http://www.isotc211.org/2005/gmd')
     
     if czyAAP10:
-        ns = dictionaries.nameSpaces2
+        ns = dictionaries.nameSpaces3
     else:
         ns = dictionaries.nameSpaces
     
@@ -1426,14 +1480,14 @@ def mergeDocsToAPP(docList):  # docList z getTableContent
                }
     
     namespace_map = {'wfs': 'http://www.opengis.net/wfs/2.0',
-                     'app': 'https://www.gov.pl/static/zagospodarowanieprzestrzenne/schemas/app/2.0',
+                     'app': 'https://www.gov.pl/static/zagospodarowanieprzestrzenne/schemas/app/3.0',
                      'gml': 'http://www.opengis.net/gml/3.2',
                      'xlink':'http://www.w3.org/1999/xlink'}
     
     # Pozyskiwanie APP
     for doc, typObiektu, relation in docList:
         docType = getDocType(doc)
-        root = ET.parse(doc).getroot()
+        root = ET.parse(doc).getroot()  # nosec B314
         if docType == 'AktPlanowaniaPrzestrzennego':
             APProot = root
             appIIP = getDocIIP(root)
@@ -1452,7 +1506,7 @@ def mergeDocsToAPP(docList):  # docList z getTableContent
         if relation == 'unieważnia':
             relation = 'uniewaznia'
         docType = getDocType(doc)
-        root = ET.parse(doc).getroot()
+        root = ET.parse(doc).getroot()  # nosec B314
         # słownik/tablica rootów poszczególnych dokumentów
         docRoots[docType].append(root)
         IIP = getDocIIP(root)
@@ -1517,23 +1571,37 @@ def mergeDocsToAPP(docList):  # docList z getTableContent
                         member_tmp.insert(target_index - 4, plan)
                     else:
                         plan_tmp.set('{http://www.w3.org/1999/xlink}href',APPrelLink)
-                    
+    
     # Sprawdzanie relacji Dokumentu formalnego
     l_przystapienie = len(pomijane['DokumentFormalny']['przystapienie'])
     l_uchwala = len(pomijane['DokumentFormalny']['uchwala'])
     suma = l_przystapienie + l_uchwala
-    if suma < 1:
-        # Wymagany jest co najmniej 1 dokument
-        showPopup(title='Błąd liczności Dokumentów',
-                  text='Nieprawidłowa liczba dokumentów.\nPrzystąpienie: %i (0..*)\nUchwala: %i (0..1)' % (l_przystapienie, l_uchwala))
+    
+    # Pobranie statusu Aktu Planowania Przestrzennego
+    xlink_title = '{http://www.w3.org/1999/xlink}title'
+    status_element = APProot.find('.//app:status', namespace_map)
+    status_app = None
+    if status_element is not None:
+        status_app = status_element.attrib.get(xlink_title)
+    
+    # Dla statusu "prawnie wiążący lub realizowany" lub "nieaktualny"
+    # wymagany jest dokument uchwalający
+    if status_app in ('prawnie wiążący lub realizowany', 'nieaktualny') and l_uchwala < 1:
+        showPopup(title='Błąd liczności Dokumentów', text='Należy podać dokument uchwalający akt planowania przestrzennego, jeżeli status aktu planowania przestrzennego jest równy "prawnie wiążący lub realizowany" lub "nieaktualny".')
         return ''
+    
+    # Dla pozostałych statusów wymagany jest co najmniej
+    # dokument z relacją "przystąpienie" lub "uchwala"
+    elif suma < 1:
+        showPopup(title='Błąd liczności Dokumentów', text='Należy podać co najmniej jeden dokument z relacją "przystąpienie" lub "uchwala".')
+        return ''
+    
     if len(docRoots['AktPlanowaniaPrzestrzennego']) != 1:
-        showPopup(title='Błąd liczności dokumentu',
-                  text='Liczba Aktów Planowania Przestrzennego: %i\nWymagana liczba: 1' % len(docRoots['AktPlanowaniaPrzestrzennego']))
+        showPopup(title='Błąd liczności dokumentu', text='Liczba Aktów Planowania Przestrzennego: %i\nWymagana liczba: 1' % len(docRoots['AktPlanowaniaPrzestrzennego']))
         return ''
+    
     if len(docRoots['DokumentFormalny']) < 1:
-        showPopup(title='Błąd liczności dokumentu',
-                  text='Liczba Dokumentów Formalnych: %i\nWymagana liczba: 1+' % len(docRoots['DokumentFormalny']))
+        showPopup(title='Błąd liczności dokumentu', text='Liczba Dokumentów Formalnych: %i\nWymagana liczba: 1+' % len(docRoots['DokumentFormalny']))
         return ''
     
     # Dodawanie atrybutów do APP
@@ -1592,7 +1660,7 @@ def mergeDocsToAPP(docList):  # docList z getTableContent
     for prefix, uri in ns.items():
         ET.register_namespace(prefix, uri)
     mydata = ET.tostring(APProot, encoding='unicode')
-    fin = ET.fromstring(mydata)
+    fin = ET.fromstring(mydata)  # nosec B314
     
     for elem in fin.iter():
         if '{http://www.w3.org/2001/XMLSchema-instance}schemaLocation' in elem.attrib:
@@ -1601,19 +1669,21 @@ def mergeDocsToAPP(docList):  # docList z getTableContent
     
     ET.indent(fin, space="    ", level=0)
     fin = '<?xml version="1.0" encoding="utf-8"?>' + ET.tostring(fin, encoding='unicode')
-    fin = fin.replace("app/1.0","app/2.0")
-    fin = fin.replace(' xmlns:ns5="https://www.gov.pl/static/zagospodarowanieprzestrzenne/schemas/app/2.0"','')
+    fin = fin.replace("app/1.0","app/3.0")
+    fin = fin.replace("app/2.0","app/3.0")
+    fin = fin.replace(' xmlns:ns5="https://www.gov.pl/static/zagospodarowanieprzestrzenne/schemas/app/3.0"','')
     fin = fin.replace("ns5:","app:")
     return fin
 
 
 def mergeFormalDocuments(root, elements=[]):
+    """Łączy dane wejściowe zgodnie z logiką operacji `mergeFormalDocuments`."""
     pomijane = ["przystapienie",
                 "uchwala",
                 "zmienia",
                 "uchyla",
                 "uniewaznia"]
-    ns = "{https://www.gov.pl/static/zagospodarowanieprzestrzenne/schemas/app/2.0}"
+    ns = "{https://www.gov.pl/static/zagospodarowanieprzestrzenne/schemas/app/3.0}"
     for element in root:
         el_name = element.tag.replace(ns, '')
         if el_name in pomijane:
@@ -1625,6 +1695,7 @@ def mergeFormalDocuments(root, elements=[]):
 
 
 def sortDocRelations(relationList):
+    """Zwraca wynik operacji `sortDocRelations` wykonywanej w bieżącym module."""
     DokumentFormalny = {
         "przystapienie": [],  # Dokument
         "uchwala": [],  # Dokument
@@ -1632,7 +1703,7 @@ def sortDocRelations(relationList):
         "uchyla": [],  # Dokument
         "uniewaznia": []  # Dokument
     }
-    ns = "{https://www.gov.pl/static/zagospodarowanieprzestrzenne/schemas/app/2.0}"
+    ns = "{https://www.gov.pl/static/zagospodarowanieprzestrzenne/schemas/app/3.0}"
     for relation in relationList:
         rel_name = relation.tag.replace(ns, '')
         DokumentFormalny[relationList].append(relation)
@@ -1640,6 +1711,7 @@ def sortDocRelations(relationList):
 
 
 def mergeAppToCollection(AppFiles, set={}):
+    """Łączy dane wejściowe zgodnie z logiką operacji `mergeAppToCollection`."""
     app_form = createFormElementsAktPlanowaniaPrzestrzennego()
     ns = dictionaries.nameSpaces
     
@@ -1663,7 +1735,7 @@ def mergeAppToCollection(AppFiles, set={}):
     numberReturned = 0
     for file in AppFiles:
         path = file.path
-        root = ET.parse(path).getroot()  # APP
+        root = ET.parse(path).getroot()  # APP  # nosec B314
         for member in root:
             numberReturned = numberReturned + 1
             
@@ -1732,9 +1804,10 @@ def mergeAppToCollection(AppFiles, set={}):
 
 
 def getIPPapp(filePath):
+    """Pobiera dane wymagane przez operację `getIPPapp`."""
     AppName = 'AktPlanowaniaPrzestrzennego'
     try:
-        tree = ET.parse(filePath)
+        tree = ET.parse(filePath)  # nosec B314
         root = tree.getroot()
         elemList = []
         for member in root:
@@ -1747,8 +1820,10 @@ def getIPPapp(filePath):
 
 
 def findElementByTag(root, name, elem=None):
+    """Wyszukuje elementy wymagane przez operację `findElementByTag`."""
     for element in root:
-        if '{https://www.gov.pl/static/zagospodarowanieprzestrzenne/schemas/app/2.0}'+name in element.tag or \
+        if '{https://www.gov.pl/static/zagospodarowanieprzestrzenne/schemas/app/3.0}'+name in element.tag or \
+           '{https://www.gov.pl/static/zagospodarowanieprzestrzenne/schemas/app/2.0}'+name in element.tag or \
            '{https://www.gov.pl/static/zagospodarowanieprzestrzenne/schemas/app/1.0}'+name in element.tag:
             return element
         if len(list(element)) > 0:
@@ -1761,6 +1836,7 @@ def findElementByTag(root, name, elem=None):
 
 
 def addToComboBox(formElement, value, formDict):
+    """Dodaje dane lub elementy obsługiwane przez operację `addToComboBox`."""
     feDict = formDict
     for key in feDict.keys():
         if value == key:
@@ -1813,6 +1889,7 @@ def setValueToWidget(formElement, value):
 def setValueToListWidget(formElement, objVal):
     """Dodawanie elementów do obiektu ListWidget"""
     def addElement(formElement, objVal):
+        """Dodaje dane lub elementy obsługiwane przez operację `addElement`."""
         listWidget = formElement.refObject
         newListWidgetItem = QListWidgetItem()
         data = {}
@@ -1845,186 +1922,405 @@ def setValueToListWidget(formElement, objVal):
         return
 
 
-def loadItemsToForm(filePath, formElements, activeDlg):
-    root = None
-    root = ET.parse(filePath).getroot()
+def loadItemsToForm(filePath, formElements, activeDlg, rodzajZbioru):
+    """Wczytuje dane obsługiwane przez operację `loadItemsToForm`."""
+    root = ET.parse(filePath).getroot()  # nosec B314
+    
     ns = dictionaries.nameSpaces
+    ns2 = dictionaries.nameSpaces2
+    ns3 = dictionaries.nameSpaces3
+    
+    namespace_sets = [ns, ns2, ns3]
+    active_namespace = ns
+    
     dokumentyFormalne = []
     rysunki = []
     
-    if 'RasterFormularzDialog' in str(activeDlg):
-        rysunki = root.findall('.//app:RysunekAktuPlanowaniaPrzestrzennego', namespaces=ns)
-        if len(rysunki) == 0:
-            return
+    def find_first(parent, path):
+        """
+        Zwraca pierwszy znaleziony element oraz przestrzeń nazw,
+        w której został odnaleziony.
+        """
+        for current_namespace in namespace_sets:
+            element = parent.find(path, current_namespace)
+            
+            if element is not None:
+                return element, current_namespace
+            
+        return None, None
     
-    if 'WektorFormularzDialog' in str(activeDlg):
-        aktPlanowaniaPrzestrzennego = root.findall('.//app:AktPlanowaniaPrzestrzennego', namespaces=ns)
-        if len(aktPlanowaniaPrzestrzennego) == 0:
-            return
-    
-    if 'DokumentyFormularzDialog' in str(activeDlg):
-        dokumentyFormalne = root.findall('.//app:DokumentFormalny', namespaces=ns)
-        if len(dokumentyFormalne) == 0:
-            return
-    
-    if len(dokumentyFormalne) > 1 or len(rysunki) > 1:
+    def findall_first(parent, path):
+        """
+        Zwraca elementy znalezione w pierwszej pasującej
+        przestrzeni nazw oraz tę przestrzeń nazw.
+        """
+        for current_namespace in namespace_sets:
+            elements = parent.findall(path, current_namespace)
+            
+            if elements:
+                return elements, current_namespace
+                
+        return [], None
         
+    def get_element_text(parent, path):
+        """Pobiera dane wymagane przez operację `get_element_text`."""
+        element, _ = find_first(parent, path)
+        
+        if element is None:
+            return None
+        
+        return element.text
+    
+    def get_local_name(tag):
+        """
+        Usuwa URI przestrzeni nazw z nazwy elementu XML.
+        Obsługuje również przyszłe wersje schematu.
+        """
+        if '}' in tag:
+            return tag.split('}', 1)[1]
+            
+        return tag
+        
+    if 'RasterFormularzDialog' in str(activeDlg):
+        rysunki, found_namespace = findall_first(
+            root,
+            './/app:RysunekAktuPlanowaniaPrzestrzennego'
+        )
+        
+        if not rysunki:
+            return
+            
+        active_namespace = found_namespace
+        
+    if 'WektorFormularzDialog' in str(activeDlg):
+        aktPlanowaniaPrzestrzennego, found_namespace = findall_first(
+            root,
+            './/app:AktPlanowaniaPrzestrzennego'
+        )
+        
+        if not aktPlanowaniaPrzestrzennego:
+            return
+            
+        active_namespace = found_namespace
+        
+    if 'DokumentyFormularzDialog' in str(activeDlg):
+        dokumentyFormalne, found_namespace = findall_first(
+            root,
+            './/app:DokumentFormalny'
+        )
+        
+        if not dokumentyFormalne:
+            return
+        
+        active_namespace = found_namespace
+        
+    if len(dokumentyFormalne) > 1 or len(rysunki) > 1:
         dialog = QDialog()
+        
         if len(dokumentyFormalne) > 1:
-            dialog.setWindowTitle("Wybierz identyfikator lokalny dokumentu formalnego")
-            label = QLabel('Wybierz identyfikator lokalny dokumentu formalnego, a następnie naciśnij ok:')
+            dialog.setWindowTitle(
+                "Wybierz identyfikator lokalny dokumentu formalnego"
+            )
+            label = QLabel(
+                'Wybierz identyfikator lokalny dokumentu formalnego, '
+                'a następnie naciśnij OK:'
+            )
+            
         if len(rysunki) > 1:
-            dialog.setWindowTitle("Wybierz identyfikator lokalny rysunku aktu planowania przestrzennego")
-            label = QLabel('Wybierz identyfikator lokalny rysunku aktu planowania przestrzennego, a następnie naciśnij ok:')
+            dialog.setWindowTitle(
+                "Wybierz identyfikator lokalny rysunku aktu "
+                "planowania przestrzennego"
+            )
+            label = QLabel(
+                'Wybierz identyfikator lokalny rysunku aktu planowania '
+                'przestrzennego, a następnie naciśnij OK:'
+            )
             
         layout = QVBoxLayout(dialog)
         layout.addWidget(label)
         
         combo_box = QComboBox()
-        if len(dokumentyFormalne) > 1:
-            combo_box.addItems([
-                dokumentFormalny.find('.//app:lokalnyId', namespaces=ns).text
-                for dokumentFormalny in dokumentyFormalne
-                if dokumentFormalny.find('.//app:lokalnyId', namespaces=ns) is not None
-            ])
-        if len(rysunki) > 1:
-            combo_box.addItems([
-                rysunek.find('.//app:lokalnyId', namespaces=ns).text
-                for rysunek in rysunki
-                if rysunek.find('.//app:lokalnyId', namespaces=ns) is not None
-            ])
         
+        if len(dokumentyFormalne) > 1:
+            lokalne_id = []
+            
+            for dokumentFormalny in dokumentyFormalne:
+                lokalny_id = get_element_text(
+                    dokumentFormalny,
+                    './/app:lokalnyId'
+                )
+                
+                if lokalny_id is not None:
+                    lokalne_id.append(lokalny_id)
+                    
+            combo_box.addItems(lokalne_id)
+            
+        if len(rysunki) > 1:
+            lokalne_id = []
+            
+            for rysunek in rysunki:
+                lokalny_id = get_element_text(
+                    rysunek,
+                    './/app:lokalnyId'
+                )
+                
+                if lokalny_id is not None:
+                    lokalne_id.append(lokalny_id)
+                    
+            combo_box.addItems(lokalne_id)
+            
         layout.addWidget(combo_box)
+        
         ok_button = QPushButton("OK")
+        ok_button.setObjectName("ok_button_doc")
         layout.addWidget(ok_button)
+        
         selected_lokalnyId = None
         
         def on_ok():
+            """Realizuje operację `on_ok` w bieżącym module."""
             nonlocal selected_lokalnyId
+            
             selected_lokalnyId = combo_box.currentText()
             dialog.accept()
-        
+            
         ok_button.clicked.connect(on_ok)
         dialog.exec_()
         
         for dokumentFormalny in dokumentyFormalne:
-            if dokumentFormalny.find('.//app:lokalnyId', namespaces=ns).text == selected_lokalnyId:
+            lokalny_id = get_element_text(
+                dokumentFormalny,
+                './/app:lokalnyId'
+            )
+            
+            if lokalny_id == selected_lokalnyId:
                 root = dokumentFormalny
                 break
-        
+                
         for rysunek in rysunki:
-            if rysunek.find('.//app:lokalnyId', namespaces=ns).text == selected_lokalnyId:
+            lokalny_id = get_element_text(
+                rysunek,
+                './/app:lokalnyId'
+            )
+            
+            if lokalny_id == selected_lokalnyId:
                 root = rysunek
                 break
-    
+                
     if len(dokumentyFormalne) == 1:
         root = dokumentyFormalne[0]
-    
+        
     if len(rysunki) == 1:
         root = rysunki[0]
-    
-    for prefix, uri in ns.items():
+        
+    # Rejestrujemy przestrzeń nazw faktycznie wykrytą w pliku.
+    for prefix, uri in active_namespace.items():
         ET.register_namespace(prefix, uri)
-    
+        
+    if dokumentyFormalne:
+        przestrzenNazwElement = findElementByTag(
+            root,
+            'przestrzenNazw',
+            None
+        )
+        
+        if przestrzenNazwElement is not None:
+            rodzajZbioruWPrzestrzenNazw = (
+                przestrzenNazwElement.text.split("-")[1]
+            )
+            
+            if rodzajZbioru != rodzajZbioruWPrzestrzenNazw:
+                showPopup(
+                    title='Błędny rodzaj zbioru',
+                    text=(
+                        f'Wybrany formularz dotyczy rodzaju zbioru: '
+                        f'{rodzajZbioruWPrzestrzenNazw}. '
+                        f'W ustawieniach wtyczki wybrano: '
+                        f'{rodzajZbioru}.'
+                    )
+                )
+                return
+                
     for fe in formElements:
-        # iteruje się po xml i szuka odpowiadającego atrybutu z formularza
+        # Iteracja po XML i wyszukiwanie atrybutu formularza.
         element = findElementByTag(root, fe.name, None)
-        if element == None:
+        
+        if element is None:
             continue
+            
         value = element.text
         elementAttrib = element.attrib
-        if len(elementAttrib) > 0:
+        
+        if elementAttrib:
             if fe.type == 'gml:ReferenceType':
-                for key in elementAttrib.keys():
+                for key in elementAttrib:
                     if 'title' in key:
                         value = elementAttrib[key]
+                        
         if fe.name == 'data':
             datePath = 'gmd:CI_Date/gmd:date/gco:Date'
-            dateTypePath = 'gmd:CI_Date/gmd:dateType/gmd:CI_DateTypeCode'
-            dataDate = element.find(datePath, ns)
-            if dataDate != None:    # Obejście błędu wczytywania APP w oknie 5/6 #140
-                dataDateTypeCode = element.find(dateTypePath, ns)
+            dateTypePath = (
+                'gmd:CI_Date/gmd:dateType/gmd:CI_DateTypeCode'
+            )
+            
+            dataDate, _ = find_first(element, datePath)
+            
+            # Obejście błędu wczytywania APP w oknie 5/6 #140.
+            if dataDate is not None:
+                dataDateTypeCode, _ = find_first(
+                    element,
+                    dateTypePath
+                )
+                
                 date_time_obj = datetime.datetime.strptime(
-                    dataDate.text, '%Y-%m-%d')
+                    dataDate.text,
+                    '%Y-%m-%d'
+                )
+                
                 fe.refObject[0].setDate(date_time_obj)
-                feDict = dictionaries.cI_DateTypeCode
-                for key in feDict.keys():
-                    if dataDateTypeCode.text == key:
-                        fe.refObject[1].setCurrentText(key)
-        elif fe.isNillable and len(elementAttrib) > 0:
-            if 'nilReason' in elementAttrib:
+                
+                if dataDateTypeCode is not None:
+                    feDict = dictionaries.cI_DateTypeCode
+                    
+                    for key in feDict:
+                        if dataDateTypeCode.text == key:
+                            fe.refObject[1].setCurrentText(key)
+                            break
+                            
+        elif fe.isNillable and elementAttrib:
+            nil_reason = None
+            
+            for attribute_name, attribute_value in elementAttrib.items():
+                if attribute_name == 'nilReason' or attribute_name.endswith(
+                    '}nilReason'
+                ):
+                    nil_reason = attribute_value
+                    break
+                
+            if nil_reason is not None:
                 refNilObject = fe.refNilObject
                 widgets = all_layout_widgets(refNilObject)
+                
                 for widget in widgets:
                     if type(widget).__name__ == 'QCheckBox':
-                        if widget.isChecked() == False:
+                        if not widget.isChecked():
                             widget.click()
+                            
                     if 'QComboBox' in type(widget).__name__:
                         feDict = dictionaries.nilReasons
                         widget.setEnabled(True)
-                        for key in feDict.keys():
-                            if elementAttrib['nilReason'] == key:
+                        
+                        for key in feDict:
+                            if nil_reason == key:
                                 widget.setCurrentText(key)
+                                break
+                                
         elif fe.maxOccurs == 'unbounded':
-            formNames = ['AktPlanowaniaPrzestrzennego',
-                         'RysunekAktuPlanowaniaPrzestrzennego', 'DokumentFormalny']
-            elements = []
-            for formName in formNames:
-                if len(dokumentyFormalne) > 0 or len(rysunki) > 0:
-                    elementPath = './/app:%s' % (fe.name)
-                else:
-                    elementPath = 'wfs:member/app:%s/app:%s' % (formName, fe.name)
-                elements = root.findall(elementPath, ns)
-                if elements != []:
-                    break
-                else:
-                    ns2 = dictionaries.nameSpaces2
-                    elementPath = 'wfs:member/app:%s/app:%s' % (formName, fe.name)
-                    elements = root.findall(elementPath, ns2)
-                    if elements != []:
-                        break
+            formNames = [
+                'AktPlanowaniaPrzestrzennego',
+                'RysunekAktuPlanowaniaPrzestrzennego',
+                'DokumentFormalny'
+            ]
             
+            elements = []
+            
+            for formName in formNames:
+                if dokumentyFormalne or rysunki:
+                    elementPath = './/app:%s' % fe.name
+                else:
+                    elementPath = (
+                        'wfs:member/app:%s/app:%s'
+                        % (formName, fe.name)
+                    )
+                    
+                elements, found_namespace = findall_first(
+                    root,
+                    elementPath
+                )
+                
+                if elements:
+                    active_namespace = found_namespace
+                    break
+                    
             for elem in elements:
                 if fe.name == 'mapaPodkladowa':
-                    val = []
-                    objValues = {'data_dateTimeEdit': '', 'referencja_lineEdit': '', 'lacze_lineEdit': ''}
+                    objValues = {
+                        'data_dateTimeEdit': '',
+                        'referencja_lineEdit': '',
+                        'lacze_lineEdit': ''
+                    }
+                    
+                    if len(elem) == 0:
+                        continue
+                        
                     for el in elem[0]:
-                        objName = (el.tag.replace('{https://www.gov.pl/static/zagospodarowanieprzestrzenne/schemas/app/2.0}', '').replace('{https://www.gov.pl/static/zagospodarowanieprzestrzenne/schemas/app/1.0}', ''))
+                        objName = get_local_name(el.tag)
+                        refObj = None
+                        
                         for inner in fe.innerFormElements:
                             if inner.name == objName:
                                 refObj = inner.refObject
+                                break
+                                
                         if objName == 'referencja':
-                            objValue = ' '
-                        if objName == 'data':
-                            objValue = datetime.datetime.strptime(el.text, '%Y-%m-%d')
-                            refObj.setDateTime(objValue)
-                            objValue = refObj
-                            objName = objName+'_dateTimeEdit'
+                            objValue = el.text
+                            objName = 'referencja_lineEdit'
+                            
+                        elif objName == 'data':
+                            objValue = datetime.datetime.strptime(
+                                el.text,
+                                '%Y-%m-%d'
+                            )
+                            
+                            if refObj is not None:
+                                refObj.setDateTime(objValue)
+                                objValue = refObj
+                                
+                            objName = 'data_dateTimeEdit'
+                            
                         else:
                             objValue = el.text
-                            objName = objName+'_lineEdit'
+                            objName = objName + '_lineEdit'
+                            
                         objValues[objName] = objValue
+                        
                     setValueToListWidget(fe, objValues)
+                    
                 else:
-                    objName = (elem.tag.replace('{https://www.gov.pl/static/zagospodarowanieprzestrzenne/schemas/app/2.0}', '').replace('{https://www.gov.pl/static/zagospodarowanieprzestrzenne/schemas/app/1.0}', ''))+'_lineEdit'
+                    objName = get_local_name(elem.tag) + '_lineEdit'
                     objValue = elem.text
-                    setValueToListWidget(fe, {objName: objValue})
+                    
+                    setValueToListWidget(
+                        fe,
+                        {objName: objValue}
+                    )
         else:
-            setValueToWidget(fe, value)
+            if not fe.isComplex():
+                setValueToWidget(fe, value)
+            
         if fe.name == 'idIIP':
             for inner in fe.innerFormElements:
                 try:
-                    innerElement = findElementByTag(element, inner.name, None)
+                    innerElement = findElementByTag(
+                        element,
+                        inner.name,
+                        None
+                    )
+                    
+                    if innerElement is None:
+                        continue
+                        
                     value = innerElement.text
                     setValueToWidget(inner, value)
-                except:
-                    pass
+                    
+                except Exception as e:
+                    print(e)
 
 
 def setAppId(setPath):
     """pozyskiwanie id IIP z aktów (APP) w zadanym zbiorze"""
     ns = dictionaries.nameSpaces
-    root = ET.parse(setPath).getroot()
+    root = ET.parse(setPath).getroot()  # nosec B314
     appPath = 'wfs:member/app:AktPlanowaniaPrzestrzennego'
     appList = root.findall(appPath, ns)
     idIIPList = []
@@ -2035,14 +2331,16 @@ def setAppId(setPath):
 
 
 def findElementInXmlFile(file, docName, elementName):
+    """Wyszukuje elementy wymagane przez operację `findElementInXmlFile`."""
     ns = dictionaries.nameSpaces
-    root = ET.parse(file).getroot()
+    root = ET.parse(file).getroot()  # nosec B314
     elementPath = 'wfs:member/app:%s/app:%s' % (docName, elementName)
     element = root.find(elementPath, ns)
     return element
 
 
 def validateObjectNumber(files):
+    """Wykonuje kontrolę danych w ramach operacji `validateObjectNumber`."""
     global s, rodzajZbioru, czyAAP10
     s = QgsSettings()
     rodzajZbioru = s.value("qgis_app2/settings/rodzajZbioru", "/")
@@ -2063,13 +2361,13 @@ def validateObjectNumber(files):
     idIIP_list = []
     
     for doc in files:
-        docs[getDocType(doc[0])].append(ET.parse(doc[0]).getroot())
-        iip = getDocIIP(ET.parse(doc[0]).getroot(), IIP='')
+        docs[getDocType(doc[0])].append(ET.parse(doc[0]).getroot())  # nosec B314
+        iip = getDocIIP(ET.parse(doc[0]).getroot(), IIP='')  # nosec B314
         if iip not in idIIP_list:
             idIIP_list.append(iip)
         else:
             showPopup('Błąd liczności obiektów',
-                      'W APP mogą występować jedynie obiekty o unikalnych idIIP.')
+                      'W APP mogą występować jedynie obiekty o unikalnych idIIP.\nProszę sprawdzić czy pliki GML nie zawierają powtórzonych obiektów lub powtórzenia nie występują pomiędzy plikami GML.')
             return False
     
     if len(docs['AktPlanowaniaPrzestrzennego']) == 1:
@@ -2112,12 +2410,13 @@ def validateObjectNumber(files):
 
 
 def validatePrzestrzenNazwAppSet(files):
+    """Wykonuje kontrolę danych w ramach operacji `validatePrzestrzenNazwAppSet`."""
     przestrzenNazw_list = []
     for doc in files:
         try:
-            root = ET.parse(doc[0]).getroot()
+            root = ET.parse(doc[0]).getroot()  # nosec B314
         except:
-            root = ET.parse(doc.path).getroot()
+            root = ET.parse(doc.path).getroot()  # nosec B314
         for elem in root:
             
             if elem.tag.split('}')[1] == 'Signature':
@@ -2131,6 +2430,7 @@ def validatePrzestrzenNazwAppSet(files):
 
 
 def validateDokumentFormalnyDate(files):
+    """Wykonuje kontrolę danych w ramach operacji `validateDokumentFormalnyDate`."""
     uchwala_dataWejsciaWZycie = None
     przystapienie_dataWejsciaWZycie = None
     for doc, typ, relation in files:
@@ -2154,10 +2454,11 @@ def validateDokumentFormalnyDate(files):
 
 
 def checkIfAPP(file):
+    """Wykonuje kontrolę danych w ramach operacji `checkIfAPP`."""
     ns = dictionaries.nameSpaces
     ns2 = dictionaries.nameSpaces2
     try:
-        root = ET.parse(file).getroot()
+        root = ET.parse(file).getroot()  # nosec B314
     except Exception as error:
         showPopup('Błąd parsowania GML',"Błąd parsowania pliku '" + str(file) + "', opis błędu: " + str(error))
         return

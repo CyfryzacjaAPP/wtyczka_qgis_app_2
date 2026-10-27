@@ -2,7 +2,7 @@
 import lxml
 import os
 import datetime
-import xml.etree.ElementTree as ET
+import xml.etree.ElementTree as ET  # nosec B405
 from . import validator_utils
 from qgis.core import QgsVectorLayer, QgsSettings
 from ..app.app_utils import isLayerInPoland
@@ -13,10 +13,10 @@ import processing
 import re
 
 dsSignaturePattern = re.compile(r'\/.*\/\w{1,5}\:Signature')
-xsdPath = os.path.join(os.path.dirname(__file__), 'planowaniePrzestrzenne_2_0.xsd')
+xsdPath = os.path.join(os.path.dirname(__file__), 'planowaniePrzestrzenne_3_0.xsd')
 
 ns = {'gco': "http://www.isotc211.org/2005/gco",
-      'app': "https://www.gov.pl/static/zagospodarowanieprzestrzenne/schemas/app/2.0",
+      'app': "https://www.gov.pl/static/zagospodarowanieprzestrzenne/schemas/app/3.0",
       'gmd': "http://www.isotc211.org/2005/gmd",
       'gml': "http://www.opengis.net/gml/3.2",
       'wfs': "http://www.opengis.net/wfs/2.0",
@@ -29,6 +29,7 @@ class ValidatorLxml:
     """Walidator oparty o bibliotekę lxml - wczytuje XSD z internetu 30-40 sekund """
 
     def __init__(self, schema_path=xsdPath):
+        """Inicjalizuje obiekt klasy `ValidatorLxml` i konfiguruje jego stan początkowy."""
         start = datetime.datetime.now()
         xsd_root = lxml.etree.parse(schema_path)
         self.schema = None
@@ -151,7 +152,7 @@ class ValidatorLxml:
     def validateAppRelations(self, gmlPath):
         """Sprawdza czy relacje wewnątrz zbioru są zgodne"""
         
-        root = ET.parse(gmlPath)
+        root = ET.parse(gmlPath)  # nosec B314
         
         bledy = []
         for app in root.findall('.//app:AktPlanowaniaPrzestrzennego', ns):
@@ -257,7 +258,7 @@ class ValidatorLxml:
     def validatePrzestrzenNazwIntegrity(self, gmlPath):
         """Sprawdza czy przestrzenie nazw są zgodne"""
         
-        root = ET.parse(gmlPath)
+        root = ET.parse(gmlPath)  # nosec B314
         
         przestrzenie = []
         # wydobycie unikalnych przestrzeni nazw
@@ -283,32 +284,57 @@ class ValidatorLxml:
 
 
     def validateMapaPodkladowaQuantityRequirement(self, gmlPath):
-        """Sprawdza czy przestrzenie nazw są zgodne"""
-        
-        root = ET.parse(gmlPath)
-        
+        """Sprawdza obligatoryjność mapy podkładowej dla wskazanych typów APP."""
+    
+        root = ET.parse(gmlPath)  # nosec B314
+    
+        typy_wymagajace_mapy = {
+            'miejscowy plan zagospodarowania przestrzennego',
+            'miejscowy plan odbudowy',
+            'miejscowy plan rewitalizacji',
+            'zintegrowany plan inwestycyjny',
+            'uchwała krajobrazowa',
+        }
+    
         bledy = []
-        # wydobycie unikalnych przestrzeni nazw
-        for app in root.findall('.//app:AktPlanowaniaPrzestrzennego', ns):
-            poziomHierarchii = app.find('app:poziomHierarchii', ns)
-            poziom = poziomHierarchii.attrib['{%s}title' % ns['xlink']]
-            if poziom == 'lokalny' and rodzajZbioru != 'POG':
-                mapyPodkladowe = app.findall('app:mapaPodkladowa/app:MapaPodkladowa/app:referencja', ns)
+    
+        for app in root.findall(
+                './/app:AktPlanowaniaPrzestrzennego', ns):
+            typ_element = app.find('app:typPlanu', ns)
+            if typ_element is None:
+                continue
+            typ = typ_element.attrib.get(
+                '{%s}title' % ns['xlink'])
+            if typ in typy_wymagajace_mapy:
+                mapyPodkladowe = app.findall(
+                    'app:mapaPodkladowa/'
+                    'app:MapaPodkladowa/'
+                    'app:referencja',
+                    ns
+                )
+                
                 if len(mapyPodkladowe) == 0:
-                    appId = validator_utils.urlIdToGmlId(app.find('gml:identifier', ns).text)
+                    appId = validator_utils.urlIdToGmlId(
+                        app.find('gml:identifier', ns).text)
+                        
                     bledy.append(
-                        f'Dla Aktu Planowania Przestrzennego o identyfikatorze {appId} brak definicji atrybutu \'mapaPodkladowa\'.\nAtrybut \'mapaPodkladowa\' jest wymagany dla wszystkich APP poziomu lokalnego (poziomHierarchii = http://inspire.ec.europa.eu/codelist/LevelOfSpatialPlanValue/local)')
+                        f"Dla Aktu Planowania Przestrzennego "
+                        f"o identyfikatorze {appId} brak definicji "
+                        f"atrybutu 'mapaPodkladowa'.\n"
+                        f"Atrybut 'mapaPodkladowa' jest wymagany "
+                        f"dla typu planu '{typ}'."
+                    )
                     
-        if len(bledy) > 0:
+        if bledy:
             return False, '\n'.join(bledy)
-        else:
-            return [True]
+            
+        return [True]
 
 
     def validateDokumentFormalny(self, gmlPath):
         """Sprawdza czy dokumrnt formalny jest poprawnie zdefiniowany"""
         
-        root = ET.parse(gmlPath)
+        root = ET.parse(gmlPath)  # nosec B314
         
         lokalneId = []
         # wydobycie wersjaId dla dokumentów formalnych

@@ -14,6 +14,7 @@ from ..base_dialogs import CloseMessageDialog, ButtonsDialog
 from qgis.core import *
 from PyQt5.QtCore import QObject
 from PyQt5.QtWidgets import QApplication, QDialog, QPushButton, QVBoxLayout
+from qgis.core import QgsMapLayerProxyModel
 
 
 title = 'Wyznaczanie OUZ'
@@ -28,22 +29,29 @@ class TworzenieOUZDialog(CloseMessageDialog, FORM_CLASS, ButtonsDialog):
         """Constructor."""
         super(TworzenieOUZDialog, self).__init__(parent)
         self.setupUi(self)
+        
+        self.warstwaBudynki.setFilters(QgsMapLayerProxyModel.PolygonLayer)
+        self.warstwaPOG.setFilters(QgsMapLayerProxyModel.PolygonLayer)
+        
         self.setWindowTitle(title)
         self.setWindowIcon(QtGui.QIcon(icon))
         self.setWindowFlags(Qt.WindowMinimizeButtonHint | Qt.WindowSystemMenuHint | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
         ButtonsDialog.__init__(self)
         self.closed.connect(self.wylaczenieKonektorow)
         self.cancel.rejected.connect(self.wylaczenieKonektorow)
-        global pierwszyKomunikat_Bud, pierwszyKomunikat_POG
+        global pierwszyKomunikat_POG
+        self.pierwszyKomunikat_Bud = True
 
     def wlaczenieKonektorow(self):
-        global pierwszyKomunikat_Bud, pierwszyKomunikat_POG
-        pierwszyKomunikat_Bud = True
+        """Realizuje operację `wlaczenieKonektorow` w bieżącym module."""
+        global pierwszyKomunikat_POG
+        self.pierwszyKomunikat_Bud = True
         pierwszyKomunikat_POG = True
         self.warstwaBudynki.currentTextChanged.connect(self.warstwa_Budynki)
         self.warstwaPOG.currentTextChanged.connect(self.warstwa_POG)
 
     def wylaczenieKonektorow(self):
+        """Realizuje operację `wylaczenieKonektorow` w bieżącym module."""
         try:
             self.warstwaBudynki.currentTextChanged.disconnect()
             self.warstwaPOG.currentTextChanged.disconnect()
@@ -51,6 +59,7 @@ class TworzenieOUZDialog(CloseMessageDialog, FORM_CLASS, ButtonsDialog):
             QgsMessageLog.logMessage(f"Błąd:{str(e)}", 'APP2')
 
     def warstwa_Budynki(self):
+        """Realizuje operację `warstwa_Budynki` w bieżącym module."""
         global pierwszyKomunikat_Bud
         self.tworzenie_btn.setEnabled(False)
         cl_Bud = self.warstwaBudynki.currentLayer()
@@ -80,7 +89,8 @@ class TworzenieOUZDialog(CloseMessageDialog, FORM_CLASS, ButtonsDialog):
                                     l_b = True
                                     break
                             if not l_b:
-                                QMessageBox.critical(None,'Informacja','Wybrano warstwę AktPlanowaniaPrzestrzennego. Należy wybrać warstwę z budynkami.')
+                                pass
+                                # QMessageBox.critical(None,'Informacja','Wybrano warstwę AktPlanowaniaPrzestrzennego. Należy wybrać warstwę z budynkami.')
                         elif cl_Bud.name().__contains__("StrefaPlanistyczna"):
                             l_b = False
                             for vl in vectorLayers:
@@ -117,7 +127,7 @@ class TworzenieOUZDialog(CloseMessageDialog, FORM_CLASS, ButtonsDialog):
                             QMessageBox.critical(None,'Informacja','Warstwa musi przechowywać obiekty typu poligon.')
                         elif cl_Bud.featureCount() < 5:
                             QMessageBox.critical(None,'Informacja','Warstwa musi zawierać co najmniej 5 obiektów.')
-                        elif cl_Bud.crs().authid():
+                        elif not cl_Bud.crs().authid():
                             QMessageBox.critical(None,'Informacja','Warstwa musi mieć zdefiniowany układ współrzędnych.')
                     
                     for layer in vectorLayers:
@@ -136,10 +146,10 @@ class TworzenieOUZDialog(CloseMessageDialog, FORM_CLASS, ButtonsDialog):
             else:
                 self.warstwaBudynki.setLayer(None)
         except Exception as e:
-            QgsMessageLog.logMessage(f"Błąd:{str(e)}", 'APP2')
-
+            print(e)
 
     def warstwa_POG(self):
+        """Realizuje operację `warstwa_POG` w bieżącym module."""
         global pierwszyKomunikat_POG
         cl_POG = self.warstwaPOG.currentLayer()
         if isinstance(cl_POG, QgsVectorLayer):
@@ -162,7 +172,8 @@ class TworzenieOUZDialog(CloseMessageDialog, FORM_CLASS, ButtonsDialog):
                                 l_b = True
                                 break
                         if not l_b:
-                            QMessageBox.critical(None,'Informacja','Warstwa wejściowa ma nieodpowiednią nazwę. Prawidłowa nazwa powinna zaczynać się od „AktPlanowaniaPrzestrzennego”.')
+                            pass
+                            # QMessageBox.critical(None,'Informacja','Warstwa wejściowa ma nieodpowiednią nazwę. Prawidłowa nazwa powinna zaczynać się od „AktPlanowaniaPrzestrzennego”.')
                     elif cl_POG.geometryType() != QgsWkbTypes.PolygonGeometry:
                         QMessageBox.critical(None,'Informacja','Warstwa musi przechowywać obiekt typu multipoligon.')
                     elif cl_POG.featureCount() == 0:

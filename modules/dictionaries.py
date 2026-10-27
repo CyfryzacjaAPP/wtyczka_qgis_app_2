@@ -27,7 +27,7 @@ placeholders = {
     "DokumentFormalnyType:nazwaSkrocona": "Plan zagospodarowania przestrzennego województwa mazowieckiego",
     "DokumentFormalnyType:numerIdentyfikacyjny": "DZ. URZ. WOJ. 2018.13180",
     "DokumentFormalnyType:organUstanawiajacy": "Sejmik Województwa Mazowieckiego",
-    "DokumentFormalnyType:lacze": "http://www.przykladowa.domena/akt.pdf"
+    "DokumentFormalnyType:lacze": "https://rejestr-urbanistyczny.gov.pl/repository/"
 }
 
 # listy rozwijalne combobox
@@ -71,14 +71,6 @@ przypisaniePowiatuDoEPSGukladuPL2000 = {
              '1809','1813','1814','1862','2001','2002','2003','2005','2008','2009','2010','2011','2012','2013','2061','2063']
     }
 
-typyPlanu = {
-    "miejscowy plan zagospodarowania przestrzennego": "miejscowyPlanZagospodarowaniaPrzestrzennego",
-    "plan zagospodarowania przestrzennego województwa": "planZagospodarowaniaPrzestrzennegoWojewodztwa",
-    "studium uwarunkowań i kier. zagosp. przestrz. gminy": "studiumUwarunkowanIKierunkowZagospodarowaniaPrzestrzennegoGminy",
-    "miejscowy plan odbudowy": "miejscowyPlanOdbudowy",
-    "miejscowy plan rewitalizacji": "miejscowyPlanRewitalizacji"
-}
-
 poziomyHierarchii = {
     "regionalny": "http://inspire.ec.europa.eu/codelist/LevelOfSpatialPlanValue/regional",
     "lokalny": "http://inspire.ec.europa.eu/codelist/LevelOfSpatialPlanValue/local",
@@ -98,15 +90,28 @@ zgodnoscAnchors = {
     'Brak oceny zgodności (notEvaluated)': 'http://inspire.ec.europa.eu/metadata-codelist/DegreeOfConformity/notEvaluated'
 }
 
+typyPlanu = {
+    "miejscowy plan zagospodarowania przestrzennego": "miejscowyPlanZagospodarowaniaPrzestrzennego",
+    "plan zagospodarowania przestrzennego województwa": "planZagospodarowaniaPrzestrzennegoWojewodztwa",
+    "studium uwarunkowań i kier. zagosp. przestrz. gminy": "studiumUwarunkowanIKierunkowZagospodarowaniaPrzestrzennegoGminy",
+    "miejscowy plan odbudowy": "miejscowyPlanOdbudowy",
+    "miejscowy plan rewitalizacji": "miejscowyPlanRewitalizacji",
+    "uchwała krajobrazowa": "uchwalaKrajobrazowa",
+    "zintegrowany plan inwestycyjny":"zintegrowanyPlanInwestycyjny",
+    "audyt krajobrazowy": "audytKrajobrazowy"
+}
+
 # słownik definiujący relacje między "typPlanu", a "poziomHierarchii"
-typyPlanuPoziomyHierarchii = dict(zip(typyPlanu.keys(), [
-    [list(poziomyHierarchii.keys())[2], list(poziomyHierarchii.keys())[1]],
-    [list(poziomyHierarchii.keys())[0]],
-    [list(poziomyHierarchii.keys())[1]],
-    [list(poziomyHierarchii.keys())[2]],
-    [list(poziomyHierarchii.keys())[2]],
-    [list(poziomyHierarchii.keys())[2]]
-]))
+typyPlanuPoziomyHierarchii = {
+    "miejscowy plan zagospodarowania przestrzennego":["sublokalny"],
+    "plan zagospodarowania przestrzennego województwa":["regionalny"],
+    "studium uwarunkowań i kier. zagosp. przestrz. gminy":["lokalny"],
+    "miejscowy plan odbudowy":["sublokalny"],
+    "miejscowy plan rewitalizacji":["sublokalny"],
+    "uchwała krajobrazowa":["sublokalny"],
+    "zintegrowany plan inwestycyjny":["sublokalny"],
+    "audyt krajobrazowy":["regionalny"]
+}
 
 statusListaKodowa = {
     "wybierz":"wybierz",
@@ -269,10 +274,12 @@ rodzajeZbiorow = {
     'PZPW': 'PZPW',
     'SUIKZP': 'SUIKZP',
     'MPZP': 'MPZP',
+    'AK':'AK',
+    'UK':'UK',
     'POG':'POG'
 }
 
-nameSpaces2 = {
+nameSpaces3 = {
     'xsi': "http://www.w3.org/2001/XMLSchema-instance",
     'app': "https://www.gov.pl/static/zagospodarowanieprzestrzenne/schemas/app/1.0",
     'gmd': "http://www.isotc211.org/2005/gmd",
@@ -283,9 +290,20 @@ nameSpaces2 = {
     'gmlexr': "http://www.opengis.net/gml/3.3/exr"
 }
 
-nameSpaces = {
+nameSpaces2 = {
     'xsi': "http://www.w3.org/2001/XMLSchema-instance",
     'app': "https://www.gov.pl/static/zagospodarowanieprzestrzenne/schemas/app/2.0",
+    'gmd': "http://www.isotc211.org/2005/gmd",
+    'gco': 'http://www.isotc211.org/2005/gco',
+    'xlink': 'http://www.w3.org/1999/xlink',
+    'gml': "http://www.opengis.net/gml/3.2",
+    'wfs': 'http://www.opengis.net/wfs/2.0',
+    'gmlexr': "http://www.opengis.net/gml/3.3/exr"
+}
+
+nameSpaces = {
+    'xsi': "http://www.w3.org/2001/XMLSchema-instance",
+    'app': "https://www.gov.pl/static/zagospodarowanieprzestrzenne/schemas/app/3.0",
     'gmd': "http://www.isotc211.org/2005/gmd",
     'gco': 'http://www.isotc211.org/2005/gco',
     'xlink': 'http://www.w3.org/1999/xlink',
@@ -301,8 +319,8 @@ xmlNameSpaces = {
     'xmlns:wfs': "http://www.opengis.net/wfs/2.0",
     'xmlns:xlink': "http://www.w3.org/1999/xlink",
     'xmlns:xsi': "http://www.w3.org/2001/XMLSchema-instance",
-    'xmlns:app': "https://www.gov.pl/static/zagospodarowanieprzestrzenne/schemas/app/2.0",
-    'xsi:schemaLocation': "https://www.gov.pl/static/zagospodarowanieprzestrzenne/schemas/app/2.0 https://www.gov.pl/static/zagospodarowanieprzestrzenne/schemas/app/2.0/planowaniePrzestrzenne_2_0.xsd http://www.opengis.net/gml/3.2 http://schemas.opengis.net/gml/3.2.1/gml.xsd http://www.opengis.net/wfs/2.0 http://schemas.opengis.net/wfs/2.0/wfs.xsd"
+    'xmlns:app': "https://www.gov.pl/static/zagospodarowanieprzestrzenne/schemas/app/3.0",
+    'xsi:schemaLocation': "https://www.gov.pl/static/zagospodarowanieprzestrzenne/schemas/app/3.0 https://www.gov.pl/static/zagospodarowanieprzestrzenne/schemas/app/3.0/planowaniePrzestrzenne_3_0.xsd http://www.opengis.net/gml/3.2 http://schemas.opengis.net/gml/3.2.1/gml.xsd http://www.opengis.net/wfs/2.0 http://schemas.opengis.net/wfs/2.0/wfs.xsd"
 }
 
 charakterUstaleniaListaKodowa = {
@@ -382,14 +400,6 @@ profilPodstawowyLubDodatkowyListaKodowa = {
                                             "teren zieleni naturalnej":"https://www.gov.pl/static/zagospodarowanieprzestrzenne/ontology/KPT#KPT-MPZP-ZN",
                                             "teren zieleni urządzonej":"https://www.gov.pl/static/zagospodarowanieprzestrzenne/ontology/KPT#KPT-MPZP-ZP"
                                           }
-
-typyPlanu = {
-    "miejscowy plan zagospodarowania przestrzennego": "miejscowyPlanZagospodarowaniaPrzestrzennego",
-    "plan zagospodarowania przestrzennego województwa": "planZagospodarowaniaPrzestrzennegoWojewodztwa",
-    "studium uwarunkowań i kier. zagosp. przestrz. gminy": "studiumUwarunkowanIKierunkowZagospodarowaniaPrzestrzennegoGminy",
-    "miejscowy plan odbudowy": "miejscowyPlanOdbudowy",
-    "miejscowy plan rewitalizacji": "miejscowyPlanRewitalizacji"
-}
 
 typyPlanuListaKodowa = {
     'plan ogólny gminy':'https://www.gov.pl/static/zagospodarowanieprzestrzenne/codelist/TypAktuPlanowaniaPrzestrzennegoKod/planOgolnyGminy'

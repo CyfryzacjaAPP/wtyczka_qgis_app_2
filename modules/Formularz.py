@@ -12,6 +12,7 @@ class NoScrollQComboBox(QComboBox):
     """Combobox bez scrolla"""
 
     def wheelEvent(self, event):
+        """Realizuje operację `wheelEvent` w bieżącym module."""
         event.ignore()
 
 
@@ -19,10 +20,12 @@ class NoScrollQgsDateTimeEdit(QgsDateTimeEdit):
     """QgsDateTimeEdit bez scrolla"""
 
     def __init__(self, parent=None):
+        """Inicjalizuje obiekt klasy `NoScrollQgsDateTimeEdit` i konfiguruje jego stan początkowy."""
         super(NoScrollQgsDateTimeEdit, self).__init__()
         self.setDisplayFormat('dd.MM.yyyy hh:mm:ss')
 
     def wheelEvent(self, event):
+        """Realizuje operację `wheelEvent` w bieżącym module."""
         event.ignore()
 
 
@@ -45,9 +48,11 @@ class Formularz:
                 "zasiegPrzestrzenny",
                 "zmiana",
                 "wydzielenie",
-                "regulacja"]
+                "regulacja",
+                "zmienianyPlan"]
 
     def returnFormElements(self, formElements):
+        """Realizuje operację `returnFormElements` w bieżącym module."""
         for fe in formElements:
             print('\t'+fe.name)
             try:
@@ -87,7 +92,7 @@ class Formularz:
         wgtMain = QWidget()
         vbox = QVBoxLayout(wgtMain)
         self.__loopFormElements(formElements, vbox)
-
+        
         self.__preparePoziomHierarchii(vbox)
         container.setWidget(wgtMain)
 
@@ -95,24 +100,26 @@ class Formularz:
         """definiuje autouzupełnianie poziomHierarchii (INSPIRE)
         na podstawie typPlanu"""
         def typPlanu_cmbbx_currentTextChanged(currentText):
+            """Realizuje operację `typPlanu_cmbbx_currentTextChanged` w bieżącym module."""
             if currentText.strip():
                 poziomHierarchii_cmbbx.clear()
-                wybor = dictionaries.typyPlanuPoziomyHierarchii[currentText]
+                wybor = dictionaries.typyPlanuPoziomyHierarchii.get(currentText, [])
                 poziomHierarchii_cmbbx.addItems(wybor)
-
+                
         # pobranie dynamicznie utworzonych obiektów UI
         poziomHierarchii_cmbbx = utils.layout_widget_by_name(
             layout, "poziomHierarchii_cmbbx")
         typPlanu_cmbbx = utils.layout_widget_by_name(layout, "typPlanu_cmbbx")
         if poziomHierarchii_cmbbx and typPlanu_cmbbx:   # jeżeli formularz zawiera te pola
-            typPlanu_cmbbx.currentTextChanged.connect(
-                typPlanu_cmbbx_currentTextChanged)
+            typPlanu_cmbbx.currentTextChanged.connect(typPlanu_cmbbx_currentTextChanged)
+            typPlanu_cmbbx_currentTextChanged(typPlanu_cmbbx.currentText())
 
     def __loopFormElements(self, formElements, vbox, prefix=''):
         """Przerabia listę obiektów FormElements na GUI"""
         def createListWidget(name):
             """Tworzy listę dla pól wielokrotnej liczności"""
             def checkListFormValidity():
+                """Wykonuje kontrolę danych w ramach operacji `checkListFormValidity`."""
                 if name == 'mapaPodkladowa':
                     if not referencja_lineEdit.text():
                         return False
@@ -126,6 +133,7 @@ class Formularz:
                         return False
 
             def addItem():
+                """Dodaje dane lub elementy obsługiwane przez operację `addItem`."""
                 if checkListFormValidity():
                     newListWidgetItem = QListWidgetItem()
                     data = {}
@@ -165,6 +173,7 @@ class Formularz:
                                         "Musisz wpisać wartość przed dodaniem")
 
             def removeItem():
+                """Usuwa dane lub elementy obsługiwane przez operację `removeItem`."""
                 listWidget.takeItem(listWidget.currentRow())
                 if listWidget.currentRow() == -1:
                     referencja_lineEdit = utils.layout_widget_by_name(vbox2, name="referencja_lineEdit")
@@ -173,6 +182,7 @@ class Formularz:
                     data_dateTimeEdit.setStyleSheet("border: 1px solid red")
 
             def clearDataFromListWidget():
+                """Czyści dane lub stan obsługiwany przez operację `clearDataFromListWidget`."""
                 for formItem in formItems:
                     if isinstance(formItem, QCheckBox):
                         formItem.setChecked(False)
@@ -182,6 +192,7 @@ class Formularz:
                         formItem.clear()
 
             def setDataToListWidget(listItem):
+                """Ustawia dane lub stan wymagany przez operację `setDataToListWidget`."""
                 data = listItem.data(Qt.UserRole)
                 for formItem in formItems:
                     if isinstance(formItem, QLineEdit):
@@ -212,6 +223,7 @@ class Formularz:
             # buttony
             btnHBox = QHBoxLayout()
             addBtn = QPushButton("Dodaj")
+            addBtn.setObjectName(formElement.name + "_buttonWidget")
             addBtn.clicked.connect(addItem)
             remBtn = QPushButton("Usuń")
             remBtn.clicked.connect(removeItem)
@@ -332,6 +344,7 @@ class Formularz:
 
     def __makeInput(self, formElement):
         # pole wprowadzania
+        """Zwraca wynik operacji `__makeInput` wykonywanej w bieżącym module."""
         if formElement.name == "ukladOdniesieniaPrzestrzennego":
             input = NoScrollQComboBox()
             input.setObjectName(formElement.name + '_cmbbx')
@@ -411,14 +424,37 @@ class Formularz:
         # ustawienie domyślnych wartości
         fullFormElementName = formElement.form + ":" + formElement.name
         
-        # ustawienie podpowiedzi
-        if fullFormElementName in dictionaries.placeholders.keys():
-            input.setPlaceholderText('np.: ' + dictionaries.placeholders[fullFormElementName])  # dla pól tekstowych
+        # ustawienie placeholdera zależnego od rodzaju zbioru APP
+        if formElement.name == 'tytulAlternatywny':
+            s = QgsSettings()
+            rodzajZbioru = s.value(
+                "qgis_app2/settings/rodzajZbioru", ""
+            )
+        
+            if rodzajZbioru == 'MPZP':
+                placeholder = (
+                    'np. MPZP … - przekazany do uzgodnień i opiniowania'
+                )
+            elif rodzajZbioru:
+                placeholder = (
+                    f'np. {rodzajZbioru} - przekazany do uzgodnień i opiniowania'
+                )
+            else:
+                placeholder = ''
+        
+            input.setPlaceholderText(placeholder)
+        
+        # dotychczasowe placeholdery dla pozostałych pól
+        elif fullFormElementName in dictionaries.placeholders:
+            input.setPlaceholderText(
+                'np.: ' + dictionaries.placeholders[fullFormElementName]
+            )
             
         return input
 
 
     def kontrola(self, txt, obj, name):
+        """Wykonuje kontrolę danych w ramach operacji `kontrola`."""
         if txt == '' or txt == 'wybierz' or (txt == PyQt5.QtCore.QDateTime() and name != 'obowiazujeDo'):
             obj.setStyleSheet("border: 1px solid red")
         else:
@@ -428,15 +464,15 @@ class Formularz:
             if name == 'data' and obj.date().toString("dd-MM-yyyy") != '' and obj.parent().title() == 'mapa podkładowa':
                 referencja_lineEdit = utils.layout_widget_by_name(obj.parent().children()[0], name="referencja_lineEdit")
                 referencja_lineEdit.setStyleSheet("")
-        except:
-            pass
+        except Exception as e:
+            print(e)
         
         try:
             if name == 'data' and obj.date().toString("dd-MM-yyyy") == '' and obj.parent().title() == 'mapa podkładowa':
                 referencja_lineEdit = utils.layout_widget_by_name(obj.parent().children()[0], name="referencja_lineEdit")
                 referencja_lineEdit.setStyleSheet("border: 1px solid red")
-        except:
-            pass
+        except Exception as e:
+            print(e)
         
         if name == 'status':
             self.obowiazujeDo_dateTimeEdit = utils.layout_widget_by_name(self.form_scrollArea.widget().layout(), name="obowiazujeDo_dateTimeEdit")
@@ -452,8 +488,8 @@ class Formularz:
                     self.obowiazujeDo_dateTimeEdit.setStyleSheet("border: 1px solid red")
                 else:
                     self.obowiazujeDo_dateTimeEdit.setStyleSheet("")
-            except:
-                pass
+            except Exception as e:
+                print(e)
         
         if name == 'status':
             self.obowiazujeDo_lbl = utils.layout_widget_by_name(self.form_scrollArea.widget().layout(), name="obowiazujeDo_lbl")
@@ -464,6 +500,7 @@ class Formularz:
 
 
     def __makeTooltip(self, formElement):
+        """Zwraca wynik operacji `__makeTooltip` wykonywanej w bieżącym module."""
         fullFormElementName = formElement.form + ":" + formElement.name
         tooltipImg = QLabel()
         p = QPixmap(':/plugins/wtyczka_app/img/info1.png')
@@ -480,18 +517,19 @@ class Formularz:
 
 
     def setDefaultValues(self):
+        """Ustawia dane lub stan wymagany przez operację `setDefaultValues`."""
         s = QgsSettings()
         for fe in self.formElements:
             try:
                 valuePath = "qgis_app2/settings/%s" % fe.name
                 feValue = s.value(valuePath, "")
                 utils.setValueToWidget(fe, feValue)
-            except:
-                pass
+            except Exception as e:
+                print(e)
             for inner in fe.innerFormElements:
                 try:
                     valuePath = "qgis_app2/settings/%s" % inner.name
                     feValue = s.value(valuePath, "")
                     utils.setValueToWidget(inner, feValue)
-                except:
-                    pass
+                except Exception as e:
+                    print(e)

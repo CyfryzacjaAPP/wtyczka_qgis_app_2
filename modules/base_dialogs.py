@@ -11,6 +11,7 @@ from .settings import ustawieniaDialog, pomocDialog
 class ButtonsDialog:
     """Okno z klawiszami - przejścia do ustawień"""
     def __init__(self):
+        """Inicjalizuje obiekt klasy `ButtonsDialog` i konfiguruje jego stan początkowy."""
         vLayout = self.layout().itemAt(0)
         
         hbox = QHBoxLayout()
@@ -34,9 +35,11 @@ class ButtonsDialog:
         vLayout.insertLayout(0, hbox)
     
     def settings_btn_clicked(self):
+        """Obsługuje kliknięcie przycisku związanego z operacją `settings`."""
         ustawieniaDialog.show()
     
     def help_btn_clicked(self):
+        """Obsługuje kliknięcie przycisku związanego z operacją `help`."""
         pomocDialog.show()
 
 
@@ -45,6 +48,7 @@ class CloseMessageDialog(QDialog):
     closed = pyqtSignal()
 
     def closeEvent(self, event):
+        """Obsługuje zamknięcie okna i wykonuje wymagane czynności porządkowe."""
         if self.sender() is None:
             reply = QMessageBox.question(self, 'Opuszczanie wtyczki APP',
                                          "Jesteś pewien, że chcesz opuścić wtyczkę?", QMessageBox.Yes |
@@ -110,6 +114,7 @@ class BaseModule:
 
 
     def openNewDialog(self, dlg):
+        """Otwiera zasób lub element interfejsu wymagany przez operację `openNewDialog`."""
         if self.activeDlg:
             self.activeDlg.close()
         self.activeDlg = dlg
@@ -117,6 +122,7 @@ class BaseModule:
 
 
     def showPopupYesNo(self, title, text, functionIfYes):
+        """Wyświetla komunikat związany z operacją `showPopupYesNo`."""
         msg = QMessageBox()
         msg.setIcon(QMessageBox.Question)
         msg.setWindowTitle(title)
@@ -133,11 +139,14 @@ class BaseModule:
 
 
     def showPopupValidationErrors(self, title, text, icon=QMessageBox.Warning):
+        """Wyświetla komunikat związany z operacją `showPopupValidationErrors`."""
         def saveErrorsFile(outputFile):
+            """Zapisuje dane obsługiwane przez operację `saveErrorsFile`."""
             with open(outputFile, 'w') as plik:
                 plik.write(text)
         
         def saveErrors():
+            """Zapisuje dane obsługiwane przez operację `saveErrors`."""
             plik = QFileDialog.getSaveFileName(
                 filter="Pliki tekstowe (*.txt)")[0]
             if plik:

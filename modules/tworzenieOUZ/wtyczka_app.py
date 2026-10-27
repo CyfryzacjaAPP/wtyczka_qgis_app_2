@@ -5,21 +5,21 @@ from ..utils import showPopup
 from ..app.wtyczka_app import AppModule
 from qgis.PyQt import QtWidgets
 from PyQt5.QtWidgets import QFileDialog, QTableWidgetItem
-import os
-import shutil
-from qgis.core import *
-from PyQt5.QtCore import *
-from qgis import processing
-from processing.core.Processing import Processing
-import pathlib
 from qgis.core import QgsSettings, QgsDistanceArea
 from datetime import date, datetime, timezone
-import xml.etree.ElementTree as ET
+from qgis.core import *
+from PyQt5.QtCore import *
+import os
+import shutil
+import processing
+import pathlib
+import xml.etree.ElementTree as ET  # nosec B405
 
 
 class TworzenieOUZModule(BaseModule):
 
     def __init__(self, iface):
+        """Inicjalizuje obiekt klasy `TworzenieOUZModule` i konfiguruje jego stan początkowy."""
         self.iface = iface
         self.tworzenieOUZ = None
         self.tworzenieOUZDialog = TworzenieOUZDialog()
@@ -30,7 +30,7 @@ class TworzenieOUZModule(BaseModule):
     """Event handlers"""
 
     def tworzenieOUZ_btn_clicked(self):
-        Processing.initialize()
+        """Obsługuje kliknięcie przycisku związanego z operacją `tworzenieOUZ`."""
         s = QgsSettings()
         rodzajZbioru = s.value("qgis_app2/settings/rodzajZbioru", "")
         numerZbioru = s.value("qgis_app2/settings/numerZbioru", "")
@@ -66,6 +66,7 @@ class TworzenieOUZModule(BaseModule):
             return
         
         def powierzchniaNaElipsoidzie(self, feature):
+            """Oblicza powierzchnię geometrii na elipsoidzie."""
             d = QgsDistanceArea()
             d.setEllipsoid('WGS84')
             geom = feature.geometry()
@@ -103,6 +104,7 @@ class TworzenieOUZModule(BaseModule):
         
         spatial_index = QgsSpatialIndex(warstwaZBudynkami.getFeatures())
         def znajdz_grupe(feature, odwiedzone):
+            """Wyszukuje elementy wymagane przez operację `znajdz_grupe`."""
             sasiedzi_grupy = set()
             stack = [feature]
             while stack:
@@ -181,7 +183,7 @@ class TworzenieOUZModule(BaseModule):
         
         # do wyliczenia Pb przycięcie do POG
         if warstwaZPOG.featureCount() > 0:
-            buforyBezDziurPrzycieteDoPOG = processing.run("qgis:clip", {
+            buforyBezDziurPrzycieteDoPOG = processing.run("native:clip", {
                 'INPUT': buforyBezDziur['OUTPUT'],
                 'OVERLAY': warstwaZPOG,
                 'OUTPUT': 'memory:'
@@ -218,7 +220,7 @@ class TworzenieOUZModule(BaseModule):
         
         # jeżeli jest obiekt POG to przecięcie z OUZ
         if warstwaZPOG.featureCount() > 0:
-            przyciecie = processing.run("qgis:clip", {
+            przyciecie = processing.run("native:clip", {
                 'INPUT': pojedynczeBufory40m['OUTPUT'],
                 'OVERLAY': warstwaZPOG,
                 'OUTPUT': 'memory:'
@@ -344,9 +346,10 @@ class TworzenieOUZModule(BaseModule):
                     ouz.setGeometry(ouz.geometry())
                     
                     if warstwaZPOG.featureCount() > 0:
+                        fields = warstwaZPOG.fields().names()
                         for pog in warstwaZPOG.getFeatures():
                             ouz.setAttribute(8,pog['OBOWIAZUJEOD'])
-                            if pog['STATUS'] != NULL:
+                            if 'STATUS' in fields and pog['STATUS'] != NULL:
                                 ouz.setAttribute(10,pog['STATUS'])
                     
                     gkpg.updateFeature(ouz)
